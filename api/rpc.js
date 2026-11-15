@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '2';
+const SCHEMA_VERSION = '3';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -28,6 +28,7 @@ const FN = {
   claimBday:     ['wc_claim_bday',    ['token'], ['text']],
   activateOffer: ['wc_activate_offer',['token', 'offer'], ['text', 'bigint']],
   redeem:        ['wc_redeem',        ['token', 'product'], ['text', 'int']],
+  promoActivate: ['wc_promo_activate',['token', 'promo'], ['text', 'bigint']],
   hasAdmin:      ['wc_has_admin',     [], []],
   staffLogin:    ['wc_staff_login',   ['name', 'pin'], ['text', 'text']],
   staffMe:       ['wc_staff_me',      ['token'], ['text']],
@@ -36,6 +37,7 @@ const FN = {
   addPurchase:   ['wc_add_purchase',  ['token', 'customer', 'product', 'qty'], ['text', 'uuid', 'int', 'int']],
   undoOrder:     ['wc_undo_order',    ['token', 'order'], ['text', 'bigint']],
   useVoucher:    ['wc_use_voucher',   ['token', 'voucher'], ['text', 'bigint']],
+  redeemCode:    ['wc_redeem_code',   ['token', 'code'], ['text', 'text']],
   validateOffer: ['wc_validate_offer',['token', 'offer'], ['text', 'bigint']],
   changePin:     ['wc_change_pin',    ['token', 'old', 'pin'], ['text', 'text', 'text']],
   dashboard:     ['wc_dashboard',     ['token'], ['text']],
@@ -102,7 +104,7 @@ module.exports = async function handler(req, res) {
 
     if (fn === 'setupAdmin') {
       // First admin only, protected by the SETUP_CODE environment variable.
-      if (!process.env.SETUP_CODE || !safeEq(args.code, process.env.SETUP_CODE)) return send(res, 403, { error: 'CODE' });
+      if (!process.env.SETUP_CODE || !safeEq(args.code, process.env.SETUP_CODE)) return send(res, 403, { error: 'SETUPCODE' });
       const r = await db().query('select public.wc_setup_admin($1::text) as r', [args.pin]);
       return send(res, 200, { data: r.rows[0].r });
     }

@@ -76,6 +76,18 @@ create table if not exists churros.promos(
   active boolean not null default true,
   created_at timestamptz not null default now());
 
+-- v3: every gift / discount has a secret code that the staff scans (QR) to use it
+alter table churros.vouchers add column if not exists code text not null default encode(gen_random_bytes(4),'hex');
+alter table churros.offers   add column if not exists code text not null default encode(gen_random_bytes(4),'hex');
+create table if not exists churros.promo_uses(
+  id bigint generated always as identity primary key,
+  promo_id bigint not null references churros.promos on delete cascade,
+  customer_id uuid not null references churros.customers on delete cascade,
+  code text not null default encode(gen_random_bytes(4),'hex'),
+  created_at timestamptz not null default now(),
+  used_at timestamptz, used_by uuid references churros.staff on delete set null,
+  unique (promo_id, customer_id));
+
 create index if not exists vouchers_open on churros.vouchers(customer_id) where used_at is null;
 create index if not exists offers_open on churros.offers(customer_id) where used_at is null;
 create index if not exists orders_cust on churros.orders(customer_id, created_at desc);
@@ -129,9 +141,9 @@ create or replace function churros.card(p_id uuid) returns json language sql sta
     'bday', c.bday, 'bdayY', c.bday_year, 'created', (extract(epoch from c.created_at)*1000)::bigint,
     'pp', coalesce((select json_object_agg(product_id, pts) from churros.points where customer_id = c.id and pts > 0), '{}'::json),
     'points', coalesce((select sum(pts) from churros.points where customer_id = c.id), 0),
-    'vouchers', coalesce((select json_agg(json_build_object('id',id,'n',name,'v',value,'kind',kind) order by id)
+    'vouchers', coalesce((select json_agg(json_build_object('id',id,'n',name,'v',value,'kind',kind,'code',code) order by id)
                  from churros.vouchers where customer_id = c.id and used_at is null), '[]'::json),
-    'offers', coalesce((select json_agg(json_build_object('id',o.id,'item',o.product_id,'off',o.off,
+    'offers', coalesce((select json_agg(json_build_object('id',o.id,'item',o.product_id,'off',o.off,'code',o.code,
                  'exp', case when o.expires_at is null then null else (extract(epoch from o.expires_at)*1000)::bigint end,
                  'expired', o.expires_at is not null and o.expires_at <= now()) order by o.id)
                from churros.offers o where o.customer_id = c.id and o.used_at is null), '[]'::json),
@@ -140,10 +152,18 @@ create or replace function churros.card(p_id uuid) returns json language sql sta
                    'd',to_char(r.created_at at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI')) x
                  from churros.orders r join churros.products p on p.id = r.product_id
                  where r.customer_id = c.id and r.undone_at is null order by r.created_at desc limit 10) q), '[]'::json),
-    'promos', coalesce((select json_agg(json_build_object('id',id,'type',kind,'pct',pct,'title',title,'desc',descr,
-                 'from',from_date,'until',until_date) order by id desc)
-               from churros.promos where active and (from_date is null or from_date <= churros.today())
-                 and (until_date is null or until_date >= churros.today())), '[]'::json),
+    'promos', coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'title',p.title,'desc',p.descr,
+                 'from',p.from_date,'until',p.until_date,'code',u.code,'useId',u.id) order by p.id desc)
+               from churros.promos p left join churros.promo_uses u on u.promo_id = p.id and u.customer_id = c.id
+               where p.active and (p.from_date is null or p.from_date <= churros.today())
+                 and (p.until_date is null or p.until_date >= churros.today()) and u.used_at is null), '[]'::json),
+    'used', coalesce((select json_agg(x order by x.t desc) from (
+                 select v.name n, 'gift' k, v.used_at t from churros.vouchers v where v.customer_id = c.id and v.used_at is not null
+                 union all select case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, 'promo', pu.used_at
+                   from churros.promo_uses pu join churros.promos p on p.id = pu.promo_id where pu.customer_id = c.id and pu.used_at is not null
+                 union all select '1 € zbritje për '||pr.name, 'offer', o.used_at
+                   from churros.offers o join churros.products pr on pr.id = o.product_id where o.customer_id = c.id and o.used_at is not null
+                 order by 3 desc limit 10) x), '[]'::json),
     'now', (extract(epoch from now())*1000)::bigint)
   from churros.customers c where c.id = p_id $$;
 
@@ -228,6 +248,47 @@ begin
   update churros.offers set expires_at = now() + interval '60 seconds'
    where id = p_offer and customer_id = cid and expires_at is null and used_at is null;
   return churros.card(cid);
+end $$;
+
+create or replace function public.wc_promo_activate(p_token text, p_promo bigint) returns json language plpgsql as $$
+declare cid uuid := churros.cust(p_token);
+begin
+  if not exists (select 1 from churros.promos where id = p_promo and active
+                   and (from_date is null or from_date <= churros.today()) and (until_date is null or until_date >= churros.today())) then
+    raise exception 'EXPIRED' using errcode='P0001'; end if;
+  if exists (select 1 from churros.promo_uses where promo_id = p_promo and customer_id = cid and used_at is not null) then
+    raise exception 'USED' using errcode='P0001'; end if;
+  insert into churros.promo_uses(promo_id, customer_id) values (p_promo, cid) on conflict (promo_id, customer_id) do nothing;
+  return churros.card(cid);
+end $$;
+
+-- Staff scans a gift / discount QR: WONDER-G:<V|P|O><id>.<code>. The item is marked used at once.
+create or replace function public.wc_redeem_code(p_token text, p_code text) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token); m text[]; k text; i bigint; c text; cid uuid; title text; expd timestamptz; was timestamptz;
+begin
+  m := regexp_match(trim(coalesce(p_code,'')), '^WONDER-G:([VPO])(\d+)\.([0-9a-f]{8})$', 'i');
+  if m is null then raise exception 'CODE' using errcode='P0001'; end if;
+  k := upper(m[1]); i := m[2]::bigint; c := lower(m[3]);
+  if k = 'V' then
+    select customer_id, name, used_at into cid, title, was from churros.vouchers where id = i and code = c for update;
+    if cid is null then raise exception 'CODE' using errcode='P0001'; end if;
+    if was is not null then raise exception 'USED' using errcode='P0001'; end if;
+    update churros.vouchers set used_at = now(), used_by = s.id where id = i;
+  elsif k = 'P' then
+    select pu.customer_id, case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, pu.used_at
+      into cid, title, was from churros.promo_uses pu join churros.promos p on p.id = pu.promo_id where pu.id = i and pu.code = c for update of pu;
+    if cid is null then raise exception 'CODE' using errcode='P0001'; end if;
+    if was is not null then raise exception 'USED' using errcode='P0001'; end if;
+    update churros.promo_uses set used_at = now(), used_by = s.id where id = i;
+  else
+    select o.customer_id, '1 € zbritje për '||pr.name, o.used_at, o.expires_at into cid, title, was, expd
+      from churros.offers o join churros.products pr on pr.id = o.product_id where o.id = i and o.code = c for update of o;
+    if cid is null then raise exception 'CODE' using errcode='P0001'; end if;
+    if was is not null then raise exception 'USED' using errcode='P0001'; end if;
+    if expd is null or expd <= now() then raise exception 'EXPIRED' using errcode='P0001'; end if;
+    update churros.offers set used_at = now(), used_by = s.id where id = i;
+  end if;
+  return json_build_object('kind', k, 'title', title, 'card', churros.card(cid));
 end $$;
 
 create or replace function public.wc_redeem(p_token text, p_product int) returns json language plpgsql as $$
@@ -350,7 +411,9 @@ begin
      'salesToday', (select coalesce(sum(total),0) from churros.orders where undone_at is null and (created_at at time zone 'Europe/Belgrade')::date = d),
      'salesMonth', (select coalesce(sum(total),0) from churros.orders where undone_at is null and date_trunc('month',(created_at at time zone 'Europe/Belgrade')) = date_trunc('month', d::timestamp)),
      'activeMonth', (select count(distinct customer_id) from churros.orders where undone_at is null and (created_at at time zone 'Europe/Belgrade')::date > d - 30),
-     'giftsUsed', (select count(*) from churros.vouchers where used_at is not null),
+     'giftsUsed', (select count(*) from churros.vouchers where used_at is not null)
+                  + (select count(*) from churros.promo_uses where used_at is not null)
+                  + (select count(*) from churros.offers where used_at is not null),
      'giftsOpen', (select count(*) from churros.vouchers where used_at is null),
      'pointsOpen', (select coalesce(sum(pts),0) from churros.points)),
    'days', (select json_agg(json_build_object('d', to_char(g,'DD.MM'), 'sales', coalesce(x.s,0), 'orders', coalesce(x.n,0)) order by g)
@@ -395,7 +458,15 @@ begin
       from churros.orders o join churros.products p on p.id=o.product_id left join churros.staff st on st.id=o.staff_id
       where o.customer_id=p_id order by o.created_at desc limit 100) y), '[]'::json),
     'spent', (select coalesce(sum(total),0) from churros.orders where customer_id=p_id and undone_at is null),
-    'giftsUsed', (select count(*) from churros.vouchers where customer_id=p_id and used_at is not null));
+    'redeemed', coalesce((select json_agg(json_build_object('n',x.n,'by',x.by,'d',to_char(x.t at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI')) order by x.t desc) from (
+        select v.name n, st.name by, v.used_at t from churros.vouchers v left join churros.staff st on st.id=v.used_by where v.customer_id=p_id and v.used_at is not null
+        union all select case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, st.name, pu.used_at
+          from churros.promo_uses pu join churros.promos p on p.id=pu.promo_id left join churros.staff st on st.id=pu.used_by where pu.customer_id=p_id and pu.used_at is not null
+        union all select '1 € zbritje për '||pr.name, st.name, o.used_at
+          from churros.offers o join churros.products pr on pr.id=o.product_id left join churros.staff st on st.id=o.used_by where o.customer_id=p_id and o.used_at is not null) x), '[]'::json),
+    'giftsUsed', (select count(*) from churros.vouchers where customer_id=p_id and used_at is not null)
+               + (select count(*) from churros.promo_uses where customer_id=p_id and used_at is not null)
+               + (select count(*) from churros.offers where customer_id=p_id and used_at is not null));
 end $$;
 
 create or replace function public.wc_reset_pin(p_token text, p_id uuid, p_pin text) returns json language plpgsql as $$
@@ -418,9 +489,10 @@ end $$;
 create or replace function public.wc_promos(p_token text) returns json language plpgsql stable as $$
 declare s churros.staff := churros.staff_of(p_token, true);
 begin
-  return coalesce((select json_agg(json_build_object('id',id,'type',kind,'pct',pct,'title',title,'desc',descr,'from',from_date,'until',until_date,
-      'live', active and (from_date is null or from_date <= churros.today()) and (until_date is null or until_date >= churros.today())) order by id desc)
-    from churros.promos where active), '[]'::json);
+  return coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'title',p.title,'desc',p.descr,'from',p.from_date,'until',p.until_date,
+      'uses',(select count(*) from churros.promo_uses u where u.promo_id=p.id and u.used_at is not null),
+      'live', p.active and (p.from_date is null or p.from_date <= churros.today()) and (p.until_date is null or p.until_date >= churros.today())) order by p.id desc)
+    from churros.promos p where p.active), '[]'::json);
 end $$;
 
 create or replace function public.wc_promo_add(p_token text, p_kind text, p_pct int, p_title text, p_desc text, p_from date, p_until date) returns json
@@ -466,4 +538,4 @@ begin
   return public.wc_staff_list(p_token);
 end $$;
 
-insert into churros.meta(k,v) values ('version','2') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','3') on conflict (k) do update set v = excluded.v;

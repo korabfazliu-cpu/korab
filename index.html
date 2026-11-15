@@ -236,7 +236,7 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .ptitle::after{content:"";display:block;width:56px;height:6px;margin:12px auto 0;border-radius:6px;background:#7C421C;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
 .badge .soon{font-size:14px;font-weight:700;white-space:nowrap;letter-spacing:0}
 
-#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:60;max-width:min(92vw,420px);background:#7C421C;color:#fff;font-weight:700;font-size:14.5px;line-height:1.35;padding:12px 18px;border-radius:18px;box-shadow:0 8px 24px rgba(60,25,5,.3);transition:opacity .25s,transform .25s;text-align:center}
+#toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:60;max-width:min(92vw,420px);background:#7C421C;color:#fff;font-weight:700;font-size:14.5px;line-height:1.35;padding:12px 18px;border-radius:18px;box-shadow:0 8px 24px rgba(60,25,5,.3);transition:opacity .25s,transform .25s;text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}#toast.bad{background:#b3261e}
 .btn.wait{opacity:.6;pointer-events:none}.btn:disabled{opacity:.6}
 .live{font-size:12.5px;font-weight:700;color:#1d7a3a;white-space:nowrap}
@@ -258,6 +258,13 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .avatar.sm{width:42px;height:42px;font-size:16px}
 .seg{display:flex;gap:8px;margin:10px 0}.seg label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border-radius:14px;padding:10px;font-weight:700;cursor:pointer}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two label{display:flex;flex-direction:column;gap:4px}
+.gact{margin-top:10px;align-self:flex-start}
+.gsheet,.gdone{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.gsheet h2,.gdone h2{margin:6px 0 2px;font-size:28px}.ribbon.static{position:static;transform:none;display:inline-block;margin-top:4px}
+.gqr{width:min(72vw,280px);background:#fff;border:3px solid #7C421C;border-radius:24px;padding:12px;box-shadow:0 5px 0 #7C421C;margin:8px 0}.gqr svg{width:100%;display:block}
+.gtime{font-weight:800;font-size:20px;color:#7C421C;margin:2px 0}.gtime .cdn{font-size:30px}
+.gok{width:86px;height:86px;border-radius:50%;background:#1d7a3a;color:#fff;font-size:50px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:10px 0 4px;animation:grow .4s cubic-bezier(.2,.8,.2,1) both}.gok.bad{background:#b3261e}
+.usedg{opacity:.8}.usedg b{color:#1d7a3a;font-size:13px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -331,7 +338,7 @@ const NAV=[['home','Start','🏠'],['wal','Kuleta','👛'],['menu','Menu','🍩'
 const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',wal:'<svg viewBox="0 0 24 24"><path d="M6 6h11a2 2 0 0 1 2 2"/><rect x="3" y="6" width="18" height="14" rx="3"/><rect x="14" y="11" width="7" height="4" rx="2"/><circle cx="16.6" cy="13" r=".6"/></svg>',menu:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'};NAV.forEach(n=>n[2]=IC[n[0]]);
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
 // ---- connection with the server (/api/rpc) ----
-const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Kjo dhuratë është përdorur tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',DONE:'Admini është krijuar tashmë.',CODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
+const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
 const errText=e=>ERR[e&&e.message]||ERR.SERVER;
 async function api(fn,args){let r;
  try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
@@ -392,10 +399,13 @@ function howSheet(){const st=(n,title,body)=>`<div class="hw"><span class="hwn">
  +`<p class="mut" style="margin:18px 0 12px">Ke pyetje? Pyet stafin tonë në dyqan.</p>`
  +(guest?`<button class="btn" style="width:100%" data-a="howjoin">Krijo llogarinë falas</button>`:`<button class="btn" style="width:100%" data-a="howclose">Kuptova</button>`))}
 // Gifts and discounts: the customer's own vouchers, company promotions (from the admin panel) and offers.
+const fdt=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',hour12:false})};
 const dmy=s=>s?String(s).slice(8,10)+'.'+String(s).slice(5,7)+'.'+String(s).slice(0,4):'';
+const gcode=(k,id,code)=>`WONDER-G:${k}${id}.${code}`;
+const gbtn=(k,id,lbl)=>`<button class="btn sm gact" data-a="gact" data-v="${k}:${id}">${lbl||'Aktivizo'}</button>`;
 function giftsAndDeals(u){const ps=u.promos||[];
- let h=(u.vouchers||[]).map(v=>`<div class="card tkt"><span class="ribbon">FALAS</span><b>${esc(v.n)}</b><span class="mut">Trego këtë në arkë</span></div>`).join('')
-  +ps.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+(+p.pct)+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.until?'Vlen deri më '+dmy(p.until)+' · ':''}Trego këtë në arkë</span></div>`).join('')
+ let h=(u.vouchers||[]).map(v=>`<div class="card tkt"><span class="ribbon">FALAS</span><b>${esc(v.n)}</b><span class="mut">Në arkë shtyp "Aktivizo" dhe trego kodin te stafi.</span>${gbtn('V',v.id)}</div>`).join('')
+  +ps.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+(+p.pct)+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.until?'Vlen deri më '+dmy(p.until)+' · ':''}Vlen një herë.</span>${gbtn('P',p.id,p.code?'Shfaq kodin':'Aktivizo')}</div>`).join('')
   +(u.offers||[]).map(o=>offerBox(o)).join('');
  if(!ps.length)h+=`<div class="card dealslot"><b>Dhurata dhe zbritje (%) nga Wonder Churros</b><span class="mut">Kur kemi një dhuratë ose zbritje për ty, ajo shfaqet pikërisht këtu.</span></div>`;
  return h}
@@ -405,9 +415,9 @@ const secs=o=>Math.max(0,Math.ceil((o.exp-now())/1000));
 function offerBox(o){const s=offerState(o),m=MENU.find(x=>x.id==o.item);
  return `<div class="card pr offer ${s==='x'?'dead':''}"><span class="ribbon">${s==='x'?'SKADUAR':'−'+K(o.off)}</span><img src="${IMG[m.i]}" alt="${m.n}"><div class="in"><b>${OFFER_TXT}</b><span class="mut">${m.n}: ${m.d}</span>`
  +(s==='n'?`<div class="row"><span class="badge">${K(m.p-o.off)}</span><button class="btn sm" data-a="act" data-v="${o.id}">Aktivizo</button></div><span class="mut">Pas aktivizimit ke 60 sekonda. Koha nuk mund të ndalet.</span>`
- :s==='a'?`<div class="row"><span class="cdw"><span class="cdn" data-exp="${o.exp}">${secs(o)}</span> sek</span></div><span class="mut">Trego këtë ekran në arkë para se të mbarojnë sekondat.</span>`
+ :s==='a'?`<div class="row"><span class="cdw"><span class="cdn" data-exp="${o.exp}">${secs(o)}</span> sek</span>${gbtn('O',o.id,'Shfaq kodin')}</div><span class="mut">Trego kodin në arkë para se të mbarojnë sekondat.</span>`
  :`<span class="mut">Oferta ka skaduar.</span>`)+`</div></div>`}
-function tick(){document.querySelectorAll('.cdn').forEach(e=>{const s=Math.max(0,Math.ceil((+e.dataset.exp-now())/1000));e.textContent=s;if(s===0&&!e.dataset.done){e.dataset.done=1;setTimeout(()=>STAFF_APP?refreshFound():render(),300)}})}
+function tick(){document.querySelectorAll('.cdn').forEach(e=>{const s=Math.max(0,Math.ceil((+e.dataset.exp-now())/1000));e.textContent=s;if(s===0&&!e.dataset.done){e.dataset.done=1;setTimeout(()=>{if(STAFF_APP)refreshFound();else{render();if(G&&!G.done)gSheet()}},300)}})}
 setInterval(tick,500);
 function vHome(){const u=U(),now=new Date();
  let h=`<h2 class="fancy" style="font-size:30px;margin:4px 0 12px">Përshëndetje, ${esc(u.name)}!</h2><div class="hero"><h2 class="fancy" style="font-size:24px">Mbledh pikë dhe merr dhurata!</h2><p>Ke <b>${fmtP(u.points)} pikë</b>${u.vouchers.length?` dhe ${u.vouchers.length} dhuratë`:''}.</p><button class="btn" data-a="tab" data-v="wal">Kuleta →</button></div>`;
@@ -422,6 +432,7 @@ function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
  return `<div class="hero"><div class="hrow"><div class="hpts"><span class="mut">Pikët e mbledhura</span><div class="big fancy">${fmtP(u.points)}<span style="font-size:18px"> pikë</span></div><div class="hid"><span>${FN(u)}</span><b>ID ${u.mid}</b></div></div><div class="hqr" aria-label="QR-ja jote për arkën">${qrSvg(qrPay(u))}</div></div><div class="bar"><i style="width:${nx?pr(nx)*100:rdy?100:0}%"></i></div><span class="mut">${nx?`Edhe ${fmtP(RC(nx)-pp[nx.id])} pikë deri te ${nx.n} falas`:rdy?'Ke produkt falas gati!':'Blej një produkt dhe fillon të mbledhësh pikë'}</span><div class="how">1 € blerje = 1 pikë · 9 blerje = i 10-ti falas</div></div><p class="mut hstep">Në arkë: 1. Stafi skanon QR-në tënde. 2. Hap produktin që blen te <b>Menu</b> dhe trego QR-në e tij. Pikët shtohen automatikisht.</p>`
  +(ready.length?`<h3>Produkt falas për ty</h3><p class="mut" style="margin:0 0 10px">Ke mbledhur pikët e mjaftueshme. Merre falas dhe tregoje në arkë.</p>`+ready.map(m=>`<div class="card item pg ok">${th(m)}<div class="t"><b>${m.n}</b><span class="mut">${fmtP(pp[m.id])} / ${fmtP(RC(m))} pikë</span><div class="pbar"><i style="width:100%"></i></div></div><button class="btn sm" data-a="redeem" data-v="${m.id}">Merre falas</button></div>`).join(''):'')
  +`<h3>Dhurata dhe zbritje</h3>`+giftsAndDeals(u)
+  +((u.used||[]).length?`<h3>Të shfrytëzuara</h3>`+u.used.map(x=>`<div class="card row usedg"><span>✓ ${esc(x.n)}<br><span class="mut">${fdt(x.t)}</span></span><b>U shfrytëzua</b></div>`).join(''):'')
   +`<h3>Historiku i pikëve</h3>`+(hist||'<div class="card mut">Ende nuk ke blerje. Pas çdo blerjeje në dyqan fiton pikë.</div>')}
 function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd(pm)}
  if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Kids box':[IMGL.kids,'center 40%'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[IMGL.latte,'center 74%'],'Coffee':[IMGL.coffee,'right center']};
@@ -443,18 +454,36 @@ function render(){const u=U();document.body.classList.toggle('guest',!u&&!db.rol
  $('nav').innerHTML=NAV.map(([k,l,e])=>`<button class="${tab===k?'on':''}" data-a="tab" data-v="${k}"><span>${e}</span>${l}</button>`).join('');
  $('main').innerHTML=({home:vHome,wal:vWal,menu:vMenu,me:vMe})[tab]()}
 
+// ---- customer: gift code sheet (staff scans it, the item is used at once) ----
+let G=null; // {k,id}
+function gItem(k,id){const u=S.me;if(!u)return null;
+ if(k==='V'){const v=(u.vouchers||[]).find(x=>x.id==id);return v&&{title:v.n,rib:'FALAS',code:gcode('V',v.id,v.code)}}
+ if(k==='P'){const p=(u.promos||[]).find(x=>x.id==id);return p&&p.code&&{title:p.title,rib:p.type==='pct'?'−'+p.pct+'%':'DHURATË',code:gcode('P',p.useId,p.code),until:p.until}}
+ const o=(u.offers||[]).find(x=>x.id==id);if(!o)return null;const m=MENU.find(x=>x.id==o.item);
+ return {title:OFFER_TXT,rib:'−'+K(o.off),code:gcode('O',o.id,o.code),exp:o.exp,dead:offerState(o)==='x',sub:m?m.n:''}}
+function gSheet(){if(!G)return;const it=gItem(G.k,G.id);
+ if(!it){sheet(`<div class="gdone"><div class="gok">✓</div><h2 class="fancy">U shfrytëzua!</h2><p>${esc(G.title||'')}</p><p class="mut">Stafi e skanoi kodin. Të bëftë mirë! 🍩</p><button class="btn" style="width:100%" data-a="gclose">Mbyll</button></div>`);G.done=true;return}
+ G.title=it.title;
+ if(it.dead){sheet(`<div class="gdone"><div class="gok bad">!</div><h2 class="fancy">Oferta skadoi</h2><p class="mut">Koha prej 60 sekondash mbaroi para skanimit.</p><button class="btn" style="width:100%" data-a="gclose">Mbyll</button></div>`);G.done=true;return}
+ sheet(`<div class="gsheet"><span class="ribbon static">${esc(it.rib)}</span><h2 class="fancy">${esc(it.title)}</h2>${it.sub?`<p class="mut" style="margin:-6px 0 6px">${esc(it.sub)}</p>`:''}<div class="gqr">${qrSvg(it.code)}</div>`
+  +(it.exp?`<p class="gtime"><span class="cdn" data-exp="${it.exp}">${Math.max(0,Math.ceil((it.exp-now())/1000))}</span> sekonda</p>`:'')
+  +`<p class="mut">Trego këtë kod te stafi në arkë. Pas skanimit shfrytëzohet menjëherë dhe nuk vlen më.</p><button class="btn ghost" style="width:100%" data-a="gclose">Mbyll</button></div>`)}
+function gCheck(){if(G&&!G.done&&$('ov').classList.contains('show')){const it=gItem(G.k,G.id);if(!it||it.dead){if(!it&&navigator.vibrate)navigator.vibrate([60,40,60]);gSheet()}}}
+
 // ---- customer: live wallet ----
 let pollT=null,lastSig='';
 const sig=c=>c?JSON.stringify([c.pp,c.vouchers,c.offers,c.orders&&c.orders[0],c.promos,c.phone,c.bday,c.bdayY]):'';
-async function pollMe(){if(STAFF_APP||!S.tok||document.hidden)return;
+async function pollMe(){if(STAFF_APP||!S.tok||document.hidden||pollMe.busy)return;pollMe.busy=true;try{await pollMe2()}finally{pollMe.busy=false}}
+async function pollMe2(){
  try{const c=await api('me',{token:S.tok});const before=S.me?Number(S.me.points):null;const ch=sig(c)!==sig(S.me);setMe(c);
   if(ch){const ae=document.activeElement,typing=ae&&ae.tagName==='INPUT'&&$('main').contains(ae);if(!typing)render();
-   if(before!=null&&Number(c.points)>before)toast(`+${fmtP(Number(c.points)-before)} pikë u shtuan në kuletën tënde!`)}}catch(e){}}
+   if(before!=null&&Number(c.points)>before)toast(`+${fmtP(Number(c.points)-before)} pikë u shtuan në kuletën tënde!`)}gCheck()}catch(e){}}
 function startPoll(){clearInterval(pollT);pollT=setInterval(STAFF_APP?staffPoll:pollMe,4000)}
+setInterval(()=>{if(!STAFF_APP&&G&&!G.done&&$('ov').classList.contains('show'))pollMe()},1500);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)(STAFF_APP?staffPoll:pollMe)()});
 
 document.addEventListener('click',async e=>{
- if(e.target.id==='ov'){stopScan();closeS();return}
+ if(e.target.id==='ov'){stopScan();G=null;closeS();return}
  {const hb=e.target.closest('[data-a=how],[data-a=howclose],[data-a=howjoin],[data-a=hjump]');if(hb){e.preventDefault();const k=hb.dataset.a;
   if(k==='how'){howSheet();$('sheet').scrollTop=0}
   else if(k==='hjump'){const el=$(hb.dataset.v),sh=$('sheet');if(el)sh.scrollTo({top:el.offsetTop-sh.offsetTop-12,behavior:'smooth'});document.querySelectorAll('.hjump .chp').forEach(x=>x.classList.toggle('on',x===hb))}
@@ -477,7 +506,11 @@ document.addEventListener('click',async e=>{
  else if(a==='tab'){tab=v;pd=null;if(v==='menu')cat=null;render();scrollTo(0,0)}
  else if(a==='cat'){ms0=scrollY;cat=v;pd=null;render();scrollTo(0,0)}
  else if(a==='cback'){cat=null;pd=null;render();scrollTo(0,ms0)}
- else if(a==='act')await call('activateOffer',{token:S.tok,offer:+v},r=>{setMe(r);render()})
+ else if(a==='act')await call('activateOffer',{token:S.tok,offer:+v},r=>{setMe(r);render();G={k:'O',id:+v};gSheet()})
+ else if(a==='gact'){const [k,id]=v.split(':');
+  if(k==='P'&&!(S.me.promos||[]).find(x=>x.id==id&&x.code))await call('promoActivate',{token:S.tok,promo:+id},r=>{setMe(r);render()});
+  G={k,id:+id};gSheet()}
+ else if(a==='gclose'){G=null;closeS()}
  else if(a==='slp'){const s=$('slp');if(s)s.scrollBy({left:+v*s.clientWidth*.7,behavior:'smooth'})}
  else if(a==='prod'){mscroll=scrollY;pd=+v;render();scrollTo(0,0)}
  else if(a==='pback'){pd=null;render();scrollTo(0,mscroll)}
@@ -519,7 +552,7 @@ function stArka(){const u=st.found;
  +`<div class="card"><b>Ose regjistro me dorë</b><div class="mut">Zgjidh produktin dhe sasinë.</div><select id="spp">${MENU.filter(m=>m.p).map(m=>`<option value="${m.id}">${esc(m.n)} · ${K(m.p)}</option>`).join('')}</select><input type="number" id="sqty" min="1" max="100" value="1" inputmode="numeric"><button class="btn" style="width:100%" data-a="st_pts">Shto pikët</button></div>`;
  h+='<h3>Ofertat</h3>'+(ofs.length?ofs.map(o=>{const s=offerState(o);return s==='a'?`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">Aktive: <span class="cdn" data-exp="${o.exp}">${secs(o)}</span> sek</span></span><button class="btn sm" data-a="st_offer" data-v="${o.id}">Vlerëso</button></div>`
   :`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">${s==='x'?'Ka skaduar':'Klienti duhet ta aktivizojë në telefon'}</span></span></div>`}).join(''):'<div class="card mut">Asnjë ofertë aktive.</div>');
- h+='<h3>Dhuratat</h3>'+((u.vouchers||[]).length?u.vouchers.map(v=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn sm" data-a="st_vuse" data-v="${v.id}">Përdor</button></div>`).join(''):'<div class="card mut">Asnjë dhuratë.</div>');
+ h+='<h3>Dhuratat</h3><p class="mut" style="margin:-4px 4px 8px">Klienti shtyp "Aktivizo" te Kuleta dhe ju skanoni kodin. Butoni vetëm kur skanimi s\'është i mundur.</p>'+((u.vouchers||[]).length?u.vouchers.map(v=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn ghost sm" data-a="st_vuse" data-v="${v.id}">Përdor pa skanim</button></div>`).join(''):'<div class="card mut">Asnjë dhuratë.</div>');
  if((u.promos||[]).length)h+='<h3>Promocionet aktive</h3>'+u.promos.map(p=>`<div class="card row"><span>${p.type==='pct'?'−'+p.pct+'%':'🎁'} ${esc(p.title)}</span></div>`).join('');
  return h}
 
@@ -532,7 +565,7 @@ function stDash(){const d=st.dash;if(!d)return '<div class="card mut">Duke ngark
  const kp=(l,v,s,c)=>`<div class="kpi${c?' '+c:''}"><span>${l}</span><b>${v}</b>${s?`<i>${s}</i>`:''}</div>`;
  const tmax=Math.max(1,...(d.top||[]).map(t=>+t.q));
  return `<div class="dhead"><h1 class="ptitle" style="margin:0">Paneli</h1><span class="live">● live${st.dashAt?' · '+st.dashAt.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):''}</span></div>`
- +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' blerje','hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të përdorura',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
+ +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' blerje','hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të shfrytëzuara',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
  +`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
  +`<div class="dgrid"><div class="card"><b>Produktet më të shitura</b><div class="mut" style="margin-bottom:8px">30 ditët e fundit</div>${(d.top||[]).length?d.top.map(t=>`<div class="tb"><div class="row"><span>${esc(t.n)}</span><b>${t.q} copë</b></div><div class="pbar"><i style="width:${Math.round(+t.q/tmax*100)}%"></i></div></div>`).join(''):'<div class="mut">Ende pa shitje.</div>'}</div>`
  +`<div class="card"><b>Stafi sot</b><div style="margin-top:8px">${(d.staffToday||[]).map(s=>`<div class="row"><span>👤 ${esc(s.n)}</span><b>${s.orders} · ${eur(s.sales)}</b></div>`).join('')||'<div class="mut">—</div>'}</div></div></div>`
@@ -544,23 +577,24 @@ function stKl(){const l=st.kl;
 async function custSheet(id){sheet('<p class="mut">Duke ngarkuar…</p>');
  try{const r=await api('customer',{token:ST.tok,id});const u=r.card;
   sheet(`<div class="ahead" style="display:flex;gap:12px;align-items:center"><span class="avatar">${esc(((u.name||'')[0]||'')+((u.surname||'')[0]||''))}</span><div><h2 class="fancy" style="margin:0;font-size:26px">${FN(u)}</h2><span class="mut">ID ${u.mid} · anëtar që nga ${new Date(u.created).toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'})}</span></div></div>`
-  +`<div class="rows card" style="margin-top:12px"><div class="r"><span>Email</span><b>${esc(u.email)}</b></div><div class="r"><span>Telefoni</span><b>${u.phone?esc(u.phone):'—'}</b></div><div class="r"><span>Ditëlindja</span><b>${u.bday?dmy(u.bday):'—'}</b></div><div class="r"><span>Shpenzuar gjithsej</span><b>${eur(r.spent)}</b></div><div class="r"><span>Pikë</span><b>${fmtP(u.points)}</b></div><div class="r"><span>Dhurata të përdorura</span><b>${r.giftsUsed}</b></div></div>`
+  +`<div class="rows card" style="margin-top:12px"><div class="r"><span>Email</span><b>${esc(u.email)}</b></div><div class="r"><span>Telefoni</span><b>${u.phone?esc(u.phone):'—'}</b></div><div class="r"><span>Ditëlindja</span><b>${u.bday?dmy(u.bday):'—'}</b></div><div class="r"><span>Shpenzuar gjithsej</span><b>${eur(r.spent)}</b></div><div class="r"><span>Pikë</span><b>${fmtP(u.points)}</b></div><div class="r"><span>Dhurata/zbritje të shfrytëzuara</span><b>${r.giftsUsed}</b></div></div>`
   +`<h3>Pikët sipas produktit</h3><div class="card">${ppList(u)}</div>`
   +`<h3>Dhuratat e hapura</h3>${(u.vouchers||[]).map(v=>`<div class="card">🎁 ${esc(v.n)}</div>`).join('')||'<div class="card mut">Asnjë.</div>'}`
   +`<div class="card"><b>Jep një dhuratë</b><input type="text" id="gname" placeholder="p.sh. Kafe falas" maxlength="80"><button class="btn" style="width:100%" data-a="st_gift" data-v="${u.id}">Jep dhuratën</button></div>`
   +`<div class="card"><b>Vendos PIN të ri</b><div class="mut">Kur klienti e ka harruar PIN-in.</div><input type="text" inputmode="numeric" id="npin" maxlength="6" placeholder="PIN i ri (4–6 shifra)"><button class="btn ghost" style="width:100%" data-a="st_rpin" data-v="${u.id}">Ndrysho PIN-in</button></div><p class="err" id="cse"></p>`
+  +`<h3>Dhurata dhe zbritje të shfrytëzuara</h3>${(r.redeemed||[]).map(x=>`<div class="card row"><span>✓ ${esc(x.n)}<br><span class="mut">${x.d}${x.by?' · '+esc(x.by):''}</span></span></div>`).join('')||'<div class="card mut">Asnjë ende.</div>'}`
   +`<h3>Historiku</h3>${r.history.map(o=>`<div class="card row${o.undone?' undone':''}"><span>${o.q} × ${esc(o.n)}<br><span class="mut">${o.d}${o.by?' · '+esc(o.by):''}</span></span><b>${o.undone?'anuluar':'+'+fmtP(o.total)}</b></div>`).join('')||'<div class="card mut">Ende pa blerje.</div>'}`
   +`<button class="btn ghost wide" style="justify-content:center;margin-top:12px" data-a="close">Mbyll</button>`)}catch(x){sheet(`<p class="err">${errText(x)}</p><button class="btn ghost wide" data-a="close">Mbyll</button>`)}}
 
 function stPromo(){const l=st.promos;
- return `<div class="card"><b>Krijo promocion</b><div class="mut">Shfaqet menjëherë te kuleta e të gjithë klientëve, brenda datave.</div>
+ return `<div class="card"><b>Krijo promocion</b><div class="mut">Shfaqet menjëherë te kuleta e të gjithë klientëve, brenda datave. Çdo klient e shfrytëzon një herë: e aktivizon në telefon dhe stafi skanon kodin.</div>
  <div class="seg"><label><input type="radio" name="pk" value="pct" checked> Zbritje (%)</label><label><input type="radio" name="pk" value="gift"> Dhuratë</label></div>
  <input type="number" id="ppct" min="1" max="100" placeholder="Përqindja, p.sh. 20" inputmode="numeric">
  <input type="text" id="ptitle" maxlength="80" placeholder="Titulli, p.sh. 20% zbritje për Party Box">
  <input type="text" id="pdesc" maxlength="200" placeholder="Përshkrimi (opsional)">
  <div class="two"><label class="mut">Nga<input type="date" id="pfrom"></label><label class="mut">Deri<input type="date" id="puntil"></label></div>
  <p class="err" id="pe"></p><button class="btn" style="width:100%" data-a="st_padd">Publiko</button></div>`
- +'<h3>Promocionet</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.length?l.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+p.pct+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.from?'Nga '+dmy(p.from)+' ':''}${p.until?'deri më '+dmy(p.until):p.from?'':'Pa afat'} · ${p.live?'<b class="good">aktiv tani</b>':'jo aktiv tani'}</span><button class="btn ghost sm" style="margin-top:8px;align-self:flex-start" data-a="st_pdel" data-v="${p.id}">Hiqe</button></div>`).join(''):'<div class="card mut">Asnjë promocion. Krijo të parin më lart.</div>')}
+ +'<h3>Promocionet</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.length?l.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+p.pct+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.from?'Nga '+dmy(p.from)+' ':''}${p.until?'deri më '+dmy(p.until):p.from?'':'Pa afat'} · ${p.live?'<b class="good">aktiv tani</b>':'jo aktiv tani'} · shfrytëzuar ${p.uses||0} herë</span><button class="btn ghost sm" style="margin-top:8px;align-self:flex-start" data-a="st_pdel" data-v="${p.id}">Hiqe</button></div>`).join(''):'<div class="card mut">Asnjë promocion. Krijo të parin më lart.</div>')}
 
 function stStaf(){const l=st.staff;
  return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)" maxlength="40"><input type="text" inputmode="numeric" id="sp1" maxlength="6" placeholder="PIN (4–6 shifra)"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div>`
@@ -602,7 +636,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   st={...st,tab:r.role==='admin'?'dash':'arka',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}
  else if(a==='st_out'){stopScan();const t=ST.tok;ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null;st={...st,found:null,msg:'',last:null,dash:null,kl:null};clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
  else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render();loadTab();scrollTo(0,0)}
- else if(a==='st_find'){const q=val('sq');if(!q)return;if(/^WONDER(-P)?:/i.test(q)){onScan(q);return}st.q=q;
+ else if(a==='st_find'){const q=val('sq');if(!q)return;if(/^WONDER(-P|-G)?:/i.test(q)){onScan(q);return}st.q=q;
   const c=await run('find',{token:ST.tok,q});st.found=c;st.last=null;say(c?'':'Nuk u gjet klient me këtë ID, email ose telefon.',!c)}
  else if(a==='st_pts'){if(!st.found)return;const pid=+val('spp'),q=parseInt(val('sqty'),10);
   if(!(q>=1&&q<=100)){say('Shkruaj sasinë (1–100).',true);return}
@@ -636,8 +670,8 @@ const say2=m=>{st.msg=m;st.bad=false;st.tab='arka';render();return m};
 // ---- camera scanner ----
 let scanS=null,jsqrP=null;
 function loadJsQR(){if(window.jsQR)return Promise.resolve();return jsqrP||(jsqrP=new Promise((ok,no)=>{const s=document.createElement('script');s.src='/js/jsqr.js';s.onload=ok;s.onerror=()=>{jsqrP=null;no()};document.head.appendChild(s)}))}
-function scanHead(){const u=st.found;return u?`<div class="slk ok">✓ Klienti i lidhur: <b>${esc(u.name)} ${esc(u.surname||'')}</b></div><p class="mut sms">Tani skano QR-në e produktit në telefonin e klientit.</p>`
- :`<div class="slk">Hapi 1 nga 2</div><p class="mut sms">Skano QR-në e klientit (Kuleta në telefonin e tij).</p>`}
+function scanHead(){const u=st.found;return u?`<div class="slk ok">✓ Klienti i lidhur: <b>${esc(u.name)} ${esc(u.surname||'')}</b></div><p class="mut sms">Tani skano QR-në e produktit ose kodin e dhuratës në telefonin e klientit.</p>`
+ :`<div class="slk">Hapi 1 nga 2</div><p class="mut sms">Skano QR-në e klientit (Kuleta), ose kodin e një dhurate/zbritjeje.</p>`}
 async function startScan(){
  sheet(`<h2 class="fancy">Skano QR-në</h2><div id="shd">${scanHead()}</div><div class="scan"><video id="sv" playsinline muted></video></div><p class="err" id="smsg" style="text-align:center;min-height:1.2em"></p><button class="btn ghost wide" style="justify-content:center" data-a="st_scanstop">Mbyll</button>`);
  const msg=m=>{const e=$('smsg');if(e)e.textContent=m};
@@ -663,6 +697,9 @@ function stopScan(){if(scanS){cancelAnimationFrame(scanS.raf);scanS.stream.getTr
 // One code from the camera or the search box. Camera: a customer code links and keeps the camera on; a product code books the purchase and stops.
 async function handleCode(txt,cam){const s=String(txt).trim();
  try{
+  if(/^WONDER-G:/i.test(s)){const r=await api('redeemCode',{token:ST.tok,code:s});const c=r.card;
+   st.found=c;st.q=c.mid;st.tab='arka';st.last=null;
+   return {stop:true,msg:`✓ U shfrytëzua: ${r.title} · ${c.name} ${c.surname}`}}
   const pp=parseP(s);
   if(pp){if(!st.found)return {bad:true,msg:'Skano fillimisht QR-në e klientit, pastaj produktin.',stop:!cam};
    const msg=await purchase(pp.m.id,pp.q);return {stop:true,msg}}

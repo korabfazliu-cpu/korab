@@ -28,7 +28,7 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Hyrja | Email, pastaj: nëse email-i ekziston, **PIN-i** (4–6 shifra); nëse jo, **emri, mbiemri dhe një PIN i zgjedhur nga klienti** (dy herë). "Harrove PIN-in?" e dërgon te stafi: admini i vendos PIN të ri. Seanca ruhet 180 ditë në telefon. Poshtë është linku **"Si funksionon Wonder Club?"**, që hap shpjegimin në 6 hapa (regjistrimi, pikët, i 10-ti falas, dhuratat, ofertat, ditëlindja) dhe poshtë tij **menynë pa çmime** për vizitorët: kartela me foto që rrëshqasin anash, sipas kategorive, plus dip-et. Ka dy skeda kërcimi ("Si funksionon" / "Menyja") dhe butonin "Krijo llogarinë falas" (`howSheet()`). |
 | Start | Përshëndetje, pikët totale, foto karusel, oferta, dhurata e ditëlindjes (kur është muaji i saj). |
 | Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (4), Wonder box and cup (4), Kids box (1), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
-| Kuleta | **Rifreskohet vetë çdo 4 sekonda**: kur stafi shton pikë, ato shfaqen menjëherë me njoftimin "+X pikë u shtuan". Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. **"Produkt falas për ty"** shfaqet vetëm kur pikët e një produkti arrijnë pragun, me butonin "Merre falas". **"Dhurata dhe zbritje":** dhuratat personale, zbritjet dhe dhuratat e kompanisë (`PROMOS`, edhe në %), oferta 60 sekondëshe. Kur kompania s'ka promocion, ka një vend bosh të rezervuar. Në fund historiku. |
+| Kuleta | **Rifreskohet vetë çdo 4 sekonda**: kur stafi shton pikë, ato shfaqen menjëherë me njoftimin "+X pikë u shtuan". Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. **"Produkt falas për ty"** shfaqet vetëm kur pikët e një produkti arrijnë pragun, me butonin "Merre falas". **"Dhurata dhe zbritje":** dhuratat personale, promocionet e kompanisë (edhe në %) dhe oferta 60 sekondëshe. Secila ka butonin **Aktivizo**, që hap një **QR unik** për atë klient dhe atë dhuratë. Stafi e skanon dhe dhurata **shfrytëzohet menjëherë**: telefoni i klientit kalon vetë në "✓ U shfrytëzua!" dhe dhurata del te **"Të shfrytëzuara"**. Një promocion shfrytëzohet një herë për klient. Te oferta, QR-ja vlen vetëm 60 sekonda. Kur kompania s'ka promocion, ka një vend bosh të rezervuar. Në fund historiku. |
 | Profili ("Llogaria ime") | Kartelë personale: inicialet, emri, mbiemri, "Anëtar që nga", email-i, telefoni (nëse ka), ID-ja, data e lindjes. "Ndrysho të dhënat": telefoni (opsional, i validuar) dhe data e lindjes (vendoset vetëm një herë). Ruhen në server. "Si funksionon Wonder Club?", dalja. |
 
 ### Dyqani (`/admin`)
@@ -37,8 +37,8 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Paneli | admin | **Dashboard live** (rifreskohet çdo 4 sekonda): shitje sot (€ + numri i blerjeve), shitje këtë muaj, klientë (+ të rinj këtë javë), klientë aktivë 30 ditë, dhurata të përdorura / të hapura, pikë në kuleta. Grafiku i shitjeve 14 ditë, produktet më të shitura 30 ditë, stafi sot, aktiviteti i fundit (klikohet dhe hap klientin). |
 | Arka | staf + admin | **Rrjedha me dy hapa në një seancë kamere:** (1) skanon QR-në e klientit, klienti lidhet dhe kamera mbetet e hapur; (2) skanon QR-në e produktit **në telefonin e klientit** (sasia është brenda kodit), regjistrohet blerja dhe kamera mbyllet. Klienti gjendet edhe me ID, email ose telefon. Kartela e klientit rifreskohet live (p.sh. kur klienti aktivizon ofertën). "Anulo" heq blerjen (deri 30 minuta, vetëm stafi që e bëri ose admini). Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
 | QR e produkteve | admin | Rezervë: QR për çdo produkt me çmim (29, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
-| Klientët | admin | Të gjithë klientët, me kërkim (emër, email, telefon, ID): pikë, blerje, shpenzuar, vizita e fundit. Klikimi hap detajet: të dhënat, pikët sipas produktit, dhuratat, historiku; **jep dhuratë** dhe **vendos PIN të ri**. |
-| Promocionet | admin | Krijon zbritje (%) ose dhuratë me tituj e data. Shfaqen menjëherë te kuleta e të gjithë klientëve brenda datave. Mund të hiqen. |
+| Klientët | admin | Të gjithë klientët, me kërkim (emër, email, telefon, ID): pikë, blerje, shpenzuar, vizita e fundit. Klikimi hap detajet: të dhënat, pikët sipas produktit, dhuratat, **dhuratat/zbritjet e shfrytëzuara (kur dhe nga kush)**, historiku; **jep dhuratë** dhe **vendos PIN të ri**. |
+| Promocionet | admin | Krijon zbritje (%) ose dhuratë me tituj e data. Shfaqen menjëherë te kuleta e të gjithë klientëve brenda datave. Te secili shfaqet sa herë është shfrytëzuar. Mund të hiqen. |
 | Stafi | admin | Shton dhe fshin staf (emër + PIN 4–6 shifra). Ndryshon PIN-in e vet. |
 
 - **Hyrja e stafit:** admini i parë krijohet një herë të vetme te `/admin` me **kodin e konfigurimit** (variabla `SETUP_CODE` në Vercel). Më pas hyhet me përdoruesin `admin` ose me emrin e stafit, plus PIN-in. Seanca e stafit zgjat 14 orë. Të gjitha PIN-et ruhen me bcrypt. Pas 5 PIN-eve të gabuara llogaria bllokohet 15 minuta.
@@ -90,6 +90,7 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 |---|---|---|
 | Klienti | `WONDER:<ID>` | `WONDER:WC924EBE` |
 | Produkti | `WONDER-P:<id>` ose `WONDER-P:<id>:<sasia>` (sasia 2–20) | `WONDER-P:20` = 1 Twist · `WONDER-P:1:3` = 3 Churros Standard |
+| Dhuratë / zbritje | `WONDER-G:<V\|P\|O><id>.<kodi 8 hex>`: V = dhuratë, P = promocion (id e përdorimit), O = ofertë. Kodi është i rastësishëm dhe ruhet në bazë. | `WONDER-G:V37.30ac18a3` |
 
 - ID-ja e klientit: `WC` + 6 shkronja ose shifra.
 - QR-ja e klientit nuk përmban më të dhëna personale. Stafi e gjen klientin në server me ID-në. QR-të e vjetra (me emrin brenda) lexohen ende.
@@ -132,13 +133,14 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 | `exists`, `register`, `login`, `logout` | klienti | hyrja me email + PIN |
 | `me`, `setPhone`, `setBday`, `claimBday`, `activateOffer`, `redeem` | klienti | kuleta dhe profili |
 | `hasAdmin`, `setupAdmin` | — | krijimi i adminit të parë (me `SETUP_CODE`) |
-| `staffLogin`, `staffMe`, `find`, `card`, `addPurchase`, `undoOrder`, `useVoucher`, `validateOffer`, `changePin` | stafi | arka |
+| `promoActivate` | klienti | krijon kodin e tij për një promocion |
+| `staffLogin`, `staffMe`, `find`, `card`, `addPurchase`, `undoOrder`, `redeemCode`, `useVoucher`, `validateOffer`, `changePin` | stafi | arka (`redeemCode` shfrytëzon një dhuratë/zbritje nga QR-ja) |
 | `dashboard`, `customers`, `customer`, `resetPin`, `giveGift`, `promos`, `promoAdd`, `promoDel`, `staffList`, `addStaff`, `delStaff` | admini | paneli |
 
 Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `FORBIDDEN`). Pikët llogariten **vetëm në server**, nga çmimet në tabelën `churros.products`. Kur ndryshon një çmim, ndryshohet te `MENU` në `index.html` dhe te `db/schema.sql`, dhe rritet `SCHEMA_VERSION` në `api/rpc.js`.
 
 ### Tabelat (`churros.*`)
-`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat), `offers`, `orders` (çdo blerje, me stafin dhe anulimin), `promos`, `meta` (versioni i skemës).
+`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat, me `code`), `offers` (me `code`), `orders` (çdo blerje, me stafin dhe anulimin), `promos`, `promo_uses` (kush e shfrytëzoi cilin promocion, kur dhe nga cili staf), `meta` (versioni i skemës). Çdo shfrytëzim ruan `used_at` dhe `used_by`, që të figurojë te admini.
 
 ### Variablat në Vercel
 - `DATABASE_URL`: lidhja me Neon (pooled), e fshehtë.

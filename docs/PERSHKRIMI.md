@@ -56,9 +56,9 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | Pikët | **1 € blerje = 1 pikë.** Pikët mblidhen **për secilin produkt veç e veç**. |
 | Produkti falas | Kur pikët e një produkti arrijnë **çmimi × 9** (9 blerje), klienti e merr të 10-tin falas. Pikët e atij produkti zbriten me çmimi × 9 dhe krijohet një dhuratë ("[Produkti] falas"). |
 | Dhurata e mirëseardhjes | Çdo klient i ri merr 1 "Churros Standard falas" (2.50 €). |
-| Oferta e mirëseardhjes | 1 € zbritje te Churros Large (4.90 € bëhet 3.90 €). Klienti e aktivizon, dhe ka **60 sekonda** për ta treguar në arkë. Koha nuk ndalet. Pas kësaj oferta skadon. Stafi e validon vetëm brenda kohës. |
-| Ditëlindja | Klienti vendos datën e lindjes. Në muajin e ditëlindjes merr 1 "Mini Churros Cup falas", **një herë në vit**. *Në prototip data mund të ndryshohet, por në versionin e plotë duhet të vendoset vetëm një herë.* |
-| Dhuratat | Shfaqen te kuleta ("Trego këtë në arkë"). Stafi i shënon si të përdorura. |
+| Oferta e mirëseardhjes | 1 € zbritje te Churros Large (4.90 € bëhet 3.90 €). Klienti e aktivizon dhe i shfaqet një QR që vlen **60 sekonda**. Koha nuk ndalet. Stafi e skanon brenda kohës, pastaj oferta skadon. |
+| Ditëlindja | Klienti vendos datën e lindjes. Në muajin e ditëlindjes merr 1 "Mini Churros Cup falas", **një herë në vit**. Data vendoset vetëm një herë. |
+| Dhuratat dhe zbritjet | Klienti shtyp "Aktivizo", stafi skanon QR-në unike dhe dhurata shfrytëzohet menjëherë. Çdo shfrytëzim ruhet (kur, nga kush). Promocionet: një herë për klient. |
 | Dip shtesë | 0.50 € secili. |
 
 ### Menyja (ID, çmimi)
@@ -122,8 +122,8 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 - `STAFF_APP`: `true` kur adresa është `/admin` ose `#admin`. Ai vendos cili app shfaqet.
 - `MENU`, `CATS`, `CATIC`, `DS`, `XI`, `DIPS`, `FLAV`, `IMG`, `IMGL`: të dhënat e menysë dhe të fotove.
 - **Klienti:** `render()`, `vHome()`, `vMenu()`, `vProd()`, `vWal()`, `vMe()`, `renderAuth()`.
-- **Stafi:** `renderStaff()`, `stArka()`, `stQR()`, `stStaf()`, `stKl()`, `staffAct()`, `addPurchase()`.
-- **Skaneri:** `startScan()`, `stopScan()`, `handleCode()` (logjika: klienti lidhet, produkti regjistrohet), `linkCustomer()`, `onScan()`, `parseQR()`, `parseP()`, `qrPay()`, `PQR(id, sasia)`. QR-ja e produktit te klienti: `pqrCard()`.
+- **Stafi:** `renderStaff()`, `stArka()`, `stDash()`, `stKl()`, `stPromo()`, `stStaf()`, `stQR()`, `staffAct()`, `purchase()`.
+- **Skaneri:** `startScan()`, `stopScan()`, `handleCode()` (klienti lidhet, produkti regjistrohet, dhurata shfrytëzohet), `onScan()`, `parseQR()`, `parseP()`, `qrPay()`, `PQR(id, sasia)`. QR-ja e produktit te klienti: `pqrCard()`. QR-ja e dhuratës: `gSheet()`, `gItem()`, `gCheck()`.
 - **Lidhja me serverin:** `api(fn, args)`. Klienti: `S` (token në `localStorage['wc_tok']`, kartela `S.me`), `pollMe()` çdo 4 s. Stafi: `ST` (token në `localStorage['wc_stok']`), `staffPoll()`, `loadTab()`. Dashboard-i: `stDash()`, `barChart()`. Klientët: `stKl()`, `custSheet()`. Promocionet: `stPromo()`.
 - Në telefon ruhen vetëm token-ët e seancës. Të gjitha të dhënat janë në server.
 
@@ -147,7 +147,7 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 - `SETUP_CODE`: kodi për krijimin e adminit të parë.
 
 ### Kod i papërdorur (mund të hiqet)
-- **JS:** `TIERS`, `tier()` dhe `nextT()` (nivelet Bronz, Argjend, Ar; `tier()` thirret te `stArka()`, por rezultati nuk përdoret), `TOPUP` dhe `topS()` (ngarkimi i saldos, pa buton në ndërfaqe), `qrS()`, `fx()` (karuseli i vjetër i menysë).
+- **JS:** konstantet `TIERS`, `REW`, `TOPUP`, `CC`, `CATIMG` dhe funksioni `fx()` (karuseli i vjetër i menysë).
 - **CSS:** `#cartbar`, `.add`, `.qty`, `.tot`, `.bc`, `.grid`, `.rc`, `.blob`, `.churro`, `.sl.mc`, `.mcard`, `.mph`, `.go`.
 
 ---
@@ -165,13 +165,9 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 
 ### Faza 1: backend ✅ (u krye më 16.11.2026)
 - **Bazë të dhënash e veçantë vetëm për Wonder Churros.** ⚠️ **Mos përdorni projektin Supabase `038-parking`.** Pronari ka kërkuar shprehimisht që ai të mos preket.
-- Propozimi gati është te `docs/backend-propozim.sql`: skema `churros` me tabelat `products`, `customers`, `staff`, `sessions`, `points`, `vouchers`, `offers`, `orders`. Klienti dhe stafi kanë qasje vetëm përmes funksioneve `wc_*`, që zbatojnë rregullat e seksionit 3 në server:
-  `wc_register`, `wc_login`, `wc_me`, `wc_set_bday`, `wc_claim_bday`, `wc_activate_offer`, `wc_redeem`, `wc_staff_login`, `wc_find`, `wc_add_purchase`, `wc_use_voucher`, `wc_validate_offer`, `wc_customers`, `wc_add_staff`, `wc_del_staff`, `wc_change_pin`.
-  PIN-et ruhen me bcrypt. Ka bllokim 15 minutash pas 5 përpjekjeve të gabuara.
-- **Hyrja e klientit:** ose kod me email (duhet SMTP i vërtetë, p.sh. Resend), ose email + PIN, siç është në propozim.
-- **Llogaria e adminit** krijohet nga pronari, jo nga "kushdo i pari".
-- **Kohë reale:** kuleta e klientit rifreskohet automatikisht (Realtime ose polling çdo 3–5 sekonda) kur stafi shton pikë.
-- Ndërfaqja ekzistuese mbetet. Zëvendësohet vetëm shtresa e të dhënave (`db`, `save()`, `U()`, `addPurchase()` etj.) me thirrje te API.
+- Baza: Neon Postgres (falas), skema `churros` te `db/schema.sql`, API te `api/rpc.js`. Rregullat e seksionit 3 zbatohen në server.
+- Hyrja e klientit: email + PIN. Admini i parë: me `SETUP_CODE`. Rifreskimi live: polling çdo 4 s.
+- **Mbetet:** të vendoset `DATABASE_URL` në Vercel dhe dega `backend` të bashkohet me `main`.
 
 ### Faza 2: përmirësime
 - Admini: eksport CSV i klientëve dhe i blerjeve.
@@ -185,9 +181,9 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 ---
 
 ## 8. Publikimi i tanishëm
-- **GitHub:** `korabfazliu-cpu/korab`, dega `main`.
+- **GitHub:** `korabfazliu-cpu/korab`. Dega `main` është versioni i vjetër, pa server, që është live tani. Dega **`backend`** ka versionin me bazë të dhënash dhe dashboard, dhe bashkohet me `main` sapo të vendoset `DATABASE_URL`.
 - **Vercel:** projekti `wonder-churros`. Çdo push në `main` publikohet automatikisht te https://wonder-churros.vercel.app.
-- Nuk ka hap build-i. Është faqe statike.
+- Nuk ka hap build-i: faqe statike + një Vercel Function (`api/rpc.js`).
 - **Testimi lokal:** `npx vercel dev` me `DATABASE_URL` dhe `SETUP_CODE` në `.env`. Mund të përdoret edhe një PostgreSQL lokal: skema krijohet vetë në kërkesën e parë.
 
 ## 9. Testimi i bërë
@@ -201,4 +197,5 @@ U testua me Playwright në Chrome:
 
 Të gjitha kaluan, pa gabime JavaScript. **Skanimi me telefon të vërtetë duhet provuar në dyqan.**
 - **Lidhja klient–admin (16.11)** u testua me PostgreSQL 16 lokal dhe dy shfletues (telefon + tablet): regjistrimi, konfigurimi i adminit, skanimi me kamerë (klient + 3 copë), pikët live te klienti me njoftim, oferta live te stafi, dhuratat, anulimi, promocionet live, stafi, paneli, kërkimi i klientëve, dhurata nga admini, ndryshimi i PIN-it, rifreskimet. Plus 35 kontrolle direkte të API-së.
+- **QR-të e dhuratave (16.11):** dhurata, promocioni dhe oferta aktivizohen te klienti, skanohen nga stafi (kamerë dhe kod i shtypur), shfrytëzohen një herë, telefoni i klientit kalon live në "U shfrytëzua!", dhe admini i sheh te detajet e klientit dhe te promocionet.
 - **Propozimi SQL** u testua në PostgreSQL 16 lokal: regjistrimi, hyrja, PIN-i i gabuar, blerja, produkti falas, oferta, validimi, ndalimi i stafit te funksionet e adminit, dhe ndalimi i qasjes direkte në tabela.

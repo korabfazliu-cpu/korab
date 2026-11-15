@@ -42,7 +42,7 @@ h3{margin:18px 0 8px;font-size:22px;color:var(--on)}.good{color:#2e9b4f;font-wei
 #cartbar{max-width:640px;margin:0 auto;padding:0 12px}
 #nav{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 #nav button{padding:8px 0;font-size:12px;color:var(--muted);border-radius:0}#nav .on{color:var(--on);font-weight:700}#nav span{display:block;font-size:21px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}.ov.show{display:flex}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:40}.ov.show{display:flex}
 .sheet{background:var(--bg);width:100%;max-width:640px;max-height:90%;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}.sheet h2{margin:0 0 8px;font-size:28px}
 input[type=text],input[type=tel],input[type=date]{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--text);font:inherit;margin:6px 0}
 .qty{display:flex;align-items:center;gap:8px}.qty button{width:30px;height:30px;background:var(--line)}
@@ -209,6 +209,10 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .pqr{width:132px}.pqs{display:flex;flex-direction:column;gap:6px}.stp{display:flex;align-items:center;gap:12px}.stp b{font-size:24px;min-width:28px;text-align:center}
 .stp .btn{width:42px;height:42px;padding:0;justify-content:center;font-size:22px}.pqp{font-weight:800;color:#7C421C}
 .slk{font-weight:800;color:#7C421C;text-align:center;margin:2px 0}.slk.ok{color:#1d7a3a}.sms{text-align:center;margin:2px 0 8px}
+.howl{margin-top:6px;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.hw{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;color:#4a2a17;text-align:left}
+.hwn{flex:none;width:32px;height:32px;border-radius:50%;background:#7C421C;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hw b{font-size:16px;color:#7C421C}.hw p{margin:3px 0 0;font-size:14px;line-height:1.45}.hw p b{font-size:inherit;color:#4a2a17}
 </style>
 </head>
 <body>
@@ -305,7 +309,7 @@ function qrSvg(t){try{const q=qrcode(0,'M');q.addData(t);q.make();const n=q.getM
 function renderAuth(){const a=$('auth');
  a.style.background='#F8C4DB';
  let h=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Mirë se vini në</p><h1 class="fancy">WONDER CLUB</h1><p class="sm">Programi i anëtarësimit për ty që i do churros</p>`;
- if(au.step==='phone')h+=`<input type="email" id="ph" placeholder="Shkruaj email-in tënd" value="${esc(au.ph)}" autocomplete="email"><p id="ae" class="err"></p><button class="btn" data-a="next">Tjetra</button><button class="lnk" data-a="demo">Hyr me llogari demo</button>`;
+ if(au.step==='phone')h+=`<input type="email" id="ph" placeholder="Shkruaj email-in tënd" value="${esc(au.ph)}" autocomplete="email"><p id="ae" class="err"></p><button class="btn" data-a="next">Tjetra</button><button class="lnk" data-a="demo">Hyr me llogari demo</button><button class="lnk howl" data-a="how">Si funksionon Wonder Club?</button>`;
  else if(au.step==='staff')h=stAuth();
  else if(au.step==='code')h+=`<p class="sm">Shkruaj kodin e dërguar në ${esc(au.key)}</p><input type="tel" inputmode="numeric" id="cd" maxlength="6" placeholder="Kodi nga email-i"><div class="demo">Demo: kodi yt është <b>${au.code}</b>. Në versionin real kodi dërgohet me email.</div><p id="ae" class="err"></p><button class="btn" data-a="verify">Konfirmo</button><button class="lnk" data-a="back">Ndrysho numrin</button><button class="lnk" data-a="resend">Ridërgo kodin</button>`;
  else h=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Të dhënat e tua</h2><p class="sm">Email-i u konfirmua. Shkruaj emrin dhe mbiemrin.</p><input type="text" id="nm" placeholder="Emri" autocomplete="given-name"><input type="text" id="sn" placeholder="Mbiemri" autocomplete="family-name"><p id="ae" class="err"></p><button class="btn" data-a="create">Krijo llogarinë</button>`;
@@ -314,6 +318,15 @@ const LOGO2='/img/91e99b5bba.png';
 const PHOTOS=['/img/bf201ed62d.jpg','/img/9908ad4ce6.jpg','/img/252dada6d9.jpg','/img/3e3e09f98f.jpg','/img/0ab00362ed.jpg'];
 const CATIMG={'Flavoured Latte':PHOTOS[1],'Kafe dhe pije të nxehta':PHOTOS[3]};
 const FN=u=>esc(u.name+(u.surname?' '+u.surname:''));
+function howSheet(){const st=(n,title,body)=>`<div class="hw"><span class="hwn">${n}</span><div><b>${title}</b><p>${body}</p></div></div>`;
+ sheet(`<h2 class="fancy">Si funksionon Wonder Club</h2><p class="mut" style="margin:0 0 14px">Anëtarësimi është falas. Mblidh pikë sa herë blen në Wonder Churros dhe fito produkte falas.</p>`
+ +st(1,'Regjistrohu falas','Me email-in tënd. Menjëherë merr një <b>Churros Standard falas</b> dhe ofertën <b>1 € zbritje</b> te Churros Large.')
+ +st(2,'Fito pikë në dyqan','<b>1 € = 1 pikë.</b> Në arkë trego QR-në tënde te <b>Kuleta</b>. Pastaj hap produktin që blen te <b>Menu</b>, zgjidh sasinë dhe trego QR-në e tij. Stafi i skanon të dyja dhe pikët shtohen automatikisht.')
+ +st(3,'I 10-ti është falas','Pikët mblidhen për çdo produkt veç e veç. Pas <b>9 blerjeve</b> të të njëjtit produkt, të 10-tin e merr falas. P.sh. 9 × Churros Standard (2.50 €) = 22.5 pikë, pra Churros Standard falas. Progresin e sheh te Kuleta.')
+ +st(4,'Dhuratat','Çdo dhuratë shfaqet te <b>Kuleta</b>. Tregoje në arkë dhe stafi e shënon si të përdorur.')
+ +st(5,'Ofertat','Aktivizoje ofertën vetëm kur je në arkë. Pas aktivizimit ke <b>60 sekonda</b> për ta treguar, pastaj oferta skadon.')
+ +st(6,'Ditëlindja','Vendos datën e lindjes te <b>Profili</b>. Në muajin e ditëlindjes merr një <b>Mini Churros Cup falas</b>, një herë në vit.')
+ +`<p class="mut" style="margin:14px 0">Ke pyetje? Pyet stafin tonë në dyqan.</p><button class="btn" style="width:100%" data-a="howclose">Kuptova</button>`)}
 const OFFER_TXT='Merr 1 € zbritje dhe blej Churros Large';
 const offerState=o=>o.expired||(o.exp&&o.exp<=Date.now())?'x':o.exp?'a':'n';
 function offerBox(o,i){const s=offerState(o),m=MENU.find(x=>x.id==o.item);
@@ -353,7 +366,7 @@ function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd
  +(its.length?its.map(m=>`<div class="card item mi${m.i?'':' noth'}" data-a="prod" data-v="${m.id}" role="button" tabindex="0">${m.i?`<img class="th" src="${IMG[m.i]}" alt="${m.n}">`:''}<div class="t"><b>${m.n}${m.nw?'<span class="nw">I RI</span>':''}</b><span class="mut">${m.d}</span></div><span class="badge">${K(m.p)}</span></div>`).join(''):'<div class="card mut">Produktet e kësaj kategorie po shtohen së shpejti.</div>')}
 function vMe(){const u=U();
  return `<div class="card"><b>${FN(u)}</b><div class="mut">${esc(db.cur)} · ID ${u.mid}</div><label class="mut">Data e lindjes (për dhuratën)</label><input type="date" id="bd" value="${u.bday||''}"></div>`+offers()
- +`<button class="btn ghost wide" data-a="out" style="margin-top:12px;justify-content:center">Dil nga llogaria</button>`}
+ +`<button class="btn ghost wide" data-a="how" style="margin-top:12px;justify-content:center">Si funksionon Wonder Club?</button><button class="btn ghost wide" data-a="out" style="margin-top:12px;justify-content:center">Dil nga llogaria</button>`}
 
 function render(){const u=U();document.body.classList.toggle('guest',!u&&!db.role);document.body.classList.toggle('staffmode',!!db.role);if(db.role){renderStaff();return}
  if(u&&!u.pp){u.pp=db.cur==='demo@wonderchurros.app'?{1:22.5,2:20,20:8.1,4:10}:{};sp(u);save()}
@@ -368,6 +381,7 @@ function qrS(){const u=U(),q=qrSvg(qrPay(u));
 function topS(){sheet(`<h2 class="fancy">Ngarko saldo</h2><p class="mut">Paguaj më shpejt dhe fito pikë bonus.</p>`+TOPUP.map((t,i)=>`<button class="btn wide" data-a="top" data-v="${i}"><span>${K(t.a)}</span><span>${t.b?'+'+t.b+' pikë bonus':'pa bonus'}</span></button>`).join('')+`<button class="btn ghost wide" data-a="close" style="margin-top:12px">Mbyll</button>`)}
 document.addEventListener('click',e=>{
  if(e.target.id==='ov'){stopScan();closeS();return}
+ {const hb=e.target.closest('[data-a=how],[data-a=howclose]');if(hb){e.preventDefault();if(hb.dataset.a==='how')howSheet();else closeS();return}}
  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,u=U(),er=m=>{$('ae').textContent=m};if(a.startsWith('st_')){staffAct(a,b);return}
  if(a==='next'){au.ph=$('ph').value.trim();const em=au.ph.toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){er('Shkruaj një email të vlefshëm.');return}

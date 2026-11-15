@@ -28,8 +28,8 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Hyrja | Email, pastaj kodi 6-shifror, pastaj emri dhe mbiemri. **Kodi tani shfaqet në ekran ("Demo"), nuk dërgohet me email.** Ka edhe "Hyr me llogari demo". Poshtë është linku **"Si funksionon Wonder Club?"**, që hap shpjegimin në 6 hapa (regjistrimi, pikët, i 10-ti falas, dhuratat, ofertat, ditëlindja) dhe poshtë tij **menynë pa çmime** për vizitorët: kartela me foto që rrëshqasin anash, sipas kategorive, plus dip-et. Ka dy skeda kërcimi ("Si funksionon" / "Menyja") dhe butonin "Krijo llogarinë falas" (`howSheet()`). |
 | Start | Përshëndetje, pikët totale, foto karusel, oferta, dhurata e ditëlindjes (kur është muaji i saj). |
 | Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (2), Wonder box and cup (4), Kids box (0, "së shpejti"), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
-| Kuleta | Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. Pastaj dhuratat, "Produktet falas" (progresi për secilin produkt), ofertat, historiku. |
-| Profili | Emri, email-i, ID-ja, data e lindjes, "Si funksionon Wonder Club?", dalja. |
+| Kuleta | Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. **"Produkt falas për ty"** shfaqet vetëm kur pikët e një produkti arrijnë pragun, me butonin "Merre falas". **"Dhurata dhe zbritje":** dhuratat personale, zbritjet dhe dhuratat e kompanisë (`PROMOS`, edhe në %), oferta 60 sekondëshe. Kur kompania s'ka promocion, ka një vend bosh të rezervuar. Në fund historiku. |
+| Profili ("Llogaria ime") | Kartelë personale: inicialet, emri, mbiemri, "Anëtar që nga", email-i, telefoni (nëse ka), ID-ja, data e lindjes. "Ndrysho të dhënat": telefoni (opsional, i validuar) dhe data e lindjes. "Si funksionon Wonder Club?", dalja. |
 
 ### Dyqani (`/admin`)
 | Skeda | Kush | Çfarë bën |
@@ -119,10 +119,13 @@ Kategoria **Kids box** ekziston, por ende pa produkte.
 
 ### Struktura e klientit (`db.users[email]`)
 ```js
-{ name, surname, email, mid:'WCXXXXXX', points, earned, pp:{ [productId]: pikë },
+{ name, surname, email, phone?, created?, mid:'WCXXXXXX', points, earned, pp:{ [productId]: pikë },
   vouchers:[{n, v}], offers:[{n, item, off, exp?, expired?}],
   orders:[{num, total, pts, n, q, d}], bday:'YYYY-MM-DD', bdayY }
 ```
+
+### Promocionet e kompanisë (`PROMOS`)
+Lista në `index.html` (bosh tani). Çdo element: `{id, type:'pct'|'gift', pct, title, desc, from:'YYYY-MM-DD', until:'YYYY-MM-DD'}`. Shfaqen te Kuleta vetëm brenda datave. **Në versionin me server, admini duhet t'i krijojë nga paneli** dhe stafi t'i shënojë si të përdorura.
 
 ### Kod i papërdorur (mund të hiqet)
 - **JS:** `TIERS`, `tier()` dhe `nextT()` (nivelet Bronz, Argjend, Ar; `tier()` thirret te `stArka()`, por rezultati nuk përdoret), `TOPUP` dhe `topS()` (ngarkimi i saldos, pa buton në ndërfaqe), `qrS()`, `fx()` (karuseli i vjetër i menysë).

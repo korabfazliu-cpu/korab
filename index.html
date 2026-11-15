@@ -223,27 +223,27 @@ const XI={1:['5 churros','1 dip sipas zgjedhjes','d'],2:['10 churros','2 dip sip
 let pd=null,mscroll=0,ms0=0,mx=0;
 function fx(s){if(!s)return;const r=s.getBoundingClientRect(),c=r.left+r.width/2;s.querySelectorAll('.mcard').forEach(k=>{const b=k.getBoundingClientRect(),d=Math.min(1,Math.abs(b.left+b.width/2-c)/(b.width*1.1));k.style.transform=`scale(${1-.14*d})`;k.style.opacity=1-.35*d})}
 function vProd(m){const uno=m.n.startsWith('Uno '),x=XI[m.id]||(uno?['1 churros i gjatë','Topping: '+m.n.replace('Uno ',''),'']:null),full=FULL.has(m.i);
- const rows=[['Lloji',uno?'Uno Churros':m.c]];if(x){rows.push(['Përmbajtja',x[0]]);rows.push(['Sosi / Dip',x[1]])}
+ const rows=[['Lloji',m.c]];if(x){rows.push(['Përmbajtja',x[0]]);rows.push(['Sosi / Dip',x[1]])}
  const chips=x&&x[2]==='d'?DIPS.map(d=>`<span class="chp">${d[0]} ${d[1]}</span>`).join(''):x&&x[2]==='f'?FLAV.map(f=>`<span class="chp">${f}</span>`).join(''):'';
  return `<div class="dh"><button class="dback" data-a="pback" aria-label="Kthehu te menyja">←</button><b>${m.c}</b><i></i></div>`
  +`<div class="dimg${full?' full':''}"${full?` style="background:${IMGBG[m.i]}"`:''}>${m.i?`<img src="${IMGL[m.i]||IMG[m.i]}" alt="${m.n}"${full?'':` style="max-width:${IMGW[m.i]||560}px"`}>`:`<div class="pemo">${m.e}</div>`}</div>`
  +`<h2 class="pname">${m.n}${m.nw?'<span class="nw">I RI</span>':''}</h2><div class="rows">${rows.map(r=>`<div class="r"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`
  +(chips?`<h4 class="sec">${x[2]==='d'?'Dip-et e disponueshme':'Shijet e disponueshme'}</h4><div class="chps">${chips}</div>${x[2]==='d'?'<p class="mut" style="margin:8px 0 0">Dip shtesë: 0.50 €</p>':''}`:'')
  +`<h4 class="sec">Rreth produktit</h4><p class="pdesc">${DS[m.id]||m.d}</p><div class="dfoot"><span class="mut">Çmimi</span><span class="badge">${K(m.p)}</span></div><button class="btn ghost wide" style="justify-content:center" data-a="pback">← Kthehu te ${m.c}</button>`}
-const CATIC={'Standard churros':'🥖','Party box':'🎉','Wonder box and cup':'🍓','Kids box':'🎈','Flavored Latte':'🥤','Coffee':'☕'};
-const CATS=['Standard churros','Party box','Wonder box and cup','Kids box','Flavored Latte','Coffee'];
+const CATIC={'Standard churros':'🥖','Uno churros':'✨','Party box':'🎉','Wonder box and cup':'🍓','Kids box':'🎈','Flavored Latte':'🥤','Coffee':'☕'};
+const CATS=['Standard churros','Uno churros','Party box','Wonder box and cup','Kids box','Flavored Latte','Coffee'];
 const MENU=[
 {id:1,c:'Standard churros',n:'Churros Standard',d:'5 churros + 1 dip',p:2.5,i:'churros'},
 {id:2,c:'Standard churros',n:'Churros Large',d:'10 churros + 2 dip',p:4.9,i:'churros'},
 {id:20,c:'Standard churros',n:'Twist Churros',d:'Churros të zhytur në çokollatë',p:1.8,i:'twist',nw:1},
 {id:3,c:'Wonder box and cup',n:'Wonder Duo',d:'5 churros + 2 dip sauces',p:3.5,i:'duo',nw:1},
 {id:6,c:'Party box',n:'Party Box',d:'10 churros + 15 mini churros + 4 dip sauces',p:12,i:'party'},
-{id:21,c:'Standard churros',n:'Uno Lotus',d:'1 churros me topping Lotus',p:1.8,i:'lotus'},
-{id:22,c:'Standard churros',n:'Uno Blueberry',d:'1 churros me topping boronicë',p:1.8,i:'blueb'},
-{id:23,c:'Standard churros',n:'Uno Raspberry',d:'1 churros me topping mjedër',p:1.8,i:'rasp'},
-{id:24,c:'Standard churros',n:'Uno Pistachio',d:'1 churros me topping pistaçio',p:1.8,i:'pist'},
-{id:25,c:'Standard churros',n:'Uno Bueno',d:'1 churros me topping Bueno',p:1.8,i:'bueno'},
-{id:26,c:'Standard churros',n:'Uno Caramel',d:'1 churros me topping karamel',p:1.8,i:'carm'},
+{id:21,c:'Uno churros',n:'Uno Lotus',d:'1 churros me topping Lotus',p:1.8,i:'lotus'},
+{id:22,c:'Uno churros',n:'Uno Blueberry',d:'1 churros me topping boronicë',p:1.8,i:'blueb'},
+{id:23,c:'Uno churros',n:'Uno Raspberry',d:'1 churros me topping mjedër',p:1.8,i:'rasp'},
+{id:24,c:'Uno churros',n:'Uno Pistachio',d:'1 churros me topping pistaçio',p:1.8,i:'pist'},
+{id:25,c:'Uno churros',n:'Uno Bueno',d:'1 churros me topping Bueno',p:1.8,i:'bueno'},
+{id:26,c:'Uno churros',n:'Uno Caramel',d:'1 churros me topping karamel',p:1.8,i:'carm'},
 {id:4,c:'Wonder box and cup',n:'Mini Churros Cup',d:'15 mini churros + 2 toppings',p:2.5,i:'cup'},
 {id:5,c:'Wonder box and cup',n:'Wonder Bites',d:'20 mini churros, fruta sezonale, 2 dip sauces',p:3.5,i:'bites'},
 {id:7,c:'Party box',n:'Summer Box',d:'40 mini churros, fruta sezonale, 4 dip sauces',p:13,i:'summer',nw:1},
@@ -332,7 +332,7 @@ function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
  +`<h3>ID-ja ime</h3><div class="card idc"><div class="qrs">${qrSvg(qrPay(u))}</div><div><b>${FN(u)}</b><div class="mut">ID e klientit</div><div class="idn">${u.mid}</div><span class="mut">Trego QR-në në arkë</span></div></div>`
  +`<h3>Historiku i pikëve</h3>`+(hist||'<div class="card mut">Ende nuk ke blerje. Pas çdo blerjeje në dyqan fiton pikë.</div>')}
 function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd(pm)}
- if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Party box':[IMGL.party,'center'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
+ if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
   return `<h3>Menyja jonë</h3>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${CATIC[c]} ${c}</b><span>${n?n+' produkte':'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
  const its=MENU.filter(m=>m.c===cat);
  return `<div class="dh"><button class="dback" data-a="cback" aria-label="Kthehu te menyja">←</button><b>${cat}</b><i></i></div>`

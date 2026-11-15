@@ -28,7 +28,7 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Hyrja | Email, pastaj kodi 6-shifror, pastaj emri dhe mbiemri. **Kodi tani shfaqet në ekran ("Demo"), nuk dërgohet me email.** Ka edhe "Hyr me llogari demo". Poshtë është linku **"Si funksionon Wonder Club?"**, që hap shpjegimin në 6 hapa (regjistrimi, pikët, i 10-ti falas, dhuratat, ofertat, ditëlindja) dhe poshtë tij **menynë pa çmime** për vizitorët: kartela me foto që rrëshqasin anash, sipas kategorive, plus dip-et. Ka dy skeda kërcimi ("Si funksionon" / "Menyja") dhe butonin "Krijo llogarinë falas" (`howSheet()`). |
 | Start | Përshëndetje, pikët totale, foto karusel, oferta, dhurata e ditëlindjes (kur është muaji i saj). |
 | Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (2), Wonder box and cup (4), Kids box (0, "së shpejti"), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
-| Kuleta | Pikët, shiriti i progresit, dhuratat, "Produktet falas" (progresi për secilin produkt), ofertat, **QR personal + ID** me udhëzimin për dy hapat, historiku. |
+| Kuleta | Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. Pastaj dhuratat, "Produktet falas" (progresi për secilin produkt), ofertat, historiku. |
 | Profili | Emri, email-i, ID-ja, data e lindjes, "Si funksionon Wonder Club?", dalja. |
 
 ### Dyqani (`/admin`)

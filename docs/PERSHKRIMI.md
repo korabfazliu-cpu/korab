@@ -75,9 +75,8 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | 5 | Wonder Bites (20 mini + fruta + 2 dip) | Wonder box and cup | 3.50 |
 | 27 | Flavoured Latte (Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla, Popcorn) | Flavored Latte | 2.00 |
 | 28–31 | Americano 1.50 · Espresso 1.00 · Macchiato 1.50 · Hot Choco 1.50 | Coffee | |
-| 32–38 | Dip: Raspberry, Blueberry, Hazelnut, Vanilla, Nutella, Caramel, Pistachio | Dip | 0.50 secili |
-
 | 41 | Kids Box (churros në gotë + Monte Drink + bllok vizatimi) | Kids box | **pa çmim ende** |
+| 32–38 | Dip: Raspberry, Blueberry, Hazelnut, Vanilla, Nutella, Caramel, Pistachio | Dip | 0.50 secili |
 
 Produktet pa çmim (`p:null`) shfaqen në meny me "Së shpejti", por **nuk kanë QR, nuk mbledhin pikë dhe nuk dalin te arka** derisa të vendoset çmimi (`RC()` kthen `Infinity`, `KP()` shfaq "Së shpejti"). Përmbajtja e tyre është shkruar sipas fotove dhe duhet konfirmuar nga pronari.
 
@@ -104,7 +103,7 @@ Produktet pa çmim (`p:null`) shfaqen në meny me "Së shpejti", por **nuk kanë
 ├── vercel.json             ← /admin → index.html, cleanUrls, cache për /img
 ├── manifest.webmanifest    ← PWA
 ├── icon-192.png, icon-512.png, apple-touch-icon.png
-├── img/                    ← fotot e produkteve dhe logot (34 skedarë)
+├── img/                    ← fotot e produkteve dhe logot
 ├── js/qrcode.js            ← qrcode-generator 1.4.4 (krijon QR-të)
 ├── js/jsqr.js              ← jsQR 1.4.0 (lexon QR-të kur nuk ka BarcodeDetector)
 └── docs/

@@ -110,7 +110,7 @@ Kategoria **Kids box** ekziston, por ende pa produkte.
 ```
 
 ### Brenda `index.html`
-- `STAFF_APP`: `true` kur adresa është `/admin`. Ai vendos cili app shfaqet.
+- `STAFF_APP`: `true` kur adresa është `/admin` ose `#admin`. Ai vendos cili app shfaqet.
 - `MENU`, `CATS`, `CATIC`, `DS`, `XI`, `DIPS`, `FLAV`, `IMG`, `IMGL`: të dhënat e menysë dhe të fotove.
 - **Klienti:** `render()`, `vHome()`, `vMenu()`, `vProd()`, `vWal()`, `vMe()`, `renderAuth()`.
 - **Stafi:** `renderStaff()`, `stArka()`, `stQR()`, `stStaf()`, `stKl()`, `staffAct()`, `addPurchase()`.

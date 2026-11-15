@@ -200,6 +200,11 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .scan{position:relative;background:#000;border-radius:20px;overflow:hidden;aspect-ratio:1/1;max-width:420px;margin:8px auto}.scan video{width:100%;height:100%;object-fit:cover;display:block}
 .scan::after{content:"";position:absolute;inset:18%;border:4px solid #F8C4DB;border-radius:22px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
 .scanbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:8px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.qcard{background:#fff;border:2px solid #7C421C;border-radius:18px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px;color:#4a2a17}
+.qcard .qimg svg{width:100%;display:block}.qcard b{font-size:15px;line-height:1.2}.qcard span{font-size:12.5px;color:#7a4d33}.qcard i{font-style:normal;font-size:10.5px;color:#999;letter-spacing:.03em}
+@media print{@page{margin:10mm}body{background:#fff!important;padding:0}header,#bot,.tabs,.noprint,.card.good{display:none!important}main{max-width:none;padding:0}
+.qgrid{grid-template-columns:repeat(4,1fr);gap:8px}.qcard{break-inside:avoid;border-width:1px}.qcat{break-after:avoid;margin:10px 0 6px}h3::after{display:none}}
 </style>
 </head>
 <body>
@@ -235,7 +240,7 @@ const CATS=['Standard churros','Uno churros','Party box','Wonder box and cup','K
 const MENU=[
 {id:1,c:'Standard churros',n:'Churros Standard',d:'5 churros + 1 dip',p:2.5,i:'churros'},
 {id:2,c:'Standard churros',n:'Churros Large',d:'10 churros + 2 dip',p:4.9,i:'churros'},
-{id:20,c:'Standard churros',n:'Twist Churros',d:'Churros të zhytur në çokollatë',p:1.8,i:'twist',nw:1},
+{id:20,c:'Wonder box and cup',n:'Twist Churros',d:'Churros të zhytur në çokollatë',p:1.8,i:'twist',nw:1},
 {id:3,c:'Wonder box and cup',n:'Wonder Duo',d:'5 churros + 2 dip sauces',p:3.5,i:'duo',nw:1},
 {id:6,c:'Party box',n:'Party Box',d:'10 churros + 15 mini churros + 4 dip sauces',p:12,i:'party'},
 {id:21,c:'Uno churros',n:'Uno Lotus',d:'1 churros me topping Lotus',p:1.8,i:'lotus'},
@@ -285,6 +290,8 @@ const closeS=()=>$('ov').classList.remove('show');
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
 const qrPay=u=>'WONDER:'+u.mid+':'+b64e(JSON.stringify({n:u.name,s:u.surname||'',e:u.email||''}));
+const PQR=id=>'WONDER-P:'+id;
+const parseP=t=>{const m=/^WONDER-P:(\d+)$/i.exec(String(t).trim());return m?MENU.find(x=>x.id==+m[1])||null:null};
 function parseQR(t){const m=/^WONDER:([A-Z0-9]+)(?::([A-Za-z0-9_-]+))?$/i.exec(String(t).trim());if(!m)return null;let c={};try{if(m[2])c=JSON.parse(b64d(m[2]))}catch(e){}return {mid:m[1].toUpperCase(),n:c.n||'',s:c.s||'',e:(c.e||'').toLowerCase()}}
 function qrSvg(t){try{const q=qrcode(0,'M');q.addData(t);q.make();const n=q.getModuleCount();let d='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+2} ${r+2}h1v1h-1z`;return `<svg viewBox="0 0 ${n+4} ${n+4}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}catch(e){return ''}}
 
@@ -381,7 +388,11 @@ document.addEventListener('click',e=>{
  else if(a==='bday'){u.vouchers.push({n:'Mini Churros Cup falas (ditëlindje)',v:2.5});u.bdayY=new Date().getFullYear();save();render()}
  else if(a==='close')closeS();
 });
-let st={tab:'arka',q:'',found:null,msg:'',bad:false};
+let st={tab:'arka',q:'',found:null,msg:'',bad:false,last:null};
+function addPurchase(key,m,q){const u=db.users[key];u.pp=u.pp||{};const add=Math.round(m.p*q*100)/100;u.pp[m.id]=Math.round(((u.pp[m.id]||0)+add)*100)/100;sp(u);
+ const num=Date.now();u.orders=u.orders||[];u.orders.unshift({num,total:add,pts:add,n:m.n,q:q,d:new Date().toLocaleDateString('sq-AL')});u.orders=u.orders.slice(0,8);
+ st.last={key,id:m.id,add,num,n:m.n,q};save();
+ return `${q} × ${m.n}: u shtuan ${fmtP(add)} pikë për ${u.name}. ${m.n}: ${fmtP(u.pp[m.id])} / ${fmtP(RC(m))} pikë.${u.pp[m.id]>=RC(m)?' Produkti i 10-të është falas!':''}`}
 async function H(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('wonder:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return 'p:'+s}}
 function stAuth(){const f=!db.admin;
  return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Hyrje për staf</h2><p class="sm">${f?'Hera e parë: krijo PIN-in e adminit (4 deri në 8 shifra).':'Shkruaj përdoruesin dhe PIN-in.'}</p>`
@@ -390,23 +401,26 @@ function stAuth(){const f=!db.admin;
  +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">${f?'Krijo adminin':'Hyr'}</button>`+(STAFF_APP?'':'<button class="lnk" data-a="st_back">Kthehu</button>')}
 function ppList(u){const pp=u.pp||{},ks=MENU.filter(m=>pp[m.id]>0);return ks.length?`<div style="margin-top:10px">${ks.map(m=>`<div class="row"><span>${m.n}</span><b>${fmtP(pp[m.id])} / ${fmtP(RC(m))}${pp[m.id]>=RC(m)?' ✓':''}</b></div>`).join('')}</div>`:'<div class="mut" style="margin-top:8px">Ende nuk ka pikë për asnjë produkt.</div>'}
 function stArka(){const u=st.found&&db.users[st.found];
- let h=`<div class="card"><b>Gjej klientin</b><div class="mut">Skano QR-në nga telefoni i klientit, ose shkruaj ID-në (p.sh. WC1A2B3C) ose email-in.</div><input type="text" id="sq" placeholder="ID ose email" value="${esc(st.q)}" autocapitalize="none"><button class="btn" style="width:100%" data-a="st_find">Kërko</button></div><button class="btn ghost scanbtn" data-a="st_scan">📷 Skano QR-në e klientit</button>`;
+ let h=`<div class="card"><b>${u?'Klient tjetër':'Gjej klientin'}</b><div class="mut">Skano QR-në nga telefoni i klientit, ose shkruaj ID-në (p.sh. WC1A2B3C) ose email-in.</div><input type="text" id="sq" placeholder="ID ose email" value="${esc(st.q)}" autocapitalize="none"><button class="btn" style="width:100%" data-a="st_find">Kërko</button></div>${u?'':'<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e klientit</button>'}`;
  if(!u)return h;
  const t=tier(u),ofs=u.offers||[];
  h+=`<div class="card"><b>${FN(u)}</b><div class="mut">${esc(st.found)} · ID ${u.mid}</div><div style="margin-top:6px">1 € blerje = 1 pikë</div><div class="fancy" style="font-size:38px">${fmtP(u.points)}<span style="font-size:18px"> pikë</span></div>${ppList(u)}</div>`
- +`<div class="card"><b>Regjistro blerjen</b><div class="mut">1 € blerje = 1 pikë. Pikët mblidhen për secilin produkt veç e veç.</div><select id="spp">${MENU.map(m=>`<option value="${m.id}">${m.n} · ${K(m.p)}</option>`).join('')}</select><input type="text" inputmode="numeric" id="sqty" placeholder="Sasia" value="1"><button class="btn" style="width:100%" data-a="st_pts">Shto pikë</button></div><h3>Oferta</h3>`;
+ +`<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e produktit</button><p class="mut" style="margin:-2px 0 12px;text-align:center">Çdo skanim = 1 copë. Pikët shkojnë te kuleta e ${esc(u.name)}.</p><div class="card"><b>Ose regjistro me dorë</b><div class="mut">1 € blerje = 1 pikë. Pikët mblidhen për secilin produkt veç e veç.</div><select id="spp">${MENU.map(m=>`<option value="${m.id}">${m.n} · ${K(m.p)}</option>`).join('')}</select><input type="text" inputmode="numeric" id="sqty" placeholder="Sasia" value="1"><button class="btn" style="width:100%" data-a="st_pts">Shto pikë</button></div><h3>Oferta</h3>`;
  h+=ofs.length?ofs.map((o,i)=>{const s=offerState(o);return s==='a'?`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">Aktive: <span class="cdn" data-exp="${o.exp}">${Math.max(0,Math.ceil((o.exp-Date.now())/1000))}</span> sek</span></span><button class="btn sm" data-a="st_offer" data-v="${i}">Valido</button></div>`:`<div class="card mut">${s==='x'?'Oferta ka skaduar.':'Klienti nuk e ka aktivizuar ofertën.'}</div>`}).join(''):'<div class="card mut">Klienti nuk ka ofertë aktive.</div>';
  h+='<h3>Dhuratat</h3>'+(u.vouchers.length?u.vouchers.map((v,i)=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn sm" data-a="st_vuse" data-v="${i}">Përdor</button></div>`).join(''):'<div class="card mut">Klienti nuk ka dhurata.</div>');
  return h}
+function stQR(){const cats=[...new Set([...CATS,...MENU.map(m=>m.c)])].filter(c=>MENU.some(m=>m.c===c));
+ return `<div class="card noprint"><b>Kodet QR të produkteve</b><div class="mut">Printoji dhe vendosi te arka. Pasi të skanohet klienti, stafi skanon kodin e produktit dhe pikët shkojnë automatikisht te kuleta e klientit.</div><button class="btn" style="width:100%;margin-top:10px" data-a="st_print">🖨️ Printo kodet</button></div>`
+ +cats.map(c=>`<h3 class="qcat">${esc(c)}</h3><div class="qgrid">${MENU.filter(m=>m.c===c).map(m=>`<div class="qcard"><div class="qimg">${qrSvg(PQR(m.id))}</div><b>${esc(m.n)}</b><span>${K(m.p)} · ${fmtP(m.p)} pikë</span><i>WONDER-P:${m.id}</i></div>`).join('')}</div>`).join('')}
 function stStaf(){return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)"><input type="text" inputmode="numeric" id="sp1" placeholder="PIN (4 deri në 8 shifra)" maxlength="8"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div><h3>Stafi i regjistruar</h3>`
  +((db.staff||[]).length?db.staff.map((s,i)=>`<div class="card row"><span>👤 ${esc(s.name)}</span><button class="btn ghost sm" data-a="st_del" data-v="${i}">Fshi</button></div>`).join(''):'<div class="card mut">Ende nuk ka staf të regjistruar.</div>')}
 function stKl(){const ks=Object.keys(db.users);return `<div class="mut" style="margin-bottom:8px">${ks.length} klientë të regjistruar në këtë pajisje.</div>`+ks.map(k=>{const u=db.users[k];return `<div class="card row"><span><b>${FN(u)}</b><br><span class="mut">${esc(k)} · ${u.mid}</span></span><b>${fmtP(u.points)} p</b></div>`}).join('')}
 function renderStaff(){const adm=db.role.t==='admin';
  $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros"><div class="hb"><b style="align-self:center">${adm?'Admin':'Staf'}</b><button data-a="st_out"><span>⎋</span>Dil</button></div>`;
- const tabs=adm?[['arka','Arka'],['staf','Stafi'],['kl','Klientët']]:[['arka','Arka']];
+ const tabs=adm?[['arka','Arka'],['qr','QR e produkteve'],['staf','Stafi'],['kl','Klientët']]:[['arka','Arka']];
  let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${st.tab===k?'on':''}" data-a="st_tab" data-v="${k}">${l}</button>`).join('')}</div>`;
- if(st.msg)h+=`<div class="card ${st.bad?'':'good'}" ${st.bad?'style="color:#b3261e"':''}>${esc(st.msg)}</div>`;
- h+=st.tab==='arka'?stArka():st.tab==='staf'&&adm?stStaf():st.tab==='kl'&&adm?stKl():'';
+ if(st.msg)h+=`<div class="card ${st.bad?'':'good'} ${st.last&&!st.bad&&st.tab==='arka'?'row':''}" ${st.bad?'style="color:#b3261e"':''}><span>${esc(st.msg)}</span>${st.last&&!st.bad&&st.tab==='arka'?'<button class="btn ghost sm" data-a="st_undo">Anulo</button>':''}</div>`;
+ h+=st.tab==='arka'?stArka():st.tab==='qr'&&adm?stQR():st.tab==='staf'&&adm?stStaf():st.tab==='kl'&&adm?stKl():'';
  $('main').innerHTML=h}
 async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.textContent=m},val=i=>$(i)?$(i).value.trim():'',say=(m,bad)=>{st.msg=m;st.bad=!!bad;render()};
  if(a==='st_path'){au.step='staff';renderAuth()}
@@ -421,15 +435,18 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
    else{const s=(db.staff||[]).find(x=>x.name.toLowerCase()===un);if(!s||s.h!==h){er('Përdorues ose PIN i gabuar.');return}db.role={t:'staff',id:s.id}}}
   st={tab:'arka',q:'',found:null,msg:'',bad:false};save();render()}
  else if(a==='st_out'){stopScan();db.role=null;au={step:STAFF_APP?'staff':'phone',cc:'+46',ph:'',key:'',code:''};save();render()}
- else if(a==='st_tab'){st.tab=v;st.msg='';render()}
- else if(a==='st_find'){if(/^WONDER:/i.test(val('sq'))){onScan(val('sq'));return}st.q=val('sq');const q=st.q.toLowerCase();let key=null;
+ else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render()}
+ else if(a==='st_find'){if(/^WONDER(-P)?:/i.test(val('sq'))){onScan(val('sq'));return}st.q=val('sq');const q=st.q.toLowerCase();let key=null;
   for(const k in db.users){if(k.toLowerCase()===q||(db.users[k].mid||'').toLowerCase()===q){key=k;break}}
-  st.found=key;say(key?'':'Nuk u gjet klient me këtë ID ose email. Skano QR-në e klientit që të shtohet automatikisht.',!key)}
+  st.found=key;st.last=null;say(key?'':'Nuk u gjet klient me këtë ID ose email. Skano QR-në e klientit që të shtohet automatikisht.',!key)}
  else if(a==='st_pts'){const u=db.users[st.found];if(!u)return;const m=MENU.find(x=>x.id==val('spp')),q=parseInt(val('sqty'),10);
   if(!m||!(q>0)){say('Zgjidh produktin dhe shkruaj sasinë.',true);return}
-  u.pp=u.pp||{};const add=Math.round(m.p*q*100)/100;u.pp[m.id]=Math.round(((u.pp[m.id]||0)+add)*100)/100;sp(u);
-  u.orders=u.orders||[];u.orders.unshift({num:100+Math.floor(Math.random()*900),total:add,pts:add,n:m.n,q:q,d:new Date().toLocaleDateString('sq-AL')});u.orders=u.orders.slice(0,8);
-  save();say(`${q} × ${m.n}: u shtuan ${fmtP(add)} pikë për ${u.name}. ${m.n}: ${fmtP(u.pp[m.id])} / ${fmtP(RC(m))} pikë.${u.pp[m.id]>=RC(m)?' Produkti i 10-të është falas!':''}`)}
+  if(q>100){say('Sasia maksimale është 100.',true);return}
+  say(addPurchase(st.found,m,q))}
+ else if(a==='st_undo'){const l=st.last,u=l&&db.users[l.key];if(!u){st.last=null;render();return}
+  u.pp[l.id]=Math.max(0,Math.round(((u.pp[l.id]||0)-l.add)*100)/100);sp(u);u.orders=(u.orders||[]).filter(o=>o.num!==l.num);st.last=null;save();
+  say(`U anulua: ${l.q} × ${l.n} (−${fmtP(l.add)} pikë).`)}
+ else if(a==='st_print'){window.print()}
  else if(a==='st_offer'){const u=db.users[st.found],o=u&&(u.offers||[])[+v];if(!o)return;
   if(offerState(o)!=='a'){say('Oferta ka skaduar.',true);return}
   u.offers.splice(+v,1);save();say('Oferta u vlerësua: 1 € zbritje për Churros Large.')}
@@ -444,7 +461,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
 let scanS=null,jsqrP=null;
 function loadJsQR(){if(window.jsQR)return Promise.resolve();return jsqrP||(jsqrP=new Promise((ok,no)=>{const s=document.createElement('script');s.src='/js/jsqr.js';s.onload=ok;s.onerror=()=>{jsqrP=null;no()};document.head.appendChild(s)}))}
 async function startScan(){
- sheet(`<h2 class="fancy">Skano QR-në</h2><div class="scan"><video id="sv" playsinline muted></video></div><p class="mut" id="smsg" style="text-align:center">Mbaje QR-në e klientit brenda kornizës.</p><button class="btn ghost wide" style="justify-content:center" data-a="st_scanstop">Mbyll</button>`);
+ sheet(`<h2 class="fancy">Skano QR-në</h2><div class="scan"><video id="sv" playsinline muted></video></div><p class="mut" id="smsg" style="text-align:center">${st.found&&db.users[st.found]?'Mbaje QR-në e produktit brenda kornizës.':'Mbaje QR-në e klientit brenda kornizës.'}</p><button class="btn ghost wide" style="justify-content:center" data-a="st_scanstop">Mbyll</button>`);
  const msg=m=>{const e=$('smsg');if(e)e.textContent=m};
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){msg('Kjo pajisje nuk lejon kamerën këtu. Shkruaj ID-në e klientit.');return}
  let det=null;try{if('BarcodeDetector' in window&&(await BarcodeDetector.getSupportedFormats()).includes('qr_code'))det=new BarcodeDetector({formats:['qr_code']})}catch(e){}
@@ -461,14 +478,18 @@ async function startScan(){
   if(scanS)scanS.raf=requestAnimationFrame(loop)};
  loop()}
 function stopScan(){if(scanS){cancelAnimationFrame(scanS.raf);scanS.stream.getTracks().forEach(t=>t.stop());scanS=null}}
-function onScan(txt){stopScan();closeS();const p=parseQR(txt);
+function onScan(txt){stopScan();closeS();
  const say=(m,bad)=>{st.msg=m;st.bad=!!bad;render()};
+ const pm=parseP(txt);
+ if(pm){st.tab='arka';if(!st.found||!db.users[st.found]){st.last=null;say('Skano fillimisht QR-në e klientit, pastaj produktin.',true);return}say(addPurchase(st.found,pm,1));return}
+ if(/^WONDER-P:/i.test(String(txt).trim())){say('Ky produkt nuk ekziston më në meny.',true);return}
+ const p=parseQR(txt);
  if(!p){say('Ky QR nuk është i Wonder Club.',true);return}
  let key=Object.keys(db.users).find(k=>(db.users[k].mid||'').toUpperCase()===p.mid),added=false;
  if(!key){if(!p.n){say('Klienti nuk u gjet në këtë pajisje.',true);return}
   key=p.e&&!db.users[p.e]?p.e:'id:'+p.mid;
   db.users[key]={name:p.n,surname:p.s,email:p.e,mid:p.mid,points:0,earned:0,pp:{},balance:0,vouchers:[{n:'Churros Standard falas (dhuratë mirëseardhjeje)',v:2.5}],orders:[],offers:[{n:'1 € zbritje kur blen Churros Large',item:2,off:1}],added:Date.now()};added=true;save()}
- st.tab='arka';st.q=db.users[key].mid;st.found=key;
+ st.tab='arka';st.q=db.users[key].mid;st.found=key;st.last=null;
  say(added?`Klient i ri u shtua: ${db.users[key].name} ${db.users[key].surname}.`:'')}
 (function(){let s=null,x0=0,l0=0,mv=false;
 document.addEventListener('pointerdown',e=>{mv=false;const el=e.target.closest&&e.target.closest('.sl');if(!el||e.pointerType!=='mouse')return;s=el;x0=e.clientX;l0=el.scrollLeft;el.style.scrollSnapType='none'});
@@ -476,7 +497,7 @@ document.addEventListener('pointermove',e=>{if(!s)return;const d=e.clientX-x0;if
 const end=()=>{if(!s)return;s.style.scrollSnapType='';s=null};
 document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
 document.addEventListener('click',e=>{if(mv){e.stopPropagation();e.preventDefault();mv=false}},true)})();
-document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.mcard,.mi,.ctile')){e.preventDefault();e.target.click()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='sq'){e.preventDefault();const b=document.querySelector('[data-a=st_find]');if(b)b.click();return}if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.mcard,.mi,.ctile')){e.preventDefault();e.target.click()}});
 document.addEventListener('scroll',e=>{const s=e.target;if(s&&s.id==='mcar')fx(s);if(s&&s.id==='slp'){const i=Math.round(s.scrollLeft/((s.scrollWidth-s.clientWidth)/(PHOTOS.length-1)));document.querySelectorAll('#dots i').forEach((d,k)=>d.classList.toggle('on',k===i))}},true);
 document.addEventListener('change',e=>{if(e.target.id==='bd'){U().bday=e.target.value;save()}});
 render();

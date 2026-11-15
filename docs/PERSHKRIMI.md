@@ -27,15 +27,15 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 |---|---|
 | Hyrja | Email, pastaj kodi 6-shifror, pastaj emri dhe mbiemri. **Kodi tani shfaqet në ekran ("Demo"), nuk dërgohet me email.** Ka edhe "Hyr me llogari demo". |
 | Start | Përshëndetje, pikët totale, foto karusel, oferta, dhurata e ditëlindjes (kur është muaji i saj). |
-| Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (2), Wonder box and cup (4), Kids box (0, "së shpejti"), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, dip-et ose shijet, përshkrimi, çmimi. |
-| Kuleta | Pikët, shiriti i progresit, dhuratat, "Produktet falas" (progresi për secilin produkt), ofertat, **QR personal + ID**, historiku. |
+| Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (2), Wonder box and cup (4), Kids box (0, "së shpejti"), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
+| Kuleta | Pikët, shiriti i progresit, dhuratat, "Produktet falas" (progresi për secilin produkt), ofertat, **QR personal + ID** me udhëzimin për dy hapat, historiku. |
 | Profili | Emri, email-i, ID-ja, data e lindjes, dalja. |
 
 ### Dyqani (`/admin`)
 | Skeda | Kush | Çfarë bën |
 |---|---|---|
-| Arka | staf + admin | Gjen klientin (me skanim QR me kamerë, me ID ose email). Skanon QR-në e produktit (1 skanim = 1 copë). Butoni "Anulo" heq skanimin e fundit. Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
-| QR e produkteve | admin | QR për çdo produkt (26), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
+| Arka | staf + admin | **Rrjedha me dy hapa në një seancë kamere:** (1) skanon QR-në e klientit, klienti lidhet dhe kamera mbetet e hapur; (2) skanon QR-në e produktit **në telefonin e klientit** (sasia është brenda kodit), regjistrohet blerja dhe kamera mbyllet. Klienti gjendet edhe me ID ose email. Butoni "Anulo" heq skanimin e fundit. Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
+| QR e produkteve | admin | Rezervë: QR për çdo produkt (26, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
 | Stafi | admin | Shton dhe fshin staf (emër + PIN 4 deri në 8 shifra). |
 | Klientët | admin | Lista e klientëve të regjistruar në këtë pajisje, me pikët. |
 
@@ -84,7 +84,7 @@ Kategoria **Kids box** ekziston, por ende pa produkte.
 | QR | Përmbajtja | Shembull |
 |---|---|---|
 | Klienti | `WONDER:<ID>:<base64url(JSON {n,s,e})>`. `n` = emri, `s` = mbiemri, `e` = email-i. | `WONDER:WCDJQKVD:eyJuIjoiQXJ0YSIs…` |
-| Produkti | `WONDER-P:<id e produktit>` | `WONDER-P:20` (Twist Churros) |
+| Produkti | `WONDER-P:<id>` ose `WONDER-P:<id>:<sasia>` (sasia 2–20) | `WONDER-P:20` = 1 Twist · `WONDER-P:1:3` = 3 Churros Standard |
 
 - ID-ja e klientit: `WC` + 6 shkronja ose shifra.
 - QR-ja e klientit mbart edhe emrin, që pajisja e dyqanit ta regjistrojë klientin automatikisht kur e skanon herën e parë. **Kur të ketë server, mjafton `WONDER:<ID>` ose një token i nënshkruar.** Emri dhe email-i nuk duhet të jenë më në QR.
@@ -114,7 +114,7 @@ Kategoria **Kids box** ekziston, por ende pa produkte.
 - `MENU`, `CATS`, `CATIC`, `DS`, `XI`, `DIPS`, `FLAV`, `IMG`, `IMGL`: të dhënat e menysë dhe të fotove.
 - **Klienti:** `render()`, `vHome()`, `vMenu()`, `vProd()`, `vWal()`, `vMe()`, `renderAuth()`.
 - **Stafi:** `renderStaff()`, `stArka()`, `stQR()`, `stStaf()`, `stKl()`, `staffAct()`, `addPurchase()`.
-- **Skaneri:** `startScan()`, `stopScan()`, `onScan()`, `parseQR()`, `parseP()`, `qrPay()`, `PQR()`.
+- **Skaneri:** `startScan()`, `stopScan()`, `handleCode()` (logjika: klienti lidhet, produkti regjistrohet), `linkCustomer()`, `onScan()`, `parseQR()`, `parseP()`, `qrPay()`, `PQR(id, sasia)`. QR-ja e produktit te klienti: `pqrCard()`.
 - **Ruajtja:** `localStorage['wonder_v3']` mban klientët, stafin dhe hash-in e adminit. `localStorage['wonder_staff']` mban sesionin e stafit, vetëm te `/admin`.
 
 ### Struktura e klientit (`db.users[email]`)

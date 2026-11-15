@@ -246,11 +246,11 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 <script src="/js/qrcode.js"></script>
 <script>
 const LOGO='/img/c708648a94.png';
-const IMG={twist:'/img/403d518708.jpg',lotus:'/img/2024622dc2.jpg',blueb:'/img/33862f11e1.jpg',rasp:'/img/a79cf6c251.jpg',pist:'/img/868328e6aa.jpg',bueno:'/img/95ea56649f.jpg',carm:'/img/59cb826432.jpg',latte:'/img/fc28291e4d.jpg',churros:'/img/db97ab432b.jpg',duo:'/img/3e34a6a995.jpg',cup:'/img/49a0d93b93.jpg',bites:'/img/925cad9a48.jpg',party:'/img/389465227d.jpg',summer:'/img/f80b17ea38.jpg',unoparty:'/img/6f748a8d3c.jpg',miniuno:'/img/4684f3d159.jpg',kids:'/img/68e6bec111.jpg'};
-const IMGL={twist:'/img/39be51c10d.jpg',duo:'/img/9efc0a0bc2.jpg',summer:'/img/f6fdf9c41a.jpg',bites:'/img/fd4f48de67.jpg',churros:'/img/4612056d10.jpg',party:'/img/3756197d3a.jpg',lotus:'/img/a5ee89c590.jpg',blueb:'/img/20e505555e.jpg',rasp:'/img/8e5a058ef3.jpg',pist:'/img/7b0ce485f6.jpg',bueno:'/img/305deb1fa2.jpg',carm:'/img/42c9835783.jpg',unoparty:'/img/0d671b331e.jpg',miniuno:'/img/b41dc96041.jpg',kids:'/img/9476b632a5.jpg'};
-const IMGW={latte:200};
-const IMGBG={twist:'#fffdff',duo:'#fec3d7',summer:'#fec3d7',bites:'#fec3d6',churros:'#fdc3d9',party:'#fec3d7',unoparty:'#fcc4da',miniuno:'#fcc4da',kids:'#fcc4da'};
-const FULL=new Set(['twist','duo','summer','bites','churros','party','unoparty','miniuno','kids']);
+const IMG={twist:'/img/403d518708.jpg',lotus:'/img/2024622dc2.jpg',blueb:'/img/33862f11e1.jpg',rasp:'/img/a79cf6c251.jpg',pist:'/img/868328e6aa.jpg',bueno:'/img/95ea56649f.jpg',carm:'/img/59cb826432.jpg',latte:'/img/335be1321f.jpg',coffee:'/img/2bcfa933c9.jpg',churros:'/img/db97ab432b.jpg',duo:'/img/3e34a6a995.jpg',cup:'/img/49a0d93b93.jpg',bites:'/img/925cad9a48.jpg',party:'/img/389465227d.jpg',summer:'/img/f80b17ea38.jpg',unoparty:'/img/6f748a8d3c.jpg',miniuno:'/img/4684f3d159.jpg',kids:'/img/68e6bec111.jpg'};
+const IMGL={twist:'/img/39be51c10d.jpg',duo:'/img/9efc0a0bc2.jpg',summer:'/img/f6fdf9c41a.jpg',bites:'/img/fd4f48de67.jpg',churros:'/img/4612056d10.jpg',party:'/img/3756197d3a.jpg',lotus:'/img/a5ee89c590.jpg',blueb:'/img/20e505555e.jpg',rasp:'/img/8e5a058ef3.jpg',pist:'/img/7b0ce485f6.jpg',bueno:'/img/305deb1fa2.jpg',carm:'/img/42c9835783.jpg',unoparty:'/img/0d671b331e.jpg',miniuno:'/img/b41dc96041.jpg',kids:'/img/9476b632a5.jpg',latte:'/img/ea9617488e.jpg',coffee:'/img/e57c3be961.jpg'};
+const IMGW={};
+const IMGBG={twist:'#fffdff',duo:'#fec3d7',summer:'#fec3d7',bites:'#fec3d6',churros:'#fdc3d9',party:'#fec3d7',unoparty:'#fcc4da',miniuno:'#fcc4da',kids:'#fcc4da',coffee:'#fcc4da'};
+const FULL=new Set(['twist','duo','summer','bites','churros','party','unoparty','miniuno','kids','coffee']);
 const DS={39:'Kutia e festës me 6 Uno churros, secili me shije tjetër: nga frutat e kuqe te pistachio, karameli dhe çokollata. Produkt i ri.',40:'Kombinimi i përsosur për shoqërinë: Uno churros me shije të ndryshme, mini churros krokante dhe 3 dip sauces. Produkt i ri.',41:'Kutia e fëmijëve: churros në gotë me topping, Monte Drink dhe një bllok vizatimi me lapsë për argëtim. Produkt i ri.',1:'5 churros të freskëta dhe krokante, të shoqëruara me 1 dip sipas zgjedhjes.',2:'10 churros krokante, me 2 dip sipas zgjedhjes. Ideale për t’i ndarë.',20:'Churros të zhytur në çokollatë dhe të zbukuruara me spërkatje e copëza. Produkt i ri.',3:'5 churros me 2 dip sauces, të servirura në tabakanë Wonder. Produkt i ri.',4:'15 mini churros në një kupë, me 2 toppings sipas dëshirës.',5:'20 mini churros me fruta sezonale dhe 2 dip sauces.',6:'10 churros, 15 mini churros dhe 4 dip sauces në një kuti të madhe për t’u ndarë.',7:'40 mini churros me fruta sezonale dhe 4 dip sauces në një kuti. Produkt i ri.',27:'Latte me shije sipas zgjedhjes: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla ose Popcorn.',28:'Kafe Americano.',29:'Espresso i fortë.',30:'Macchiato: espresso me pak qumësht.',31:'Çokollatë e nxehtë.'};
 const DIPS=[['🍓','Raspberry'],['🫐','Blueberry'],['🌰','Hazelnut'],['🍦','Vanilla'],['🍫','Nutella'],['🍯','Caramel'],['🟢','Pistachio']];
 const FLAV=['Caramel','Hazelnut','Toffee Crunch','Speculoos Cookie','Vanilla','Popcorn'];
@@ -289,9 +289,9 @@ const MENU=[
 {id:41,c:'Kids box',n:'Kids Box',d:'Churros në gotë, Monte Drink dhe bllok vizatimi',p:3.99,i:'kids',nw:1},
 {id:7,c:'Party box',n:'Summer Box',d:'40 mini churros, fruta sezonale, 4 dip sauces',p:13,i:'summer',nw:1},
 {id:27,c:'Flavored Latte',n:'Flavoured Latte',d:'Shije: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla, Popcorn',p:2,i:'latte'},
-{id:28,c:'Coffee',n:'Americano',d:'Kafe e zezë',p:1.5,e:'☕'},
-{id:29,c:'Coffee',n:'Espresso',d:'Espresso i fortë',p:1,e:'☕'},
-{id:30,c:'Coffee',n:'Macchiato',d:'Espresso me pak qumësht',p:1.5,e:'☕'},
+{id:28,c:'Coffee',n:'Americano',d:'Kafe e zezë',p:1.5,e:'☕',i:'coffee'},
+{id:29,c:'Coffee',n:'Espresso',d:'Espresso i fortë',p:1,e:'☕',i:'coffee'},
+{id:30,c:'Coffee',n:'Macchiato',d:'Espresso me pak qumësht',p:1.5,e:'☕',i:'coffee'},
 {id:31,c:'Coffee',n:'Hot Choco',d:'Çokollatë e nxehtë',p:1.5,e:'🍫'},
 {id:32,c:'Dip',n:'Raspberry',d:'Dip shtesë',p:0.5,e:'🍓'},
 {id:33,c:'Dip',n:'Blueberry',d:'Dip shtesë',p:0.5,e:'🫐'},
@@ -400,7 +400,7 @@ function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
  +`<h3>Dhurata dhe zbritje</h3>`+giftsAndDeals(u)
   +`<h3>Historiku i pikëve</h3>`+(hist||'<div class="card mut">Ende nuk ke blerje. Pas çdo blerjeje në dyqan fiton pikë.</div>')}
 function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd(pm)}
- if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Kids box':[IMGL.kids,'center 40%'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
+ if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Kids box':[IMGL.kids,'center 40%'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[IMGL.latte,'center 74%'],'Coffee':[IMGL.coffee,'right center']};
   return `<h1 class="ptitle">Menu</h1>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${c}</b><span>${n?n+(n===1?' produkt':' produkte'):'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
  const its=MENU.filter(m=>m.c===cat);
  return `<div class="dh"><button class="dback" data-a="cback" aria-label="Kthehu te menyja">←</button><b>${cat}</b><i></i></div>`

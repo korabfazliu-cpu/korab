@@ -1,0 +1,6 @@
+{
+  "name": "wonder-club",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "dependencies": { "pg": "^8.13.1" }
+}

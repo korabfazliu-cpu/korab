@@ -235,6 +235,29 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
  text-shadow:0 3px 0 #7C421C,2px 2px 0 #7C421C,-2px 2px 0 #7C421C,2px -1px 0 #7C421C,-2px -1px 0 #7C421C}
 .ptitle::after{content:"";display:block;width:56px;height:6px;margin:12px auto 0;border-radius:6px;background:#7C421C;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
 .badge .soon{font-size:14px;font-weight:700;white-space:nowrap;letter-spacing:0}
+
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:60;max-width:min(92vw,420px);background:#7C421C;color:#fff;font-weight:700;font-size:14.5px;line-height:1.35;padding:12px 18px;border-radius:18px;box-shadow:0 8px 24px rgba(60,25,5,.3);transition:opacity .25s,transform .25s;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}#toast.bad{background:#b3261e}
+.btn.wait{opacity:.6;pointer-events:none}.btn:disabled{opacity:.6}
+.live{font-size:12.5px;font-weight:700;color:#1d7a3a;white-space:nowrap}
+.dhead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:4px 2px 16px}.dhead .ptitle{text-align:left;font-size:34px}.dhead .ptitle::after{margin:8px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(3,1fr)}.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dgrid>.card{margin:0 0 12px}}
+.kpi{background:var(--card);border:3px solid #7C421C;border-radius:22px;box-shadow:0 4px 0 #7C421C;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi span{font-size:12.5px;font-weight:700;color:#7a4d33}.kpi b{font-size:24px;color:#4a2a17;line-height:1.15;overflow-wrap:anywhere}.kpi i{font-style:normal;font-size:12px;color:#7a4d33}
+.kpi.hl{background:#7C421C}.kpi.hl span,.kpi.hl b,.kpi.hl i{color:#fff}
+.chart{width:100%;height:auto;display:block;margin-top:8px}.chart .cv{font-size:13px;font-weight:700;fill:#4a2a17}.chart .cl{font-size:12px;fill:#7a4d33}.chart .cl.on{font-weight:800;fill:#7C421C}
+.tb{margin:8px 0}.tb .row{margin-bottom:4px}
+.acts{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.act{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:0;border-radius:14px;padding:10px 12px;cursor:pointer}
+.act>span{display:flex;flex-direction:column;min-width:0}.act>span:last-child{align-items:flex-end;flex:none}.act i{font-style:normal;font-size:12.5px;color:#7a4d33}.act b{color:#4a2a17}
+.act.undone b,.card.undone b{text-decoration:line-through;opacity:.6}
+.card.kl{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.kl .t{display:flex;flex-direction:column;min-width:0;flex:1}.kl .t i{font-style:normal;font-size:12.5px;color:#7a4d33;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kl .pts{display:flex;flex-direction:column;align-items:flex-end}.kl .pts b{font-size:20px;color:#7C421C}.kl .pts i{font-style:normal;font-size:12px;color:#7a4d33}
+.avatar.sm{width:42px;height:42px;font-size:16px}
+.seg{display:flex;gap:8px;margin:10px 0}.seg label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border-radius:14px;padding:10px;font-weight:700;cursor:pointer}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two label{display:flex;flex-direction:column;gap:4px}
 </style>
 </head>
 <body>
@@ -307,38 +330,47 @@ const CC=[['+46','Suedi'],['+355','Shqipëri'],['+383','Kosovë'],['+358','Finla
 const NAV=[['home','Start','🏠'],['wal','Kuleta','👛'],['menu','Menu','🍩'],['me','Profili','']];
 const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',wal:'<svg viewBox="0 0 24 24"><path d="M6 6h11a2 2 0 0 1 2 2"/><rect x="3" y="6" width="18" height="14" rx="3"/><rect x="14" y="11" width="7" height="4" rx="2"/><circle cx="16.6" cy="13" r=".6"/></svg>',menu:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'};NAV.forEach(n=>n[2]=IC[n[0]]);
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
-let db={users:{},cur:null},tab='home',cat=null,au={step:'phone',cc:'+46',ph:'',key:'',code:''};
-try{const s=localStorage.getItem('wonder_v3');if(s)db=JSON.parse(s)}catch(e){}
-delete db.role;try{db.role=STAFF_APP?JSON.parse(localStorage.getItem('wonder_staff')||'null'):null}catch(e){db.role=null}
-const save=()=>{try{const {role,...rest}=db;localStorage.setItem('wonder_v3',JSON.stringify(rest));if(STAFF_APP)localStorage.setItem('wonder_staff',JSON.stringify(role||null))}catch(e){}};
+// ---- connection with the server (/api/rpc) ----
+const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Kjo dhuratë është përdorur tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',DONE:'Admini është krijuar tashmë.',CODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
+const errText=e=>ERR[e&&e.message]||ERR.SERVER;
+async function api(fn,args){let r;
+ try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
+ let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok||j.error){const er=new Error(j.error||'SERVER');if(er.message==='SESSION')onSession();throw er}
+ return j.data}
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+let S={tok:LS.get('wc_tok'),me:null,skew:0};                 // customer
+let ST={tok:LS.get('wc_stok'),role:null,name:null};          // staff / admin
+let db={role:null};                                          // kept for the view code
+let tab='home',cat=null,au={step:'email',email:'',name:'',surname:''};
+function onSession(){if(STAFF_APP){ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null}else{S.tok=null;S.me=null;LS.set('wc_tok',null)}render()}
+function setMe(card){if(!card)return;S.skew=(card.now||Date.now())-Date.now();S.me=card}
+const now=()=>Date.now()+S.skew;
 const $=id=>document.getElementById(id);
 const r2=x=>Math.round(x*100)/100;
-const fmtP=n=>String(Math.round(n*100)/100);
+const fmtP=n=>String(Math.round(Number(n)*100)/100);
 const RC=m=>m.p?Math.round(m.p*9*100)/100:Infinity;
 const KP=m=>m.p?K(m.p):'<span class="soon">Së shpejti</span>';
-const sp=u=>{u.points=Math.round(Object.values(u.pp||{}).reduce((a,b)=>a+b,0)*100)/100};
-const K=n=>(Math.round(n*100)/100).toFixed(2)+' €';
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const U=()=>!STAFF_APP&&db.cur&&db.users[db.cur]||null;
-const tier=u=>TIERS.filter(x=>u.earned>=x.min).pop();
-const nextT=u=>TIERS.find(x=>x.min>u.earned);
+const K=n=>(Math.round(Number(n)*100)/100).toFixed(2)+' €';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const U=()=>!STAFF_APP&&S.me||null;
 const sheet=h=>{$('sheet').innerHTML=h;$('ov').classList.add('show')};
 const closeS=()=>$('ov').classList.remove('show');
-const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
-const qrPay=u=>'WONDER:'+u.mid+':'+b64e(JSON.stringify({n:u.name,s:u.surname||'',e:u.email||''}));
+const qrPay=u=>'WONDER:'+u.mid;
 const PQR=(id,q)=>'WONDER-P:'+id+(q>1?':'+q:'');
 const parseP=t=>{const m=/^WONDER-P:(\d+)(?::(\d+))?$/i.exec(String(t).trim());if(!m)return null;const p=MENU.find(x=>x.id==+m[1]);const q=m[2]?+m[2]:1;return p&&p.p&&q>=1&&q<=20?{m:p,q}:null};
-function parseQR(t){const m=/^WONDER:([A-Z0-9]+)(?::([A-Za-z0-9_-]+))?$/i.exec(String(t).trim());if(!m)return null;let c={};try{if(m[2])c=JSON.parse(b64d(m[2]))}catch(e){}return {mid:m[1].toUpperCase(),n:c.n||'',s:c.s||'',e:(c.e||'').toLowerCase()}}
+const parseQR=t=>{const m=/^WONDER:([A-Z0-9]+)(?::[A-Za-z0-9_-]+)?$/i.exec(String(t).trim());return m?{mid:m[1].toUpperCase()}:null};
 function qrSvg(t){try{const q=qrcode(0,'M');q.addData(t);q.make();const n=q.getModuleCount();let d='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+2} ${r+2}h1v1h-1z`;return `<svg viewBox="0 0 ${n+4} ${n+4}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}catch(e){return ''}}
+const toast=(m,good)=>{let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}t.className=good===false?'bad':'';t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)};
+const busy=(b,on)=>{if(!b)return;b.disabled=on;b.classList.toggle('wait',on)};
 
-function renderAuth(){const a=$('auth');
- a.style.background='#F8C4DB';
- let h=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Mirë se vini në</p><h1 class="fancy">WONDER CLUB</h1><p class="sm">Programi i anëtarësimit për ty që i do churros</p>`;
- if(au.step==='phone')h+=`<input type="email" id="ph" placeholder="Shkruaj email-in tënd" value="${esc(au.ph)}" autocomplete="email"><p id="ae" class="err"></p><button class="btn" data-a="next">Tjetra</button><button class="lnk" data-a="demo">Hyr me llogari demo</button><button class="lnk howl" data-a="how">Si funksionon Wonder Club?</button>`;
- else if(au.step==='staff')h=stAuth();
- else if(au.step==='code')h+=`<p class="sm">Shkruaj kodin e dërguar në ${esc(au.key)}</p><input type="tel" inputmode="numeric" id="cd" maxlength="6" placeholder="Kodi nga email-i"><div class="demo">Demo: kodi yt është <b>${au.code}</b>. Në versionin real kodi dërgohet me email.</div><p id="ae" class="err"></p><button class="btn" data-a="verify">Konfirmo</button><button class="lnk" data-a="back">Ndrysho numrin</button><button class="lnk" data-a="resend">Ridërgo kodin</button>`;
- else h=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Të dhënat e tua</h2><p class="sm">Email-i u konfirmua. Shkruaj emrin dhe mbiemrin.</p><input type="text" id="nm" placeholder="Emri" autocomplete="given-name"><input type="text" id="sn" placeholder="Mbiemri" autocomplete="family-name"><p id="ae" class="err"></p><button class="btn" data-a="create">Krijo llogarinë</button>`;
+function renderAuth(){const a=$('auth');a.style.background='#F8C4DB';
+ const top=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Mirë se vini në</p><h1 class="fancy">WONDER CLUB</h1>`;
+ let h;
+ if(au.step==='staff'){a.innerHTML=stAuth();return}
+ if(au.step==='email')h=top+`<p class="sm">Programi i anëtarësimit për ty që i do churros</p><input type="email" id="ph" placeholder="Shkruaj email-in tënd" value="${esc(au.email)}" autocomplete="email" autocapitalize="none"><p id="ae" class="err"></p><button class="btn" data-a="next">Tjetra</button><button class="lnk howl" data-a="how">Si funksionon Wonder Club?</button>`;
+ else if(au.step==='pin')h=top+`<p class="sm">Mirë se u ktheve! Shkruaj PIN-in tënd për <b>${esc(au.email)}</b>.</p><input type="password" inputmode="numeric" id="pin" maxlength="6" placeholder="PIN (4–6 shifra)" autocomplete="current-password"><p id="ae" class="err"></p><button class="btn" data-a="login">Hyr</button><button class="lnk" data-a="forgot">Harrove PIN-in?</button><button class="lnk" data-a="back">Ndrysho email-in</button>`;
+ else h=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Krijo llogarinë</h2><p class="sm">${esc(au.email)}</p><input type="text" id="nm" placeholder="Emri" value="${esc(au.name)}" autocomplete="given-name"><input type="text" id="sn" placeholder="Mbiemri" value="${esc(au.surname)}" autocomplete="family-name"><input type="password" inputmode="numeric" id="pin" maxlength="6" placeholder="Zgjidh një PIN (4–6 shifra)" autocomplete="new-password"><input type="password" inputmode="numeric" id="pin2" maxlength="6" placeholder="Përsërit PIN-in" autocomplete="new-password"><p class="sm" style="margin-top:0">PIN-i të duhet sa herë hyn në llogari.</p><p id="ae" class="err"></p><button class="btn" data-a="create">Krijo llogarinë</button><button class="lnk" data-a="back">Kthehu</button>`;
  a.innerHTML=h}
 const LOGO2='/img/91e99b5bba.png';
 const PHOTOS=['/img/bf201ed62d.jpg','/img/9908ad4ce6.jpg','/img/252dada6d9.jpg','/img/3e3e09f98f.jpg','/img/0ab00362ed.jpg'];
@@ -359,37 +391,29 @@ function howSheet(){const st=(n,title,body)=>`<div class="hw"><span class="hwn">
  +`<h3 class="fancy hmh" id="hmenu">Menyja jonë</h3><p class="mut" style="margin:0 0 4px">Çdo produkt të sjell pikë. Rrëshqit anash për të parë të gjitha.</p>${menu}`
  +`<p class="mut" style="margin:18px 0 12px">Ke pyetje? Pyet stafin tonë në dyqan.</p>`
  +(guest?`<button class="btn" style="width:100%" data-a="howjoin">Krijo llogarinë falas</button>`:`<button class="btn" style="width:100%" data-a="howclose">Kuptova</button>`))}
-// Dhurata dhe zbritje nga kompania. Shembuj:
-// {id:'p1',type:'pct',pct:20,title:'20% zbritje për Party Box',desc:'Vlen për çdo Party Box.',from:'2026-12-01',until:'2026-12-31'}
-// {id:'g1',type:'gift',title:'Dip falas',desc:'Një dip falas me çdo Churros Large.',until:'2026-12-31'}
-const PROMOS=[];
-const promoOn=p=>{const d=new Date().toISOString().slice(0,10);return (!p.from||p.from<=d)&&(!p.until||p.until>=d)};
-const dmy=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
-function giftsAndDeals(u){const ps=PROMOS.filter(promoOn);
+// Gifts and discounts: the customer's own vouchers, company promotions (from the admin panel) and offers.
+const dmy=s=>s?String(s).slice(8,10)+'.'+String(s).slice(5,7)+'.'+String(s).slice(0,4):'';
+function giftsAndDeals(u){const ps=u.promos||[];
  let h=(u.vouchers||[]).map(v=>`<div class="card tkt"><span class="ribbon">FALAS</span><b>${esc(v.n)}</b><span class="mut">Trego këtë në arkë</span></div>`).join('')
   +ps.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+(+p.pct)+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.until?'Vlen deri më '+dmy(p.until)+' · ':''}Trego këtë në arkë</span></div>`).join('')
-  +(u.offers||[]).map((o,i)=>offerBox(o,i)).join('');
+  +(u.offers||[]).map(o=>offerBox(o)).join('');
  if(!ps.length)h+=`<div class="card dealslot"><b>Dhurata dhe zbritje (%) nga Wonder Churros</b><span class="mut">Kur kemi një dhuratë ose zbritje për ty, ajo shfaqet pikërisht këtu.</span></div>`;
  return h}
 const OFFER_TXT='Merr 1 € zbritje dhe blej Churros Large';
-const offerState=o=>o.expired||(o.exp&&o.exp<=Date.now())?'x':o.exp?'a':'n';
-function offerBox(o,i){const s=offerState(o),m=MENU.find(x=>x.id==o.item);
+const offerState=o=>o.expired||(o.exp&&o.exp<=now())?'x':o.exp?'a':'n';
+const secs=o=>Math.max(0,Math.ceil((o.exp-now())/1000));
+function offerBox(o){const s=offerState(o),m=MENU.find(x=>x.id==o.item);
  return `<div class="card pr offer ${s==='x'?'dead':''}"><span class="ribbon">${s==='x'?'SKADUAR':'−'+K(o.off)}</span><img src="${IMG[m.i]}" alt="${m.n}"><div class="in"><b>${OFFER_TXT}</b><span class="mut">${m.n}: ${m.d}</span>`
- +(s==='n'?`<div class="row"><span class="badge">${K(m.p-o.off)}</span><button class="btn sm" data-a="act" data-v="${i}">Aktivizo</button></div><span class="mut">Pas aktivizimit ke 60 sekonda. Koha nuk mund të ndalet.</span>`
- :s==='a'?`<div class="row"><span class="cdw"><span class="cdn" data-exp="${o.exp}">${Math.max(0,Math.ceil((o.exp-Date.now())/1000))}</span> sek</span></div><span class="mut">Trego këtë ekran në arkë para se të mbarojnë sekondat.</span>`
+ +(s==='n'?`<div class="row"><span class="badge">${K(m.p-o.off)}</span><button class="btn sm" data-a="act" data-v="${o.id}">Aktivizo</button></div><span class="mut">Pas aktivizimit ke 60 sekonda. Koha nuk mund të ndalet.</span>`
+ :s==='a'?`<div class="row"><span class="cdw"><span class="cdn" data-exp="${o.exp}">${secs(o)}</span> sek</span></div><span class="mut">Trego këtë ekran në arkë para se të mbarojnë sekondat.</span>`
  :`<span class="mut">Oferta ka skaduar.</span>`)+`</div></div>`}
-function tick(){const u=U(),now=Date.now();document.querySelectorAll('.cdn').forEach(e=>{e.textContent=Math.max(0,Math.ceil((+e.dataset.exp-now)/1000))});if(!u||!u.offers)return;let ch=false;
- u.offers.forEach(o=>{if(o.exp&&!o.expired&&o.exp<=now){o.expired=true;ch=true}});
- if(ch){save();render()}
- document.querySelectorAll('.cdn').forEach(e=>{e.textContent=Math.max(0,Math.ceil((+e.dataset.exp-now)/1000))})}
+function tick(){document.querySelectorAll('.cdn').forEach(e=>{const s=Math.max(0,Math.ceil((+e.dataset.exp-now())/1000));e.textContent=s;if(s===0&&!e.dataset.done){e.dataset.done=1;setTimeout(()=>STAFF_APP?refreshFound():render(),300)}})}
 setInterval(tick,500);
-const newCode=()=>String(100000+Math.floor(Math.random()*900000));
-
 function vHome(){const u=U(),now=new Date();
  let h=`<h2 class="fancy" style="font-size:30px;margin:4px 0 12px">Përshëndetje, ${esc(u.name)}!</h2><div class="hero"><h2 class="fancy" style="font-size:24px">Mbledh pikë dhe merr dhurata!</h2><p>Ke <b>${fmtP(u.points)} pikë</b>${u.vouchers.length?` dhe ${u.vouchers.length} dhuratë`:''}.</p><button class="btn" data-a="tab" data-v="wal">Kuleta →</button></div>`;
  if(u.bday&&+u.bday.slice(5,7)===now.getMonth()+1&&u.bdayY!==now.getFullYear())h+=`<div class="card row"><span>🎂 Dhurata e ditëlindjes: Mini Churros Cup falas</span><button class="btn sm" data-a="bday">Merr</button></div>`;
  h+=`<h3>Zbulo produktet në Wonder Churros</h3><div class="slw"><div class="sl ph" id="slp">${PHOTOS.map(s=>`<img src="${s}" alt="Wonder Churros" draggable="false" data-a="tab" data-v="menu">`).join('')}</div><button class="sb l" data-a="slp" data-v="-1" aria-label="Para">‹</button><button class="sb r" data-a="slp" data-v="1" aria-label="Pas">›</button></div><div class="dots" id="dots">${PHOTOS.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`;
- const lo=(u.offers||[])[0];if(lo){h+=`<h3>Oferta për ty</h3>`+offerBox(lo,0)}else h+=`<h3>Oferta</h3><div class="card pr offer"><span class="ribbon">OFERTË</span><img src="${IMG.party}" alt="Party Box"><div class="in"><b>Party Box</b><span class="mut">10 churros + 15 mini churros + 4 dip sauces</span><div class="row"><span class="badge">${K(12)}</span><button class="btn sm" data-a="tab" data-v="menu">Shiko menunë</button></div></div></div>`;
+ const lo=(u.offers||[])[0];if(lo){h+=`<h3>Oferta për ty</h3>`+offerBox(lo)}else h+=`<h3>Oferta</h3><div class="card pr offer"><span class="ribbon">OFERTË</span><img src="${IMG.party}" alt="Party Box"><div class="in"><b>Party Box</b><span class="mut">10 churros + 15 mini churros + 4 dip sauces</span><div class="row"><span class="badge">${K(12)}</span><button class="btn sm" data-a="tab" data-v="menu">Shiko menunë</button></div></div></div>`;
  return h}
 function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
  const rw=MENU.slice().sort((a,b)=>(pr(b)>=1)-(pr(a)>=1)||pr(b)-pr(a)),nx=rw.find(m=>pr(m)<1&&pr(m)>0),rdy=rw.some(m=>pr(m)>=1);const ready=MENU.filter(m=>(pp[m.id]||0)>=RC(m));
@@ -408,131 +432,211 @@ function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd
 function vMe(){const u=U(),ini=((u.name||'')[0]||'')+((u.surname||'')[0]||''),row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
  const since=u.created?new Date(u.created).toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
  return `<h1 class="ptitle">Llogaria ime</h1><div class="card acct"><div class="ahead"><span class="avatar">${esc(ini.toUpperCase())}</span><div><b>${FN(u)}</b><span class="mut">Anëtar i Wonder Club${since?' që nga '+since:''}</span></div></div>`
- +`<div class="rows">${row('Emri',esc(u.name))}${row('Mbiemri',esc(u.surname||'–'))}${row('Email',esc(u.email||db.cur))}${row('Telefoni',u.phone?esc(u.phone):'<span class="mut">Nuk është shtuar</span>')}${row('ID e klientit',u.mid)}${row('Data e lindjes',u.bday?dmy(u.bday):'<span class="mut">Nuk është shtuar</span>')}</div></div>`
+ +`<div class="rows">${row('Emri',esc(u.name))}${row('Mbiemri',esc(u.surname||'–'))}${row('Email',esc(u.email))}${row('Telefoni',u.phone?esc(u.phone):'<span class="mut">Nuk është shtuar</span>')}${row('ID e klientit',u.mid)}${row('Data e lindjes',u.bday?dmy(u.bday):'<span class="mut">Nuk është shtuar</span>')}</div></div>`
  +`<h3>Ndrysho të dhënat</h3><div class="card"><label class="mut" for="tel">Numri i telefonit (opsional)</label><input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="+383 4x xxx xxx" value="${esc(u.phone||'')}"><p class="err" id="tele"></p>`
- +`<label class="mut" for="bd">Data e lindjes (për dhuratën e ditëlindjes)</label><input type="date" id="bd" value="${u.bday||''}"></div>`
+ +`<label class="mut" for="bd">Data e lindjes (për dhuratën e ditëlindjes)</label><input type="date" id="bd" value="${u.bday||''}"${u.bday?' disabled':''}>${u.bday?'<p class="mut" style="margin:4px 0 0">Data e lindjes vendoset vetëm një herë.</p>':''}</div>`
  +`<button class="btn ghost wide" data-a="how" style="margin-top:12px;justify-content:center">Si funksionon Wonder Club?</button><button class="btn ghost wide" data-a="out" style="margin-top:12px;justify-content:center">Dil nga llogaria</button>`}
-
-function render(){const u=U();document.body.classList.toggle('guest',!u&&!db.role);document.body.classList.toggle('staffmode',!!db.role);if(db.role){renderStaff();return}
- if(u&&!u.pp){u.pp=db.cur==='demo@wonderchurros.app'?{1:22.5,2:20,20:8.1,4:10}:{};sp(u);save()}
- if(u&&!u.offers){u.offers=[{n:'1 € zbritje kur blen Churros Large',item:2,off:1}];save()}
- if(!u){if(STAFF_APP&&au.step!=='staff')au.step='staff';renderAuth();return}
+function render(){const u=U();document.body.classList.toggle('guest',!u&&!db.role);document.body.classList.toggle('staffmode',!!db.role);
+ if(STAFF_APP){if(db.role){renderStaff();return}au.step='staff';renderAuth();return}
+ if(!u){renderAuth();return}
  $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros">`;
  $('nav').innerHTML=NAV.map(([k,l,e])=>`<button class="${tab===k?'on':''}" data-a="tab" data-v="${k}"><span>${e}</span>${l}</button>`).join('');
- $('main').innerHTML=({home:vHome,wal:vWal,menu:vMenu,me:vMe})[tab]();if(tab==='menu'&&pd==null&&$('mcar'))fx($('mcar'))}
+ $('main').innerHTML=({home:vHome,wal:vWal,menu:vMenu,me:vMe})[tab]()}
 
-function qrS(){const u=U(),q=qrSvg(qrPay(u));
- sheet(`<h2 class="fancy">ID-ja ime</h2><div class="qr">${q||'<p style="color:#333;padding:20px">QR nuk u ngarkua. Kontrollo lidhjen.</p>'}</div><p style="text-align:center"><b>${FN(u)}</b><br><span class="mut">Kodi: ${u.mid}</span></p><p class="mut" style="text-align:center">Trego QR-në në arkë për të mbledhur pikë.</p><button class="btn ghost wide" data-a="close">Mbyll</button>`)}
-function topS(){sheet(`<h2 class="fancy">Ngarko saldo</h2><p class="mut">Paguaj më shpejt dhe fito pikë bonus.</p>`+TOPUP.map((t,i)=>`<button class="btn wide" data-a="top" data-v="${i}"><span>${K(t.a)}</span><span>${t.b?'+'+t.b+' pikë bonus':'pa bonus'}</span></button>`).join('')+`<button class="btn ghost wide" data-a="close" style="margin-top:12px">Mbyll</button>`)}
-document.addEventListener('click',e=>{
+// ---- customer: live wallet ----
+let pollT=null,lastSig='';
+const sig=c=>c?JSON.stringify([c.pp,c.vouchers,c.offers,c.orders&&c.orders[0],c.promos,c.phone,c.bday,c.bdayY]):'';
+async function pollMe(){if(STAFF_APP||!S.tok||document.hidden)return;
+ try{const c=await api('me',{token:S.tok});const before=S.me?Number(S.me.points):null;const ch=sig(c)!==sig(S.me);setMe(c);
+  if(ch){const ae=document.activeElement,typing=ae&&ae.tagName==='INPUT'&&$('main').contains(ae);if(!typing)render();
+   if(before!=null&&Number(c.points)>before)toast(`+${fmtP(Number(c.points)-before)} pikë u shtuan në kuletën tënde!`)}}catch(e){}}
+function startPoll(){clearInterval(pollT);pollT=setInterval(STAFF_APP?staffPoll:pollMe,4000)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)(STAFF_APP?staffPoll:pollMe)()});
+
+document.addEventListener('click',async e=>{
  if(e.target.id==='ov'){stopScan();closeS();return}
  {const hb=e.target.closest('[data-a=how],[data-a=howclose],[data-a=howjoin],[data-a=hjump]');if(hb){e.preventDefault();const k=hb.dataset.a;
   if(k==='how'){howSheet();$('sheet').scrollTop=0}
   else if(k==='hjump'){const el=$(hb.dataset.v),sh=$('sheet');if(el)sh.scrollTo({top:el.offsetTop-sh.offsetTop-12,behavior:'smooth'});document.querySelectorAll('.hjump .chp').forEach(x=>x.classList.toggle('on',x===hb))}
   else{closeS();if(k==='howjoin'){const i=$('ph');if(i)setTimeout(()=>i.focus(),50)}}return}}
- const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,u=U(),er=m=>{$('ae').textContent=m};if(a.startsWith('st_')){staffAct(a,b);return}
- if(a==='next'){au.ph=$('ph').value.trim();const em=au.ph.toLowerCase();
+ const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a,v=b.dataset.v,er=m=>{const x=$('ae');if(x)x.textContent=m};
+ if(a.startsWith('st_')){staffAct(a,b);return}
+ const call=async(fn,args,after)=>{busy(b,true);try{const r=await api(fn,args);if(after)after(r)}catch(x){er(errText(x));if(!$('ae'))toast(errText(x),false)}finally{busy(b,false)}};
+ if(a==='next'){const em=$('ph').value.trim().toLowerCase();au.email=em;
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){er('Shkruaj një email të vlefshëm.');return}
-  au.key=em;au.code=newCode();au.step='code';renderAuth()}
- else if(a==='demo'){const k='demo@wonderchurros.app';if(!db.users[k])db.users[k]={name:'Demo',surname:'Klient',email:k,mid:'WCDEMO1',points:60.6,earned:60.6,pp:{1:22.5,2:20,20:8.1,4:10},balance:0,vouchers:[{n:'Churros Standard falas (dhuratë mirëseardhjeje)',v:2.5}],orders:[]};db.cur=k;tab='home';save();render()}
- else if(a==='verify'){if($('cd').value.trim()!==au.code){er('Kodi nuk është i saktë.');return}
-  if(db.users[au.key]){db.cur=au.key;save();render()}else{au.step='name';renderAuth()}}
- else if(a==='back'){au.step='phone';renderAuth()}
- else if(a==='resend'){au.code=newCode();renderAuth()}
- else if(a==='create'){const n=$('nm').value.trim(),sn=$('sn').value.trim();if(!n||!sn){er('Shkruaj emrin dhe mbiemrin.');return}
-  db.users[au.key]={name:n,surname:sn,email:au.key,mid:'WC'+Math.random().toString(36).slice(2,8).toUpperCase(),points:0,earned:0,pp:{},balance:0,vouchers:[{n:'Churros Standard falas (dhuratë mirëseardhjeje)',v:2.5}],orders:[],created:Date.now()};
-  db.cur=au.key;au={step:'phone',cc:'+46',ph:'',key:'',code:''};tab='home';save();render()}
+  await call('exists',{email:em},r=>{au.step=r.exists?'pin':'new';renderAuth();setTimeout(()=>{const i=$(r.exists?'pin':'nm');if(i)i.focus()},50)})}
+ else if(a==='login'){const pin=$('pin').value.trim();if(!/^\d{4,6}$/.test(pin)){er('PIN-i ka 4 deri në 6 shifra.');return}
+  await call('login',{email:au.email,pin},r=>{S.tok=r.token;LS.set('wc_tok',r.token);setMe(r.card);au={step:'email',email:'',name:'',surname:''};tab='home';render();startPoll()})}
+ else if(a==='create'){au.name=$('nm').value.trim();au.surname=$('sn').value.trim();const pin=$('pin').value.trim();
+  if(!au.name||!au.surname){er('Shkruaj emrin dhe mbiemrin.');return}
+  if(!/^\d{4,6}$/.test(pin)){er('PIN-i duhet të ketë 4 deri në 6 shifra.');return}
+  if(pin!==$('pin2').value.trim()){er('PIN-et nuk përputhen.');return}
+  await call('register',{email:au.email,name:au.name,surname:au.surname,pin},r=>{S.tok=r.token;LS.set('wc_tok',r.token);setMe(r.card);au={step:'email',email:'',name:'',surname:''};tab='home';render();startPoll();toast('Mirë se erdhe në Wonder Club! Dhurata jote të pret te Kuleta.')})}
+ else if(a==='forgot'){er('Pyet stafin në dyqan: admini ta vendos një PIN të ri.')}
+ else if(a==='back'){au.step='email';renderAuth()}
  else if(a==='tab'){tab=v;pd=null;if(v==='menu')cat=null;render();scrollTo(0,0)}
  else if(a==='cat'){ms0=scrollY;cat=v;pd=null;render();scrollTo(0,0)}
  else if(a==='cback'){cat=null;pd=null;render();scrollTo(0,ms0)}
- else if(a==='act'){const o=u.offers&&u.offers[+v];if(o&&!o.exp&&!o.expired){o.exp=Date.now()+60000;save();render()}}
+ else if(a==='act')await call('activateOffer',{token:S.tok,offer:+v},r=>{setMe(r);render()})
  else if(a==='slp'){const s=$('slp');if(s)s.scrollBy({left:+v*s.clientWidth*.7,behavior:'smooth'})}
  else if(a==='prod'){mscroll=scrollY;pd=+v;render();scrollTo(0,0)}
  else if(a==='pback'){pd=null;render();scrollTo(0,mscroll)}
  else if(a==='pq'){const m=MENU.find(x=>x.id==pd);if(!m)return;const q=Math.min(20,Math.max(1,(pqty[m.id]||1)+(+v)));pqty[m.id]=q;
   $('pqr').innerHTML=qrSvg(PQR(m.id,q));$('pqn').textContent=q;$('pqp').textContent='+'+fmtP(Math.round(m.p*q*100)/100)+' pikë'}
- else if(a==='qr')qrS();
- else if(a==='out'){db.cur=null;save();render()}
- else if(a==='topS')topS();
- else if(a==='top'){const t=TOPUP[v];u.balance=r2(u.balance+t.a);u.points+=t.b;u.earned+=t.b;save();closeS();render()}
- else if(a==='redeem'){const m=MENU.find(x=>x.id==v);u.pp=u.pp||{};if(m&&(u.pp[m.id]||0)>=RC(m)){u.pp[m.id]=Math.round((u.pp[m.id]-RC(m))*100)/100;sp(u);u.vouchers.push({n:m.n+' falas',v:m.p});save();render()}}
- else if(a==='bday'){u.vouchers.push({n:'Mini Churros Cup falas (ditëlindje)',v:2.5});u.bdayY=new Date().getFullYear();save();render()}
+ else if(a==='out'){const t=S.tok;S.tok=null;S.me=null;LS.set('wc_tok',null);clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
+ else if(a==='redeem')await call('redeem',{token:S.tok,product:+v},r=>{setMe(r);render();toast('Urime! Dhurata u shtua te Kuleta.')})
+ else if(a==='bday')await call('claimBday',{token:S.tok},r=>{setMe(r);render();toast('Gëzuar ditëlindjen! 🎂 Dhurata të pret te Kuleta.')})
  else if(a==='close')closeS();
 });
-let st={tab:'arka',q:'',found:null,msg:'',bad:false,last:null};
-function addPurchase(key,m,q){const u=db.users[key];u.pp=u.pp||{};const add=Math.round(m.p*q*100)/100;u.pp[m.id]=Math.round(((u.pp[m.id]||0)+add)*100)/100;sp(u);
- const num=Date.now();u.orders=u.orders||[];u.orders.unshift({num,total:add,pts:add,n:m.n,q:q,d:new Date().toLocaleDateString('sq-AL')});u.orders=u.orders.slice(0,8);
- st.last={key,id:m.id,add,num,n:m.n,q};save();
- return `${q} × ${m.n}: u shtuan ${fmtP(add)} pikë për ${u.name}. ${m.n}: ${fmtP(u.pp[m.id])} / ${fmtP(RC(m))} pikë.${u.pp[m.id]>=RC(m)?' Produkti i 10-të është falas!':''}`}
-async function H(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('wonder:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return 'p:'+s}}
-function stAuth(){const f=!db.admin;
- return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Hyrje për staf</h2><p class="sm">${f?'Hera e parë: krijo PIN-in e adminit (4 deri në 8 shifra).':'Shkruaj përdoruesin dhe PIN-in.'}</p>`
- +(f?'':'<input type="text" id="su" placeholder="Përdoruesi (admin ose emri yt)" autocapitalize="none">')
- +`<input type="password" inputmode="numeric" id="sp" maxlength="8" placeholder="PIN">`+(f?'<input type="password" inputmode="numeric" id="sp2" maxlength="8" placeholder="Përsërit PIN-in">':'')
- +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">${f?'Krijo adminin':'Hyr'}</button>`+(STAFF_APP?'':'<button class="lnk" data-a="st_back">Kthehu</button>')}
-function ppList(u){const pp=u.pp||{},ks=MENU.filter(m=>pp[m.id]>0);return ks.length?`<div style="margin-top:10px">${ks.map(m=>`<div class="row"><span>${m.n}</span><b>${fmtP(pp[m.id])} / ${fmtP(RC(m))}${pp[m.id]>=RC(m)?' ✓':''}</b></div>`).join('')}</div>`:'<div class="mut" style="margin-top:8px">Ende nuk ka pikë për asnjë produkt.</div>'}
-function stArka(){const u=st.found&&db.users[st.found];
- let h=`<div class="card"><b>${u?'Klient tjetër':'Gjej klientin'}</b><div class="mut">Skano QR-në nga telefoni i klientit, ose shkruaj ID-në (p.sh. WC1A2B3C) ose email-in.</div><input type="text" id="sq" placeholder="ID ose email" value="${esc(st.q)}" autocapitalize="none"><button class="btn" style="width:100%" data-a="st_find">Kërko</button></div>${u?'':'<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e klientit</button>'}`;
+document.addEventListener('change',async e=>{const id=e.target.id;
+ if(!STAFF_APP&&S.tok&&(id==='bd'||id==='tel')){const v=e.target.value.trim();
+  if(id==='tel'&&v&&!/^\+?[0-9 ()-]{6,20}$/.test(v)){$('tele').textContent=ERR.PHONE;return}
+  try{const r=await api(id==='bd'?'setBday':'setPhone',id==='bd'?{token:S.tok,bday:v}:{token:S.tok,phone:v});setMe(r);render();toast('U ruajt.')}catch(x){const t=$('tele');if(t)t.textContent=errText(x)}}});
+
+// ---- staff / admin ----
+let st={tab:'arka',q:'',found:null,msg:'',bad:false,last:null,dash:null,dashAt:null,kl:null,klq:'',promos:null,staff:null,hasAdmin:null};
+const isAdm=()=>db.role&&db.role.t==='admin';
+async function staffPoll(){if(!STAFF_APP||!ST.tok||document.hidden||scanS)return;
+ try{if(st.tab==='dash'&&isAdm()){st.dash=await api('dashboard',{token:ST.tok});st.dashAt=new Date();if(!typingIn())render()}
+  else if(st.tab==='arka'&&st.found){const c=await api('card',{token:ST.tok,customer:st.found.id});if(sig(c)!==sig(st.found)){st.found=c;if(!typingIn())render()}}}catch(e){}}
+const typingIn=()=>{const ae=document.activeElement;return ae&&(ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA')&&$('main').contains(ae)};
+async function refreshFound(){if(!st.found||!ST.tok)return;try{st.found=await api('card',{token:ST.tok,customer:st.found.id});render()}catch(e){}}
+
+function stAuth(){const f=st.hasAdmin===false;
+ if(st.hasAdmin===null)return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Hyrje për staf</h2><p class="sm" id="ae">Duke u lidhur…</p>`;
+ return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">${f?'Konfigurimi i parë':'Hyrje për staf'}</h2><p class="sm">${f?'Krijo llogarinë e adminit. Kodi i konfigurimit të është dhënë nga zhvilluesi.':'Shkruaj përdoruesin dhe PIN-in.'}</p>`
+ +(f?'<input type="text" id="scode" placeholder="Kodi i konfigurimit" autocapitalize="characters" autocomplete="off">':'<input type="text" id="su" placeholder="Përdoruesi (admin ose emri yt)" autocapitalize="none" autocomplete="username">')
+ +`<input type="password" inputmode="numeric" id="sp" maxlength="6" placeholder="PIN (4–6 shifra)" autocomplete="current-password">`+(f?'<input type="password" inputmode="numeric" id="sp2" maxlength="6" placeholder="Përsërit PIN-in">':'')
+ +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">${f?'Krijo adminin':'Hyr'}</button>`}
+
+function ppList(u){const pp=u.pp||{},ks=MENU.filter(m=>pp[m.id]>0);return ks.length?`<div style="margin-top:10px">${ks.map(m=>`<div class="row"><span>${esc(m.n)}</span><b>${fmtP(pp[m.id])} / ${fmtP(RC(m))}${pp[m.id]>=RC(m)?' ✓':''}</b></div>`).join('')}</div>`:'<div class="mut" style="margin-top:6px">Ende pa pikë.</div>'}
+function stArka(){const u=st.found;
+ let h=`<div class="card"><b>${u?'Klient tjetër':'Gjej klientin'}</b><div class="mut">Skano QR-në nga telefoni i klientit, ose shkruaj ID-në, email-in ose telefonin.</div><input type="text" id="sq" placeholder="ID, email ose telefon" value="${esc(st.q)}" autocapitalize="none"><button class="btn" style="width:100%" data-a="st_find">Kërko</button></div>${u?'':'<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e klientit</button>'}`;
  if(!u)return h;
- const t=tier(u),ofs=u.offers||[];
- h+=`<div class="card"><b>${FN(u)}</b><div class="mut">${esc(st.found)} · ID ${u.mid}</div><div style="margin-top:6px">1 € blerje = 1 pikë</div><div class="fancy" style="font-size:38px">${fmtP(u.points)}<span style="font-size:18px"> pikë</span></div>${ppList(u)}</div>`
- +`<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e produktit</button><p class="mut" style="margin:-2px 0 12px;text-align:center">Kodi është te produkti në telefonin e klientit (Menu → produkti), me sasinë brenda. Pikët shkojnë te kuleta e ${esc(u.name)}.</p><div class="card"><b>Ose regjistro me dorë</b><div class="mut">1 € blerje = 1 pikë. Pikët mblidhen për secilin produkt veç e veç.</div><select id="spp">${MENU.filter(m=>m.p).map(m=>`<option value="${m.id}">${m.n} · ${K(m.p)}</option>`).join('')}</select><input type="text" inputmode="numeric" id="sqty" placeholder="Sasia" value="1"><button class="btn" style="width:100%" data-a="st_pts">Shto pikë</button></div><h3>Oferta</h3>`;
- h+=ofs.length?ofs.map((o,i)=>{const s=offerState(o);return s==='a'?`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">Aktive: <span class="cdn" data-exp="${o.exp}">${Math.max(0,Math.ceil((o.exp-Date.now())/1000))}</span> sek</span></span><button class="btn sm" data-a="st_offer" data-v="${i}">Valido</button></div>`:`<div class="card mut">${s==='x'?'Oferta ka skaduar.':'Klienti nuk e ka aktivizuar ofertën.'}</div>`}).join(''):'<div class="card mut">Klienti nuk ka ofertë aktive.</div>';
- h+='<h3>Dhuratat</h3>'+(u.vouchers.length?u.vouchers.map((v,i)=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn sm" data-a="st_vuse" data-v="${i}">Përdor</button></div>`).join(''):'<div class="card mut">Klienti nuk ka dhurata.</div>');
+ const ofs=u.offers||[];
+ h+=`<div class="card"><div class="row"><b>${FN(u)}</b><span class="live">● live</span></div><div class="mut">${esc(u.email)}${u.phone?' · '+esc(u.phone):''} · ID ${u.mid}</div><div style="margin-top:6px">1 € blerje = 1 pikë</div><div class="fancy" style="font-size:38px">${fmtP(u.points)}<span style="font-size:16px"> pikë</span></div>${ppList(u)}</div>`
+ +`<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e produktit</button><p class="mut" style="margin:-2px 0 12px;text-align:center">Kodi është te produkti në telefonin e klientit (Menu → produkti), me sasinë brenda. Pikët shkojnë te kuleta e ${esc(u.name)}.</p>`
+ +`<div class="card"><b>Ose regjistro me dorë</b><div class="mut">Zgjidh produktin dhe sasinë.</div><select id="spp">${MENU.filter(m=>m.p).map(m=>`<option value="${m.id}">${esc(m.n)} · ${K(m.p)}</option>`).join('')}</select><input type="number" id="sqty" min="1" max="100" value="1" inputmode="numeric"><button class="btn" style="width:100%" data-a="st_pts">Shto pikët</button></div>`;
+ h+='<h3>Ofertat</h3>'+(ofs.length?ofs.map(o=>{const s=offerState(o);return s==='a'?`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">Aktive: <span class="cdn" data-exp="${o.exp}">${secs(o)}</span> sek</span></span><button class="btn sm" data-a="st_offer" data-v="${o.id}">Vlerëso</button></div>`
+  :`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">${s==='x'?'Ka skaduar':'Klienti duhet ta aktivizojë në telefon'}</span></span></div>`}).join(''):'<div class="card mut">Asnjë ofertë aktive.</div>');
+ h+='<h3>Dhuratat</h3>'+((u.vouchers||[]).length?u.vouchers.map(v=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn sm" data-a="st_vuse" data-v="${v.id}">Përdor</button></div>`).join(''):'<div class="card mut">Asnjë dhuratë.</div>');
+ if((u.promos||[]).length)h+='<h3>Promocionet aktive</h3>'+u.promos.map(p=>`<div class="card row"><span>${p.type==='pct'?'−'+p.pct+'%':'🎁'} ${esc(p.title)}</span></div>`).join('');
  return h}
+
+// ---- admin dashboard ----
+const eur=n=>K(n);
+function barChart(days){if(!days||!days.length)return '';const W=640,H=200,pl=8,pr=8,pt=22,pb=28,max=Math.max(1,...days.map(d=>+d.sales)),bw=(W-pl-pr)/days.length;
+ return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Shitjet e 14 ditëve të fundit">`+days.map((d,i)=>{const h=(H-pt-pb)*(+d.sales/max),x=pl+i*bw+bw*.16,w=bw*.68,y=H-pb-h,last=i===days.length-1;
+  return `<g><title>${d.d}: ${eur(d.sales)} · ${d.orders} blerje</title><rect x="${x}" y="${H-pb-Math.max(h,2)}" width="${w}" height="${Math.max(h,2)}" rx="5" fill="${last?'#7C421C':'#E79BBE'}"/>${+d.sales>0&&(last||i%2===1||days.length<=7)?`<text x="${x+w/2}" y="${y-6}" text-anchor="middle" class="cv">${Math.round(+d.sales)}</text>`:''}${i%2===days.length%2||last?`<text x="${x+w/2}" y="${H-9}" text-anchor="middle" class="cl${last?' on':''}">${last?'Sot':d.d}</text>`:''}</g>`}).join('')+`</svg>`}
+function stDash(){const d=st.dash;if(!d)return '<div class="card mut">Duke ngarkuar panelin…</div>';const k=d.kpi;
+ const kp=(l,v,s,c)=>`<div class="kpi${c?' '+c:''}"><span>${l}</span><b>${v}</b>${s?`<i>${s}</i>`:''}</div>`;
+ const tmax=Math.max(1,...(d.top||[]).map(t=>+t.q));
+ return `<div class="dhead"><h1 class="ptitle" style="margin:0">Paneli</h1><span class="live">● live${st.dashAt?' · '+st.dashAt.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):''}</span></div>`
+ +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' blerje','hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të përdorura',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
+ +`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
+ +`<div class="dgrid"><div class="card"><b>Produktet më të shitura</b><div class="mut" style="margin-bottom:8px">30 ditët e fundit</div>${(d.top||[]).length?d.top.map(t=>`<div class="tb"><div class="row"><span>${esc(t.n)}</span><b>${t.q} copë</b></div><div class="pbar"><i style="width:${Math.round(+t.q/tmax*100)}%"></i></div></div>`).join(''):'<div class="mut">Ende pa shitje.</div>'}</div>`
+ +`<div class="card"><b>Stafi sot</b><div style="margin-top:8px">${(d.staffToday||[]).map(s=>`<div class="row"><span>👤 ${esc(s.n)}</span><b>${s.orders} · ${eur(s.sales)}</b></div>`).join('')||'<div class="mut">—</div>'}</div></div></div>`
+ +`<div class="card"><div class="row"><b>Aktiviteti i fundit</b><button class="btn ghost sm" data-a="st_tab" data-v="kl">Klientët →</button></div><div class="acts">${(d.recent||[]).length?d.recent.map(r=>`<button class="act${r.undone?' undone':''}" data-a="st_cust" data-v="${r.cid}"><span><b>${esc(r.c)}</b><i>${r.q} × ${esc(r.n)}${r.by?' · '+esc(r.by):''}</i></span><span><b>${r.undone?'anuluar':'+'+fmtP(r.total)}</b><i>${r.d}</i></span></button>`).join(''):'<div class="mut">Ende pa aktivitet. Blerjet shfaqen këtu menjëherë.</div>'}</div></div>`}
+
+function stKl(){const l=st.kl;
+ return `<div class="card"><input type="search" id="klq" placeholder="Kërko me emër, email, telefon ose ID" value="${esc(st.klq)}" autocapitalize="none"></div>`
+ +(l==null?'<div class="card mut">Duke ngarkuar…</div>':`<div class="mut" style="margin:0 4px 8px">${l.length} klientë${st.klq?' për "'+esc(st.klq)+'"':''}</div>`+(l.length?l.map(c=>`<button class="card kl" data-a="st_cust" data-v="${c.id}"><span class="avatar sm">${esc(((c.name||'')[0]||'')+((c.surname||'')[0]||''))}</span><span class="t"><b>${esc(c.name)} ${esc(c.surname)}</b><i>${esc(c.email)}${c.phone?' · '+esc(c.phone):''}</i><i>${c.orders} blerje · ${eur(c.spent)}${c.last?' · e fundit '+c.last:''}</i></span><span class="pts"><b>${fmtP(c.points)}</b><i>pikë</i></span></button>`).join(''):'<div class="card mut">Asnjë klient.</div>'))}
+async function custSheet(id){sheet('<p class="mut">Duke ngarkuar…</p>');
+ try{const r=await api('customer',{token:ST.tok,id});const u=r.card;
+  sheet(`<div class="ahead" style="display:flex;gap:12px;align-items:center"><span class="avatar">${esc(((u.name||'')[0]||'')+((u.surname||'')[0]||''))}</span><div><h2 class="fancy" style="margin:0;font-size:26px">${FN(u)}</h2><span class="mut">ID ${u.mid} · anëtar që nga ${new Date(u.created).toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'})}</span></div></div>`
+  +`<div class="rows card" style="margin-top:12px"><div class="r"><span>Email</span><b>${esc(u.email)}</b></div><div class="r"><span>Telefoni</span><b>${u.phone?esc(u.phone):'—'}</b></div><div class="r"><span>Ditëlindja</span><b>${u.bday?dmy(u.bday):'—'}</b></div><div class="r"><span>Shpenzuar gjithsej</span><b>${eur(r.spent)}</b></div><div class="r"><span>Pikë</span><b>${fmtP(u.points)}</b></div><div class="r"><span>Dhurata të përdorura</span><b>${r.giftsUsed}</b></div></div>`
+  +`<h3>Pikët sipas produktit</h3><div class="card">${ppList(u)}</div>`
+  +`<h3>Dhuratat e hapura</h3>${(u.vouchers||[]).map(v=>`<div class="card">🎁 ${esc(v.n)}</div>`).join('')||'<div class="card mut">Asnjë.</div>'}`
+  +`<div class="card"><b>Jep një dhuratë</b><input type="text" id="gname" placeholder="p.sh. Kafe falas" maxlength="80"><button class="btn" style="width:100%" data-a="st_gift" data-v="${u.id}">Jep dhuratën</button></div>`
+  +`<div class="card"><b>Vendos PIN të ri</b><div class="mut">Kur klienti e ka harruar PIN-in.</div><input type="text" inputmode="numeric" id="npin" maxlength="6" placeholder="PIN i ri (4–6 shifra)"><button class="btn ghost" style="width:100%" data-a="st_rpin" data-v="${u.id}">Ndrysho PIN-in</button></div><p class="err" id="cse"></p>`
+  +`<h3>Historiku</h3>${r.history.map(o=>`<div class="card row${o.undone?' undone':''}"><span>${o.q} × ${esc(o.n)}<br><span class="mut">${o.d}${o.by?' · '+esc(o.by):''}</span></span><b>${o.undone?'anuluar':'+'+fmtP(o.total)}</b></div>`).join('')||'<div class="card mut">Ende pa blerje.</div>'}`
+  +`<button class="btn ghost wide" style="justify-content:center;margin-top:12px" data-a="close">Mbyll</button>`)}catch(x){sheet(`<p class="err">${errText(x)}</p><button class="btn ghost wide" data-a="close">Mbyll</button>`)}}
+
+function stPromo(){const l=st.promos;
+ return `<div class="card"><b>Krijo promocion</b><div class="mut">Shfaqet menjëherë te kuleta e të gjithë klientëve, brenda datave.</div>
+ <div class="seg"><label><input type="radio" name="pk" value="pct" checked> Zbritje (%)</label><label><input type="radio" name="pk" value="gift"> Dhuratë</label></div>
+ <input type="number" id="ppct" min="1" max="100" placeholder="Përqindja, p.sh. 20" inputmode="numeric">
+ <input type="text" id="ptitle" maxlength="80" placeholder="Titulli, p.sh. 20% zbritje për Party Box">
+ <input type="text" id="pdesc" maxlength="200" placeholder="Përshkrimi (opsional)">
+ <div class="two"><label class="mut">Nga<input type="date" id="pfrom"></label><label class="mut">Deri<input type="date" id="puntil"></label></div>
+ <p class="err" id="pe"></p><button class="btn" style="width:100%" data-a="st_padd">Publiko</button></div>`
+ +'<h3>Promocionet</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.length?l.map(p=>`<div class="card tkt promo"><span class="ribbon">${p.type==='pct'?'−'+p.pct+'%':'DHURATË'}</span><b>${esc(p.title)}</b>${p.desc?`<span class="mut">${esc(p.desc)}</span>`:''}<span class="mut">${p.from?'Nga '+dmy(p.from)+' ':''}${p.until?'deri më '+dmy(p.until):p.from?'':'Pa afat'} · ${p.live?'<b class="good">aktiv tani</b>':'jo aktiv tani'}</span><button class="btn ghost sm" style="margin-top:8px;align-self:flex-start" data-a="st_pdel" data-v="${p.id}">Hiqe</button></div>`).join(''):'<div class="card mut">Asnjë promocion. Krijo të parin më lart.</div>')}
+
+function stStaf(){const l=st.staff;
+ return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)" maxlength="40"><input type="text" inputmode="numeric" id="sp1" maxlength="6" placeholder="PIN (4–6 shifra)"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div>`
+ +'<h3>Stafi</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.map(s=>`<div class="card row"><span>👤 ${esc(s.name)} <span class="mut">${s.role==='admin'?'admin':'staf'}</span></span>${s.role==='admin'?'':`<button class="btn ghost sm" data-a="st_del" data-v="${s.id}">Fshi</button>`}</div>`).join(''))
+ +`<div class="card"><b>Ndrysho PIN-in tënd</b><input type="password" inputmode="numeric" id="op" maxlength="6" placeholder="PIN-i aktual"><input type="password" inputmode="numeric" id="np" maxlength="6" placeholder="PIN-i i ri (4–6 shifra)"><button class="btn ghost" style="width:100%" data-a="st_cpin">Ndrysho</button></div>`}
+
 function stQR(){const cats=[...new Set([...CATS,...MENU.map(m=>m.c)])].filter(c=>MENU.some(m=>m.c===c&&m.p));
  return `<div class="card noprint"><b>Kodet QR të produkteve</b><div class="mut">Rezervë, për rastin kur klienti s'mund ta hapë produktin në telefon. Zakonisht kodi i produktit skanohet në telefonin e klientit. Këto kode regjistrojnë 1 copë për skanim.</div><button class="btn" style="width:100%;margin-top:10px" data-a="st_print">🖨️ Printo kodet</button></div>`
  +cats.map(c=>`<h3 class="qcat">${esc(c)}</h3><div class="qgrid">${MENU.filter(m=>m.c===c&&m.p).map(m=>`<div class="qcard"><div class="qimg">${qrSvg(PQR(m.id))}</div><b>${esc(m.n)}</b><span>${K(m.p)} · ${fmtP(m.p)} pikë</span><i>WONDER-P:${m.id}</i></div>`).join('')}</div>`).join('')}
-function stStaf(){return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)"><input type="text" inputmode="numeric" id="sp1" placeholder="PIN (4 deri në 8 shifra)" maxlength="8"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div><h3>Stafi i regjistruar</h3>`
- +((db.staff||[]).length?db.staff.map((s,i)=>`<div class="card row"><span>👤 ${esc(s.name)}</span><button class="btn ghost sm" data-a="st_del" data-v="${i}">Fshi</button></div>`).join(''):'<div class="card mut">Ende nuk ka staf të regjistruar.</div>')}
-function stKl(){const ks=Object.keys(db.users);return `<div class="mut" style="margin-bottom:8px">${ks.length} klientë të regjistruar në këtë pajisje.</div>`+ks.map(k=>{const u=db.users[k];return `<div class="card row"><span><b>${FN(u)}</b><br><span class="mut">${esc(k)} · ${u.mid}</span></span><b>${fmtP(u.points)} p</b></div>`}).join('')}
-function renderStaff(){const adm=db.role.t==='admin';
- $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros"><div class="hb"><b style="align-self:center">${adm?'Admin':'Staf'}</b><button data-a="st_out"><span>⎋</span>Dil</button></div>`;
- const tabs=adm?[['arka','Arka'],['qr','QR e produkteve'],['staf','Stafi'],['kl','Klientët']]:[['arka','Arka']];
+
+function renderStaff(){const adm=isAdm();
+ $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros"><div class="hb"><b style="align-self:center">${adm?'Admin':esc(ST.name||'Staf')}</b><button data-a="st_out"><span>⎋</span>Dil</button></div>`;
+ const tabs=adm?[['dash','Paneli'],['arka','Arka'],['kl','Klientët'],['promo','Promocionet'],['staf','Stafi'],['qr','QR']]:[['arka','Arka']];
+ if(!tabs.some(t=>t[0]===st.tab))st.tab='arka';
  let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${st.tab===k?'on':''}" data-a="st_tab" data-v="${k}">${l}</button>`).join('')}</div>`;
  if(st.msg)h+=`<div class="card ${st.bad?'':'good'} ${st.last&&!st.bad&&st.tab==='arka'?'row':''}" ${st.bad?'style="color:#b3261e"':''}><span>${esc(st.msg)}</span>${st.last&&!st.bad&&st.tab==='arka'?'<button class="btn ghost sm" data-a="st_undo">Anulo</button>':''}</div>`;
- h+=st.tab==='arka'?stArka():st.tab==='qr'&&adm?stQR():st.tab==='staf'&&adm?stStaf():st.tab==='kl'&&adm?stKl():'';
+ h+=({dash:stDash,arka:stArka,kl:stKl,promo:stPromo,staf:stStaf,qr:stQR})[st.tab]();
  $('main').innerHTML=h}
-async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.textContent=m},val=i=>$(i)?$(i).value.trim():'',say=(m,bad)=>{st.msg=m;st.bad=!!bad;render()};
- if(a==='st_path'){au.step='staff';renderAuth()}
- else if(a==='st_scan'){startScan()}
- else if(a==='st_scanstop'){stopScan();closeS()}
- else if(a==='st_back'){au.step='phone';renderAuth()}
- else if(a==='st_login'){const un=val('su').toLowerCase(),pin=val('sp');
-  if(!/^\d{4,8}$/.test(pin)){er('PIN-i duhet të ketë 4 deri në 8 shifra.');return}
-  if(!db.admin){if(pin!==val('sp2')){er('PIN-et nuk përputhen.');return}db.admin={h:await H(pin)};db.role={t:'admin'}}
-  else{const h=await H(pin);
-   if(un==='admin'){if(h!==db.admin.h){er('Përdorues ose PIN i gabuar.');return}db.role={t:'admin'}}
-   else{const s=(db.staff||[]).find(x=>x.name.toLowerCase()===un);if(!s||s.h!==h){er('Përdorues ose PIN i gabuar.');return}db.role={t:'staff',id:s.id}}}
-  st={tab:'arka',q:'',found:null,msg:'',bad:false};save();render()}
- else if(a==='st_out'){stopScan();db.role=null;au={step:STAFF_APP?'staff':'phone',cc:'+46',ph:'',key:'',code:''};save();render()}
- else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render()}
- else if(a==='st_find'){if(/^WONDER(-P)?:/i.test(val('sq'))){onScan(val('sq'));return}st.q=val('sq');const q=st.q.toLowerCase();let key=null;
-  for(const k in db.users){if(k.toLowerCase()===q||(db.users[k].mid||'').toLowerCase()===q){key=k;break}}
-  st.found=key;st.last=null;say(key?'':'Nuk u gjet klient me këtë ID ose email. Skano QR-në e klientit që të shtohet automatikisht.',!key)}
- else if(a==='st_pts'){const u=db.users[st.found];if(!u)return;const m=MENU.find(x=>x.id==val('spp')),q=parseInt(val('sqty'),10);
-  if(!m||!(q>0)){say('Zgjidh produktin dhe shkruaj sasinë.',true);return}
-  if(q>100){say('Sasia maksimale është 100.',true);return}
-  say(addPurchase(st.found,m,q))}
- else if(a==='st_undo'){const l=st.last,u=l&&db.users[l.key];if(!u){st.last=null;render();return}
-  u.pp[l.id]=Math.max(0,Math.round(((u.pp[l.id]||0)-l.add)*100)/100);sp(u);u.orders=(u.orders||[]).filter(o=>o.num!==l.num);st.last=null;save();
-  say(`U anulua: ${l.q} × ${l.n} (−${fmtP(l.add)} pikë).`)}
- else if(a==='st_print'){window.print()}
- else if(a==='st_offer'){const u=db.users[st.found],o=u&&(u.offers||[])[+v];if(!o)return;
-  if(offerState(o)!=='a'){say('Oferta ka skaduar.',true);return}
-  u.offers.splice(+v,1);save();say('Oferta u vlerësua: 1 € zbritje për Churros Large.')}
- else if(a==='st_vuse'){const u=db.users[st.found];if(!u)return;const g=u.vouchers.splice(+v,1)[0];save();say(`Dhurata "${g.n}" u shënua si e përdorur.`)}
- else if(a==='st_addstaff'){const n=val('sn1'),pin=val('sp1');db.staff=db.staff||[];
-  if(!n||n.toLowerCase()==='admin'){say('Shkruaj një emër të vlefshëm (jo "admin").',true);return}
-  if(db.staff.some(s=>s.name.toLowerCase()===n.toLowerCase())){say('Ky emër ekziston tashmë.',true);return}
-  if(!/^\d{4,8}$/.test(pin)){say('PIN-i duhet të ketë 4 deri në 8 shifra.',true);return}
-  db.staff.push({id:'S'+Date.now().toString(36),name:n,h:await H(pin)});save();say(`Stafi "${n}" u regjistrua. Hyrja: ${n} + PIN ${pin}.`)}
- else if(a==='st_del'){const s=(db.staff||[]).splice(+v,1)[0];save();say(`Stafi "${s.name}" u fshi.`)}}
+async function loadTab(){try{
+ if(st.tab==='dash'){st.dash=await api('dashboard',{token:ST.tok});st.dashAt=new Date()}
+ else if(st.tab==='kl')st.kl=await api('customers',{token:ST.tok,q:st.klq});
+ else if(st.tab==='promo')st.promos=await api('promos',{token:ST.tok});
+ else if(st.tab==='staf')st.staff=await api('staffList',{token:ST.tok});
+ render()}catch(x){st.msg=errText(x);st.bad=true;render()}}
+let klT=null;
+document.addEventListener('input',e=>{if(e.target.id==='klq'){st.klq=e.target.value;clearTimeout(klT);klT=setTimeout(async()=>{try{st.kl=await api('customers',{token:ST.tok,q:st.klq});const p=e.target.selectionStart;render();const i=$('klq');if(i){i.focus();try{i.setSelectionRange(p,p)}catch(_){}}}catch(x){}},300)}});
 
+async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.textContent=m},val=i=>$(i)?$(i).value.trim():'',say=(m,bad)=>{st.msg=m;st.bad=!!bad;render()};
+ const run=async(fn,args)=>{busy(b,true);try{return await api(fn,args)}finally{busy(b,false)}};
+ try{
+ if(a==='st_scan'){startScan()}
+ else if(a==='st_scanstop'){stopScan();closeS()}
+ else if(a==='st_login'){const pin=val('sp');
+  if(!/^\d{4,6}$/.test(pin)){er('PIN-i duhet të ketë 4 deri në 6 shifra.');return}
+  let r;
+  if(st.hasAdmin===false){if(pin!==val('sp2')){er('PIN-et nuk përputhen.');return}r=await run('setupAdmin',{code:val('scode'),pin})}
+  else{const un=val('su');if(!un){er('Shkruaj përdoruesin.');return}r=await run('staffLogin',{name:un,pin})}
+  ST={tok:r.token,role:r.role,name:r.name};LS.set('wc_stok',r.token);db.role={t:r.role};
+  st={...st,tab:r.role==='admin'?'dash':'arka',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}
+ else if(a==='st_out'){stopScan();const t=ST.tok;ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null;st={...st,found:null,msg:'',last:null,dash:null,kl:null};clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
+ else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render();loadTab();scrollTo(0,0)}
+ else if(a==='st_find'){const q=val('sq');if(!q)return;if(/^WONDER(-P)?:/i.test(q)){onScan(q);return}st.q=q;
+  const c=await run('find',{token:ST.tok,q});st.found=c;st.last=null;say(c?'':'Nuk u gjet klient me këtë ID, email ose telefon.',!c)}
+ else if(a==='st_pts'){if(!st.found)return;const pid=+val('spp'),q=parseInt(val('sqty'),10);
+  if(!(q>=1&&q<=100)){say('Shkruaj sasinë (1–100).',true);return}
+  await purchase(pid,q,run)}
+ else if(a==='st_undo'){const l=st.last;if(!l)return;st.found=await run('undoOrder',{token:ST.tok,order:l.id});st.last=null;say(`U anulua: ${l.q} × ${l.n} (−${fmtP(l.pts)} pikë).`)}
+ else if(a==='st_print'){window.print()}
+ else if(a==='st_offer'){st.found=await run('validateOffer',{token:ST.tok,offer:+v});say('Oferta u vlerësua: 1 € zbritje për Churros Large.')}
+ else if(a==='st_vuse'){const g=(st.found.vouchers||[]).find(x=>x.id==v);st.found=await run('useVoucher',{token:ST.tok,voucher:+v});say(`Dhurata "${g?g.n:''}" u shënua si e përdorur.`)}
+ else if(a==='st_cust'){custSheet(v)}
+ else if(a==='st_gift'){const n=val('gname');if(!n){$('cse').textContent='Shkruaj emrin e dhuratës.';return}await run('giveGift',{token:ST.tok,id:v,name:n});toast('Dhurata u dërgua te kuleta e klientit.');custSheet(v)}
+ else if(a==='st_rpin'){const p=val('npin');if(!/^\d{4,6}$/.test(p)){$('cse').textContent='PIN-i duhet të ketë 4 deri në 6 shifra.';return}await run('resetPin',{token:ST.tok,id:v,pin:p});toast(`PIN-i u ndryshua në ${p}. Tregoja klientit.`);$('npin').value=''}
+ else if(a==='st_padd'){const kind=(document.querySelector('input[name=pk]:checked')||{}).value||'pct',pct=parseInt(val('ppct'),10),title=val('ptitle');
+  const pe=m=>{$('pe').textContent=m};
+  if(kind==='pct'&&!(pct>=1&&pct<=100)){pe('Shkruaj përqindjen (1–100).');return}
+  if(!title){pe('Shkruaj titullin.');return}
+  st.promos=await run('promoAdd',{token:ST.tok,kind,pct:kind==='pct'?pct:null,title,desc:val('pdesc'),from:val('pfrom')||null,until:val('puntil')||null});say('Promocioni u publikua. Klientët e shohin te Kuleta.')}
+ else if(a==='st_pdel'){st.promos=await run('promoDel',{token:ST.tok,id:+v});say('Promocioni u hoq.')}
+ else if(a==='st_addstaff'){const n=val('sn1'),pin=val('sp1');
+  if(!n||n.toLowerCase()==='admin'){say('Shkruaj një emër të vlefshëm (jo "admin").',true);return}
+  if(!/^\d{4,6}$/.test(pin)){say('PIN-i duhet të ketë 4 deri në 6 shifra.',true);return}
+  st.staff=await run('addStaff',{token:ST.tok,name:n,pin});say(`Stafi "${n}" u regjistrua. Hyrja: ${n} + PIN-i i zgjedhur.`)}
+ else if(a==='st_del'){st.staff=await run('delStaff',{token:ST.tok,id:v});say('Stafi u fshi.')}
+ else if(a==='st_cpin'){const o=val('op'),n=val('np');if(!/^\d{4,6}$/.test(n)){say('PIN-i i ri duhet të ketë 4 deri në 6 shifra.',true);return}await run('changePin',{token:ST.tok,old:o,pin:n});say('PIN-i yt u ndryshua.')}
+ }catch(x){if(a==='st_login')er(errText(x));else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
+
+async function purchase(pid,q,run){const r=await (run?run('addPurchase',{token:ST.tok,customer:st.found.id,product:pid,qty:q}):api('addPurchase',{token:ST.tok,customer:st.found.id,product:pid,qty:q}));
+ st.found=r.card;st.last={id:r.order.id,n:r.order.n,q:r.order.q,pts:r.order.pts};const m=MENU.find(x=>x.id==pid),have=Number(r.card.pp[pid]||0);
+ return say2(`${q} × ${r.order.n}: u shtuan ${fmtP(r.order.pts)} pikë për ${r.card.name}. ${r.order.n}: ${fmtP(have)} / ${fmtP(RC(m))} pikë.${have>=RC(m)?' Produkti i 10-të është falas!':''}`)}
+const say2=m=>{st.msg=m;st.bad=false;st.tab='arka';render();return m};
+
+// ---- camera scanner ----
 let scanS=null,jsqrP=null;
 function loadJsQR(){if(window.jsQR)return Promise.resolve();return jsqrP||(jsqrP=new Promise((ok,no)=>{const s=document.createElement('script');s.src='/js/jsqr.js';s.onload=ok;s.onerror=()=>{jsqrP=null;no()};document.head.appendChild(s)}))}
-const linked=()=>st.found&&db.users[st.found]?db.users[st.found]:null;
-function scanHead(){const u=linked();return u?`<div class="slk ok">✓ Klienti i lidhur: <b>${esc(u.name)} ${esc(u.surname||'')}</b></div><p class="mut sms">Tani skano QR-në e produktit në telefonin e klientit.</p>`
+function scanHead(){const u=st.found;return u?`<div class="slk ok">✓ Klienti i lidhur: <b>${esc(u.name)} ${esc(u.surname||'')}</b></div><p class="mut sms">Tani skano QR-në e produktit në telefonin e klientit.</p>`
  :`<div class="slk">Hapi 1 nga 2</div><p class="mut sms">Skano QR-në e klientit (Kuleta në telefonin e tij).</p>`}
 async function startScan(){
  sheet(`<h2 class="fancy">Skano QR-në</h2><div id="shd">${scanHead()}</div><div class="scan"><video id="sv" playsinline muted></video></div><p class="err" id="smsg" style="text-align:center;min-height:1.2em"></p><button class="btn ghost wide" style="justify-content:center" data-a="st_scanstop">Mbyll</button>`);
@@ -543,35 +647,34 @@ async function startScan(){
  let s;try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})}catch(e){msg('Kamera nuk u lejua. Lejoje te cilësimet e shfletuesit, ose shkruaj ID-në.');return}
  if(!$('sv')){s.getTracks().forEach(t=>t.stop());return}
  scanS={stream:s,raf:0,skip:null};const v=$('sv');v.srcObject=s;try{await v.play()}catch(e){}
- const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});let busy=false;
+ const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});let busyS=false;
  const loop=async()=>{if(!scanS)return;
-  if(!busy&&v.readyState>=2&&v.videoWidth){busy=true;let txt=null;
+  if(!busyS&&v.readyState>=2&&v.videoWidth){busyS=true;let txt=null;
    try{if(det){const r=await det.detect(v);if(r&&r[0])txt=r[0].rawValue}
     else{const w=Math.min(640,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);cv.width=w;cv.height=h;cx.drawImage(v,0,0,w,h);const r=jsQR(cx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});if(r)txt=r.data}}catch(e){}
-   busy=false;
-   if(txt&&scanS&&txt!==scanS.skip){const r=handleCode(txt,true);
-    if(r.stop){if(navigator.vibrate)navigator.vibrate(60);stopScan();closeS();st.msg=r.msg;st.bad=!!r.bad;render();return}
-    scanS.skip=txt;if(r.linked&&navigator.vibrate)navigator.vibrate(60);const h=$('shd');if(h)h.innerHTML=scanHead();msg(r.bad?r.msg:'')}}
+   if(txt&&scanS&&txt!==scanS.skip){scanS.skip=txt;const r=await handleCode(txt,true);
+    if(!scanS){busyS=false;return}
+    if(r.stop){if(navigator.vibrate)navigator.vibrate(60);stopScan();closeS();st.msg=r.msg;st.bad=!!r.bad;render();busyS=false;return}
+    if(r.linked&&navigator.vibrate)navigator.vibrate(60);const h=$('shd');if(h)h.innerHTML=scanHead();msg(r.bad?r.msg:'')}
+   busyS=false}
   if(scanS)scanS.raf=requestAnimationFrame(loop)};
  loop()}
 function stopScan(){if(scanS){cancelAnimationFrame(scanS.raf);scanS.stream.getTracks().forEach(t=>t.stop());scanS=null}}
-function linkCustomer(p){let key=Object.keys(db.users).find(k=>(db.users[k].mid||'').toUpperCase()===p.mid),added=false;
- if(!key){if(!p.n)return null;
-  key=p.e&&!db.users[p.e]?p.e:'id:'+p.mid;
-  db.users[key]={name:p.n,surname:p.s,email:p.e,mid:p.mid,points:0,earned:0,pp:{},balance:0,vouchers:[{n:'Churros Standard falas (dhuratë mirëseardhjeje)',v:2.5}],orders:[],offers:[{n:'1 € zbritje kur blen Churros Large',item:2,off:1}],added:Date.now()};added=true;save()}
- st.tab='arka';st.q=db.users[key].mid;st.found=key;st.last=null;return {key,added}}
 // One code from the camera or the search box. Camera: a customer code links and keeps the camera on; a product code books the purchase and stops.
-function handleCode(txt,cam){const s=String(txt).trim();
- const pp=parseP(s);
- if(pp){if(!linked())return {bad:true,msg:'Skano fillimisht QR-në e klientit, pastaj produktin.',stop:!cam};
-  st.tab='arka';return {stop:true,msg:addPurchase(st.found,pp.m,pp.q)}}
- if(/^WONDER-P:/i.test(s))return {bad:true,msg:'Ky kod produkti nuk vlen (produkt i panjohur ose sasi mbi 20).',stop:!cam};
- const p=parseQR(s);
- if(!p)return {bad:true,msg:'Ky QR nuk është i Wonder Club.',stop:!cam};
- const r=linkCustomer(p);if(!r)return {bad:true,msg:'Klienti nuk u gjet në këtë pajisje.',stop:!cam};
- const u=db.users[r.key];
- return {linked:true,stop:!cam,msg:r.added?`Klient i ri u shtua dhe u lidh: ${u.name} ${u.surname}.`:`Klienti u lidh: ${u.name} ${u.surname}.`}}
-function onScan(txt){stopScan();closeS();const r=handleCode(txt,false);st.msg=r.msg;st.bad=!!r.bad;render()}
+async function handleCode(txt,cam){const s=String(txt).trim();
+ try{
+  const pp=parseP(s);
+  if(pp){if(!st.found)return {bad:true,msg:'Skano fillimisht QR-në e klientit, pastaj produktin.',stop:!cam};
+   const msg=await purchase(pp.m.id,pp.q);return {stop:true,msg}}
+  if(/^WONDER-P:/i.test(s))return {bad:true,msg:'Ky kod produkti nuk vlen (produkt i panjohur ose sasi mbi 20).',stop:!cam};
+  const p=parseQR(s);
+  if(!p)return {bad:true,msg:'Ky QR nuk është i Wonder Club.',stop:!cam};
+  const c=await api('find',{token:ST.tok,q:p.mid});
+  if(!c)return {bad:true,msg:'Ky klient nuk u gjet.',stop:!cam};
+  st.found=c;st.q=c.mid;st.tab='arka';st.last=null;
+  return {linked:true,stop:!cam,msg:`Klienti u lidh: ${c.name} ${c.surname}.`}
+ }catch(x){return {bad:true,msg:errText(x),stop:!cam}}}
+async function onScan(txt){stopScan();closeS();const r=await handleCode(txt,false);st.msg=r.msg;st.bad=!!r.bad;render()}
 (function(){let s=null,x0=0,l0=0,mv=false;
 document.addEventListener('pointerdown',e=>{mv=false;const el=e.target.closest&&e.target.closest('.sl');if(!el||e.pointerType!=='mouse')return;s=el;x0=e.clientX;l0=el.scrollLeft;el.style.scrollSnapType='none'});
 document.addEventListener('pointermove',e=>{if(!s)return;const d=e.clientX-x0;if(Math.abs(d)>5)mv=true;s.scrollLeft=l0-d});
@@ -580,12 +683,15 @@ document.addEventListener('pointerup',end);document.addEventListener('pointercan
 document.addEventListener('click',e=>{if(mv){e.stopPropagation();e.preventDefault();mv=false}},true)})();
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='sq'){e.preventDefault();const b=document.querySelector('[data-a=st_find]');if(b)b.click();return}if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.mcard,.mi,.ctile')){e.preventDefault();e.target.click()}});
 document.addEventListener('scroll',e=>{const s=e.target;if(s&&s.id==='mcar')fx(s);if(s&&s.id==='slp'){const i=Math.round(s.scrollLeft/((s.scrollWidth-s.clientWidth)/(PHOTOS.length-1)));document.querySelectorAll('#dots i').forEach((d,k)=>d.classList.toggle('on',k===i))}},true);
-document.addEventListener('change',e=>{const u=U();if(!u)return;
- if(e.target.id==='bd'){u.bday=e.target.value;save();render()}
- else if(e.target.id==='tel'){const v=e.target.value.trim().replace(/\s+/g,' ');
-  if(v&&!/^\+?[0-9 ()-]{6,20}$/.test(v)){$('tele').textContent='Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.';return}
-  u.phone=v;save();render()}});
-render();
+(async()=>{
+ if(STAFF_APP){
+  if(ST.tok){$('auth').innerHTML=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Duke u lidhur…</p>`;
+   try{const r=await api('staffMe',{token:ST.tok});ST.role=r.role;ST.name=r.name;db.role={t:r.role};st.hasAdmin=true;st.tab=r.role==='admin'?'dash':'arka';render();loadTab();startPoll();return}catch(e){}}
+  try{st.hasAdmin=(await api('hasAdmin')).admin}catch(e){st.hasAdmin=true;render();const x=$('ae');if(x)x.textContent=errText(e);return}
+  render();return}
+ if(S.tok){$('auth').innerHTML=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Duke hapur kuletën…</p>`;
+  try{setMe(await api('me',{token:S.tok}))}catch(e){if(e.message!=='SESSION'){S.me=null}}}
+ render();if(S.tok&&S.me)startPoll()})();
 </script>
 </body>
 </html>

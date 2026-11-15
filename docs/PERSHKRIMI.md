@@ -35,7 +35,7 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Skeda | Kush | Çfarë bën |
 |---|---|---|
 | Arka | staf + admin | **Rrjedha me dy hapa në një seancë kamere:** (1) skanon QR-në e klientit, klienti lidhet dhe kamera mbetet e hapur; (2) skanon QR-në e produktit **në telefonin e klientit** (sasia është brenda kodit), regjistrohet blerja dhe kamera mbyllet. Klienti gjendet edhe me ID ose email. Butoni "Anulo" heq skanimin e fundit. Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
-| QR e produkteve | admin | Rezervë: QR për çdo produkt (26, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
+| QR e produkteve | admin | Rezervë: QR për çdo produkt me çmim (29, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
 | Stafi | admin | Shton dhe fshin staf (emër + PIN 4 deri në 8 shifra). |
 | Klientët | admin | Lista e klientëve të regjistruar në këtë pajisje, me pikët. |
 
@@ -66,8 +66,8 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | 2 | Churros Large (10 churros + 2 dip) | Standard churros | 4.90 |
 | 21–26 | Uno Lotus / Blueberry / Raspberry / Pistachio / Bueno / Caramel | Uno churros | 1.80 secili |
 | 6 | Party Box (10 churros + 15 mini + 4 dip) | Party box | 12.00 |
-| 39 | Uno Party Box (6 Uno churros me shije të ndryshme) | Party box | **pa çmim ende** |
-| 40 | Party Box Mini & Uno (Uno churros + mini churros + 3 dip) | Party box | **pa çmim ende** |
+| 39 | Uno Party Box (6 Uno churros me shije të ndryshme) | Party box | 12.00 |
+| 40 | Party Box Mini & Uno (Uno churros + mini churros + 3 dip) | Party box | 12.00 |
 | 7 | Summer Box (40 mini + fruta + 4 dip) | Party box | 13.00 |
 | 20 | Twist Churros (të zhytur në çokollatë) | Wonder box and cup | 1.80 |
 | 3 | Wonder Duo (5 churros + 2 dip) | Wonder box and cup | 3.50 |
@@ -75,10 +75,10 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | 5 | Wonder Bites (20 mini + fruta + 2 dip) | Wonder box and cup | 3.50 |
 | 27 | Flavoured Latte (Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla, Popcorn) | Flavored Latte | 2.00 |
 | 28–31 | Americano 1.50 · Espresso 1.00 · Macchiato 1.50 · Hot Choco 1.50 | Coffee | |
-| 41 | Kids Box (churros në gotë + Monte Drink + bllok vizatimi) | Kids box | **pa çmim ende** |
+| 41 | Kids Box (churros në gotë + Monte Drink + bllok vizatimi) | Kids box | 3.99 |
 | 32–38 | Dip: Raspberry, Blueberry, Hazelnut, Vanilla, Nutella, Caramel, Pistachio | Dip | 0.50 secili |
 
-Produktet pa çmim (`p:null`) shfaqen në meny me "Së shpejti", por **nuk kanë QR, nuk mbledhin pikë dhe nuk dalin te arka** derisa të vendoset çmimi (`RC()` kthen `Infinity`, `KP()` shfaq "Së shpejti"). Përmbajtja e tyre është shkruar sipas fotove dhe duhet konfirmuar nga pronari.
+Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së shpejti", por **nuk ka QR, nuk mbledh pikë dhe nuk del te arka** derisa të vendoset çmimi (`RC()` kthen `Infinity`, `KP()` shfaq "Së shpejti").
 
 ---
 

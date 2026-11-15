@@ -1,8 +1,10 @@
 # Wonder Club · Wonder Churros
 
-Loyalty app for Wonder Churros: menu, points wallet with QR, offers and birthday gifts.
+Program besnikërie për Wonder Churros: menyja, kuleta e pikëve me QR, dhurata dhe oferta. Stafi skanon QR-në e klientit dhe të produktit te arka.
 
-- `/` customer app
-- `/admin` staff and admin (till: scan customer QR with the camera, add points, use gifts; admin: staff and customer list)
+- `/` aplikacioni i klientit
+- `/admin` stafi dhe admini
 
-Static site, no build step. Data is currently kept in the browser (`localStorage`) of each device; the shop device holds the customer list.
+Faqe statike, pa hap build-i. Live: https://wonder-churros.vercel.app
+
+**Lexoni `docs/PERSHKRIMI.md`.** Aty janë funksionet, rregullat e pikëve, formati i QR-ve, struktura e kodit, kufizimet dhe plani për aplikacionin e plotë.

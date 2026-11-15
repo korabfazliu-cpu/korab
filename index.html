@@ -231,6 +231,9 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .acct .ahead{display:flex;gap:14px;align-items:center;margin-bottom:6px}.acct .ahead>div{display:flex;flex-direction:column;min-width:0}.acct .ahead b{font-size:19px}
 .avatar{flex:none;width:56px;height:56px;border-radius:50%;background:#7C421C;color:#fff;font-weight:800;font-size:21px;display:flex;align-items:center;justify-content:center;letter-spacing:.03em}
 .acct .r b{overflow-wrap:anywhere;text-align:right}
+.ptitle{margin:6px 0 20px;text-align:center;font-weight:800;font-size:40px;line-height:1.1;letter-spacing:.01em;color:#fff;
+ text-shadow:0 3px 0 #7C421C,2px 2px 0 #7C421C,-2px 2px 0 #7C421C,2px -1px 0 #7C421C,-2px -1px 0 #7C421C}
+.ptitle::after{content:"";display:block;width:56px;height:6px;margin:12px auto 0;border-radius:6px;background:#7C421C;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
 </style>
 </head>
 <body>
@@ -393,13 +396,13 @@ function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
   +`<h3>Historiku i pikëve</h3>`+(hist||'<div class="card mut">Ende nuk ke blerje. Pas çdo blerjeje në dyqan fiton pikë.</div>')}
 function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd(pm)}
  if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
-  return `<h3>Menyja jonë</h3>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${c}</b><span>${n?n+' produkte':'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
+  return `<h1 class="ptitle">Menu</h1>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${c}</b><span>${n?n+' produkte':'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
  const its=MENU.filter(m=>m.c===cat);
  return `<div class="dh"><button class="dback" data-a="cback" aria-label="Kthehu te menyja">←</button><b>${cat}</b><i></i></div>`
  +(its.length?its.map(m=>`<div class="card item mi${m.i?'':' noth'}" data-a="prod" data-v="${m.id}" role="button" tabindex="0">${m.i?`<img class="th" src="${IMG[m.i]}" alt="${m.n}">`:''}<div class="t"><b>${m.n}${m.nw?'<span class="nw">I RI</span>':''}</b><span class="mut">${m.d}</span></div><span class="badge">${K(m.p)}</span></div>`).join(''):'<div class="card mut">Produktet e kësaj kategorie po shtohen së shpejti.</div>')}
 function vMe(){const u=U(),ini=((u.name||'')[0]||'')+((u.surname||'')[0]||''),row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
  const since=u.created?new Date(u.created).toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
- return `<h3>Llogaria ime</h3><div class="card acct"><div class="ahead"><span class="avatar">${esc(ini.toUpperCase())}</span><div><b>${FN(u)}</b><span class="mut">Anëtar i Wonder Club${since?' që nga '+since:''}</span></div></div>`
+ return `<h1 class="ptitle">Llogaria ime</h1><div class="card acct"><div class="ahead"><span class="avatar">${esc(ini.toUpperCase())}</span><div><b>${FN(u)}</b><span class="mut">Anëtar i Wonder Club${since?' që nga '+since:''}</span></div></div>`
  +`<div class="rows">${row('Emri',esc(u.name))}${row('Mbiemri',esc(u.surname||'–'))}${row('Email',esc(u.email||db.cur))}${row('Telefoni',u.phone?esc(u.phone):'<span class="mut">Nuk është shtuar</span>')}${row('ID e klientit',u.mid)}${row('Data e lindjes',u.bday?dmy(u.bday):'<span class="mut">Nuk është shtuar</span>')}</div></div>`
  +`<h3>Ndrysho të dhënat</h3><div class="card"><label class="mut" for="tel">Numri i telefonit (opsional)</label><input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="+383 4x xxx xxx" value="${esc(u.phone||'')}"><p class="err" id="tele"></p>`
  +`<label class="mut" for="bd">Data e lindjes (për dhuratën e ditëlindjes)</label><input type="date" id="bd" value="${u.bday||''}"></div>`

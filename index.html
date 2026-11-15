@@ -213,6 +213,14 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .hw{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;color:#4a2a17;text-align:left}
 .hwn{flex:none;width:32px;height:32px;border-radius:50%;background:#7C421C;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
 .hw b{font-size:16px;color:#7C421C}.hw p{margin:3px 0 0;font-size:14px;line-height:1.45}.hw p b{font-size:inherit;color:#4a2a17}
+.hjump{display:flex;gap:8px;margin:0 0 12px;position:sticky;top:-17px;z-index:2;background:var(--bg);padding:12px 0 8px}
+.hjump .chp{cursor:pointer;font:inherit;font-weight:700}.hjump .chp.on{background:#7C421C;color:#fff;border-color:#7C421C}
+.hmh{margin:22px 0 4px;font-size:26px}.gmh{margin:16px 0 8px;font-size:17px;color:#7C421C}.gms{margin:0}
+.gm{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;padding:2px 2px 8px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.gm::-webkit-scrollbar{display:none}
+.gmc{flex:none;width:150px;scroll-snap-align:start;background:#fff;border-radius:18px;overflow:hidden;border:2px solid #7C421C;box-shadow:0 3px 0 #7C421C;display:flex;flex-direction:column;margin-bottom:3px}
+.gmc.noimg{width:136px;justify-content:center}.gmi{height:112px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.gmi img{width:100%;height:100%;object-fit:cover;display:block}
+.gmt{padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px;text-align:left}.gmt b{font-size:14px;color:#4a2a17;line-height:1.2}.gmt>span{font-size:12px;color:#7a4d33;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gmt .nw{margin-left:4px;white-space:nowrap}.gmi{position:relative}.gnw{position:absolute;top:8px;left:8px;margin:0;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -319,14 +327,20 @@ const PHOTOS=['/img/bf201ed62d.jpg','/img/9908ad4ce6.jpg','/img/252dada6d9.jpg',
 const CATIMG={'Flavoured Latte':PHOTOS[1],'Kafe dhe pije të nxehta':PHOTOS[3]};
 const FN=u=>esc(u.name+(u.surname?' '+u.surname:''));
 function howSheet(){const st=(n,title,body)=>`<div class="hw"><span class="hwn">${n}</span><div><b>${title}</b><p>${body}</p></div></div>`;
- sheet(`<h2 class="fancy">Si funksionon Wonder Club</h2><p class="mut" style="margin:0 0 14px">Anëtarësimi është falas. Mblidh pikë sa herë blen në Wonder Churros dhe fito produkte falas.</p>`
+ const guest=!U();
+ const card=m=>`<div class="gmc${m.i?'':' noimg'}">${m.i?`<div class="gmi"><img src="${IMG[m.i]}" alt="${esc(m.n)}" loading="lazy">${m.nw?'<span class="nw gnw">I RI</span>':''}</div>`:''}<div class="gmt"><b>${esc(m.n)}${m.nw&&!m.i?'<span class="nw">I RI</span>':''}</b><span>${esc(m.d)}</span></div></div>`;
+ const menu=CATS.map(c=>{const its=MENU.filter(m=>m.c===c);return `<h4 class="gmh">${esc(c)}</h4>`+(its.length?`<div class="gm">${its.map(card).join('')}</div>`:'<p class="mut gms">Së shpejti, produkte të reja për më të vegjlit.</p>')}).join('')
+  +`<h4 class="gmh">Dip-et</h4><div class="chps">${MENU.filter(m=>m.c==='Dip').map(m=>`<span class="chp">${esc(m.n)}</span>`).join('')}</div>`;
+ sheet(`<h2 class="fancy">Si funksionon Wonder Club</h2><div class="hjump"><button class="chp on" data-a="hjump" data-v="hsteps">Si funksionon</button><button class="chp" data-a="hjump" data-v="hmenu">Menyja</button></div><p class="mut" id="hsteps" style="margin:0 0 14px">Anëtarësimi është falas. Mblidh pikë sa herë blen në Wonder Churros dhe fito produkte falas.</p>`
  +st(1,'Regjistrohu falas','Me email-in tënd. Menjëherë merr një <b>Churros Standard falas</b> dhe ofertën <b>1 € zbritje</b> te Churros Large.')
  +st(2,'Fito pikë në dyqan','<b>1 € = 1 pikë.</b> Në arkë trego QR-në tënde te <b>Kuleta</b>. Pastaj hap produktin që blen te <b>Menu</b>, zgjidh sasinë dhe trego QR-në e tij. Stafi i skanon të dyja dhe pikët shtohen automatikisht.')
  +st(3,'I 10-ti është falas','Pikët mblidhen për çdo produkt veç e veç. Pas <b>9 blerjeve</b> të të njëjtit produkt, të 10-tin e merr falas. P.sh. 9 × Churros Standard (2.50 €) = 22.5 pikë, pra Churros Standard falas. Progresin e sheh te Kuleta.')
  +st(4,'Dhuratat','Çdo dhuratë shfaqet te <b>Kuleta</b>. Tregoje në arkë dhe stafi e shënon si të përdorur.')
  +st(5,'Ofertat','Aktivizoje ofertën vetëm kur je në arkë. Pas aktivizimit ke <b>60 sekonda</b> për ta treguar, pastaj oferta skadon.')
  +st(6,'Ditëlindja','Vendos datën e lindjes te <b>Profili</b>. Në muajin e ditëlindjes merr një <b>Mini Churros Cup falas</b>, një herë në vit.')
- +`<p class="mut" style="margin:14px 0">Ke pyetje? Pyet stafin tonë në dyqan.</p><button class="btn" style="width:100%" data-a="howclose">Kuptova</button>`)}
+ +`<h3 class="fancy hmh" id="hmenu">Menyja jonë</h3><p class="mut" style="margin:0 0 4px">Çdo produkt të sjell pikë. Rrëshqit anash për të parë të gjitha.</p>${menu}`
+ +`<p class="mut" style="margin:18px 0 12px">Ke pyetje? Pyet stafin tonë në dyqan.</p>`
+ +(guest?`<button class="btn" style="width:100%" data-a="howjoin">Krijo llogarinë falas</button>`:`<button class="btn" style="width:100%" data-a="howclose">Kuptova</button>`))}
 const OFFER_TXT='Merr 1 € zbritje dhe blej Churros Large';
 const offerState=o=>o.expired||(o.exp&&o.exp<=Date.now())?'x':o.exp?'a':'n';
 function offerBox(o,i){const s=offerState(o),m=MENU.find(x=>x.id==o.item);
@@ -381,7 +395,10 @@ function qrS(){const u=U(),q=qrSvg(qrPay(u));
 function topS(){sheet(`<h2 class="fancy">Ngarko saldo</h2><p class="mut">Paguaj më shpejt dhe fito pikë bonus.</p>`+TOPUP.map((t,i)=>`<button class="btn wide" data-a="top" data-v="${i}"><span>${K(t.a)}</span><span>${t.b?'+'+t.b+' pikë bonus':'pa bonus'}</span></button>`).join('')+`<button class="btn ghost wide" data-a="close" style="margin-top:12px">Mbyll</button>`)}
 document.addEventListener('click',e=>{
  if(e.target.id==='ov'){stopScan();closeS();return}
- {const hb=e.target.closest('[data-a=how],[data-a=howclose]');if(hb){e.preventDefault();if(hb.dataset.a==='how')howSheet();else closeS();return}}
+ {const hb=e.target.closest('[data-a=how],[data-a=howclose],[data-a=howjoin],[data-a=hjump]');if(hb){e.preventDefault();const k=hb.dataset.a;
+  if(k==='how'){howSheet();$('sheet').scrollTop=0}
+  else if(k==='hjump'){const el=$(hb.dataset.v),sh=$('sheet');if(el)sh.scrollTo({top:el.offsetTop-sh.offsetTop-12,behavior:'smooth'});document.querySelectorAll('.hjump .chp').forEach(x=>x.classList.toggle('on',x===hb))}
+  else{closeS();if(k==='howjoin'){const i=$('ph');if(i)setTimeout(()=>i.focus(),50)}}return}}
  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,u=U(),er=m=>{$('ae').textContent=m};if(a.startsWith('st_')){staffAct(a,b);return}
  if(a==='next'){au.ph=$('ph').value.trim();const em=au.ph.toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){er('Shkruaj një email të vlefshëm.');return}

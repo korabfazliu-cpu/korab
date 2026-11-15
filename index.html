@@ -234,6 +234,7 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .ptitle{margin:6px 0 20px;text-align:center;font-weight:800;font-size:40px;line-height:1.1;letter-spacing:.01em;color:#fff;
  text-shadow:0 3px 0 #7C421C,2px 2px 0 #7C421C,-2px 2px 0 #7C421C,2px -1px 0 #7C421C,-2px -1px 0 #7C421C}
 .ptitle::after{content:"";display:block;width:56px;height:6px;margin:12px auto 0;border-radius:6px;background:#7C421C;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+.badge .soon{font-size:14px;font-weight:700;white-space:nowrap;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -245,15 +246,15 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 <script src="/js/qrcode.js"></script>
 <script>
 const LOGO='/img/c708648a94.png';
-const IMG={twist:'/img/403d518708.jpg',lotus:'/img/2024622dc2.jpg',blueb:'/img/33862f11e1.jpg',rasp:'/img/a79cf6c251.jpg',pist:'/img/868328e6aa.jpg',bueno:'/img/95ea56649f.jpg',carm:'/img/59cb826432.jpg',latte:'/img/fc28291e4d.jpg',churros:'/img/db97ab432b.jpg',duo:'/img/3e34a6a995.jpg',cup:'/img/49a0d93b93.jpg',bites:'/img/925cad9a48.jpg',party:'/img/389465227d.jpg',summer:'/img/f80b17ea38.jpg'};
-const IMGL={twist:'/img/39be51c10d.jpg',duo:'/img/9efc0a0bc2.jpg',summer:'/img/f6fdf9c41a.jpg',bites:'/img/fd4f48de67.jpg',churros:'/img/4612056d10.jpg',party:'/img/3756197d3a.jpg',lotus:'/img/a5ee89c590.jpg',blueb:'/img/20e505555e.jpg',rasp:'/img/8e5a058ef3.jpg',pist:'/img/7b0ce485f6.jpg',bueno:'/img/305deb1fa2.jpg',carm:'/img/42c9835783.jpg'};
+const IMG={twist:'/img/403d518708.jpg',lotus:'/img/2024622dc2.jpg',blueb:'/img/33862f11e1.jpg',rasp:'/img/a79cf6c251.jpg',pist:'/img/868328e6aa.jpg',bueno:'/img/95ea56649f.jpg',carm:'/img/59cb826432.jpg',latte:'/img/fc28291e4d.jpg',churros:'/img/db97ab432b.jpg',duo:'/img/3e34a6a995.jpg',cup:'/img/49a0d93b93.jpg',bites:'/img/925cad9a48.jpg',party:'/img/389465227d.jpg',summer:'/img/f80b17ea38.jpg',unoparty:'/img/6f748a8d3c.jpg',miniuno:'/img/4684f3d159.jpg',kids:'/img/68e6bec111.jpg'};
+const IMGL={twist:'/img/39be51c10d.jpg',duo:'/img/9efc0a0bc2.jpg',summer:'/img/f6fdf9c41a.jpg',bites:'/img/fd4f48de67.jpg',churros:'/img/4612056d10.jpg',party:'/img/3756197d3a.jpg',lotus:'/img/a5ee89c590.jpg',blueb:'/img/20e505555e.jpg',rasp:'/img/8e5a058ef3.jpg',pist:'/img/7b0ce485f6.jpg',bueno:'/img/305deb1fa2.jpg',carm:'/img/42c9835783.jpg',unoparty:'/img/0d671b331e.jpg',miniuno:'/img/b41dc96041.jpg',kids:'/img/9476b632a5.jpg'};
 const IMGW={latte:200};
-const IMGBG={twist:'#fffdff',duo:'#fec3d7',summer:'#fec3d7',bites:'#fec3d6',churros:'#fdc3d9',party:'#fec3d7'};
-const FULL=new Set(['twist','duo','summer','bites','churros','party']);
-const DS={1:'5 churros të freskëta dhe krokante, të shoqëruara me 1 dip sipas zgjedhjes.',2:'10 churros krokante, me 2 dip sipas zgjedhjes. Ideale për t’i ndarë.',20:'Churros të zhytur në çokollatë dhe të zbukuruara me spërkatje e copëza. Produkt i ri.',3:'5 churros me 2 dip sauces, të servirura në tabakanë Wonder. Produkt i ri.',4:'15 mini churros në një kupë, me 2 toppings sipas dëshirës.',5:'20 mini churros me fruta sezonale dhe 2 dip sauces.',6:'10 churros, 15 mini churros dhe 4 dip sauces në një kuti të madhe për t’u ndarë.',7:'40 mini churros me fruta sezonale dhe 4 dip sauces në një kuti. Produkt i ri.',27:'Latte me shije sipas zgjedhjes: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla ose Popcorn.',28:'Kafe Americano.',29:'Espresso i fortë.',30:'Macchiato: espresso me pak qumësht.',31:'Çokollatë e nxehtë.'};
+const IMGBG={twist:'#fffdff',duo:'#fec3d7',summer:'#fec3d7',bites:'#fec3d6',churros:'#fdc3d9',party:'#fec3d7',unoparty:'#fcc4da',miniuno:'#fcc4da',kids:'#fcc4da'};
+const FULL=new Set(['twist','duo','summer','bites','churros','party','unoparty','miniuno','kids']);
+const DS={39:'Kutia e festës me 6 Uno churros, secili me shije tjetër: nga frutat e kuqe te pistachio, karameli dhe çokollata. Produkt i ri.',40:'Kombinimi i përsosur për shoqërinë: Uno churros me shije të ndryshme, mini churros krokante dhe 3 dip sauces. Produkt i ri.',41:'Kutia e fëmijëve: churros në gotë me topping, Monte Drink dhe një bllok vizatimi me lapsë për argëtim. Produkt i ri.',1:'5 churros të freskëta dhe krokante, të shoqëruara me 1 dip sipas zgjedhjes.',2:'10 churros krokante, me 2 dip sipas zgjedhjes. Ideale për t’i ndarë.',20:'Churros të zhytur në çokollatë dhe të zbukuruara me spërkatje e copëza. Produkt i ri.',3:'5 churros me 2 dip sauces, të servirura në tabakanë Wonder. Produkt i ri.',4:'15 mini churros në një kupë, me 2 toppings sipas dëshirës.',5:'20 mini churros me fruta sezonale dhe 2 dip sauces.',6:'10 churros, 15 mini churros dhe 4 dip sauces në një kuti të madhe për t’u ndarë.',7:'40 mini churros me fruta sezonale dhe 4 dip sauces në një kuti. Produkt i ri.',27:'Latte me shije sipas zgjedhjes: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla ose Popcorn.',28:'Kafe Americano.',29:'Espresso i fortë.',30:'Macchiato: espresso me pak qumësht.',31:'Çokollatë e nxehtë.'};
 const DIPS=[['🍓','Raspberry'],['🫐','Blueberry'],['🌰','Hazelnut'],['🍦','Vanilla'],['🍫','Nutella'],['🍯','Caramel'],['🟢','Pistachio']];
 const FLAV=['Caramel','Hazelnut','Toffee Crunch','Speculoos Cookie','Vanilla','Popcorn'];
-const XI={1:['5 churros','1 dip sipas zgjedhjes','d'],2:['10 churros','2 dip sipas zgjedhjes','d'],20:['Churros të zhytur në çokollatë','Çokollatë',''],3:['5 churros','2 dip sauces','d'],6:['10 churros + 15 mini churros','4 dip sauces','d'],4:['15 mini churros','2 toppings',''],5:['20 mini churros + fruta sezonale','2 dip sauces','d'],7:['40 mini churros + fruta sezonale','4 dip sauces','d'],27:['Latte me shije','Shije sipas zgjedhjes','f']};
+const XI={39:['6 Uno churros','Shije të ndryshme',''],40:['Uno churros + mini churros','3 dip sauces','d'],41:['Churros në gotë me topping','Monte Drink + bllok vizatimi me lapsë',''],1:['5 churros','1 dip sipas zgjedhjes','d'],2:['10 churros','2 dip sipas zgjedhjes','d'],20:['Churros të zhytur në çokollatë','Çokollatë',''],3:['5 churros','2 dip sauces','d'],6:['10 churros + 15 mini churros','4 dip sauces','d'],4:['15 mini churros','2 toppings',''],5:['20 mini churros + fruta sezonale','2 dip sauces','d'],7:['40 mini churros + fruta sezonale','4 dip sauces','d'],27:['Latte me shije','Shije sipas zgjedhjes','f']};
 let pd=null,mscroll=0,ms0=0,mx=0;const pqty={};
 function fx(s){if(!s)return;const r=s.getBoundingClientRect(),c=r.left+r.width/2;s.querySelectorAll('.mcard').forEach(k=>{const b=k.getBoundingClientRect(),d=Math.min(1,Math.abs(b.left+b.width/2-c)/(b.width*1.1));k.style.transform=`scale(${1-.14*d})`;k.style.opacity=1-.35*d})}
 function pqrCard(m){const q=pqty[m.id]||1,pts=Math.round(m.p*q*100)/100;
@@ -265,8 +266,8 @@ function vProd(m){const uno=m.n.startsWith('Uno '),x=XI[m.id]||(uno?['1 churros 
  return `<div class="dh"><button class="dback" data-a="pback" aria-label="Kthehu te menyja">←</button><b>${m.c}</b><i></i></div>`
  +`<div class="dimg${full?' full':''}"${full?` style="background:${IMGBG[m.i]}"`:''}>${m.i?`<img src="${IMGL[m.i]||IMG[m.i]}" alt="${m.n}"${full?'':` style="max-width:${IMGW[m.i]||560}px"`}>`:''}</div>`
  +`<h2 class="pname">${m.n}${m.nw?'<span class="nw">I RI</span>':''}</h2><div class="rows">${rows.map(r=>`<div class="r"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`
- +(U()?pqrCard(m):'')+(chips?`<h4 class="sec">${x[2]==='d'?'Dip-et e disponueshme':'Shijet e disponueshme'}</h4><div class="chps">${chips}</div>${x[2]==='d'?'<p class="mut" style="margin:8px 0 0">Dip shtesë: 0.50 €</p>':''}`:'')
- +`<h4 class="sec">Rreth produktit</h4><p class="pdesc">${DS[m.id]||m.d}</p><div class="dfoot"><span class="mut">Çmimi</span><span class="badge">${K(m.p)}</span></div><button class="btn ghost wide" style="justify-content:center" data-a="pback">← Kthehu te ${m.c}</button>`}
+ +(U()&&m.p?pqrCard(m):'')+(chips?`<h4 class="sec">${x[2]==='d'?'Dip-et e disponueshme':'Shijet e disponueshme'}</h4><div class="chps">${chips}</div>${x[2]==='d'?'<p class="mut" style="margin:8px 0 0">Dip shtesë: 0.50 €</p>':''}`:'')
+ +`<h4 class="sec">Rreth produktit</h4><p class="pdesc">${DS[m.id]||m.d}</p><div class="dfoot"><span class="mut">Çmimi</span><span class="badge">${KP(m)}</span></div><button class="btn ghost wide" style="justify-content:center" data-a="pback">← Kthehu te ${m.c}</button>`}
 const CATIC={'Standard churros':'🥖','Uno churros':'✨','Party box':'🎉','Wonder box and cup':'🍓','Kids box':'🎈','Flavored Latte':'🥤','Coffee':'☕'};
 const CATS=['Standard churros','Uno churros','Party box','Wonder box and cup','Kids box','Flavored Latte','Coffee'];
 const MENU=[
@@ -283,6 +284,9 @@ const MENU=[
 {id:26,c:'Uno churros',n:'Uno Caramel',d:'1 churros me topping karamel',p:1.8,i:'carm'},
 {id:4,c:'Wonder box and cup',n:'Mini Churros Cup',d:'15 mini churros + 2 toppings',p:2.5,i:'cup'},
 {id:5,c:'Wonder box and cup',n:'Wonder Bites',d:'20 mini churros, fruta sezonale, 2 dip sauces',p:3.5,i:'bites'},
+{id:39,c:'Party box',n:'Uno Party Box',d:'6 Uno churros me shije të ndryshme',p:null,i:'unoparty',nw:1},
+{id:40,c:'Party box',n:'Party Box Mini & Uno',d:'Uno churros, mini churros dhe 3 dip sauces',p:null,i:'miniuno',nw:1},
+{id:41,c:'Kids box',n:'Kids Box',d:'Churros në gotë, Monte Drink dhe bllok vizatimi',p:null,i:'kids',nw:1},
 {id:7,c:'Party box',n:'Summer Box',d:'40 mini churros, fruta sezonale, 4 dip sauces',p:13,i:'summer',nw:1},
 {id:27,c:'Flavored Latte',n:'Flavoured Latte',d:'Shije: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla, Popcorn',p:2,i:'latte'},
 {id:28,c:'Coffee',n:'Americano',d:'Kafe e zezë',p:1.5,e:'☕'},
@@ -310,7 +314,8 @@ const save=()=>{try{const {role,...rest}=db;localStorage.setItem('wonder_v3',JSO
 const $=id=>document.getElementById(id);
 const r2=x=>Math.round(x*100)/100;
 const fmtP=n=>String(Math.round(n*100)/100);
-const RC=m=>Math.round(m.p*9*100)/100;
+const RC=m=>m.p?Math.round(m.p*9*100)/100:Infinity;
+const KP=m=>m.p?K(m.p):'<span class="soon">Së shpejti</span>';
 const sp=u=>{u.points=Math.round(Object.values(u.pp||{}).reduce((a,b)=>a+b,0)*100)/100};
 const K=n=>(Math.round(n*100)/100).toFixed(2)+' €';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -323,7 +328,7 @@ const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
 const qrPay=u=>'WONDER:'+u.mid+':'+b64e(JSON.stringify({n:u.name,s:u.surname||'',e:u.email||''}));
 const PQR=(id,q)=>'WONDER-P:'+id+(q>1?':'+q:'');
-const parseP=t=>{const m=/^WONDER-P:(\d+)(?::(\d+))?$/i.exec(String(t).trim());if(!m)return null;const p=MENU.find(x=>x.id==+m[1]);const q=m[2]?+m[2]:1;return p&&q>=1&&q<=20?{m:p,q}:null};
+const parseP=t=>{const m=/^WONDER-P:(\d+)(?::(\d+))?$/i.exec(String(t).trim());if(!m)return null;const p=MENU.find(x=>x.id==+m[1]);const q=m[2]?+m[2]:1;return p&&p.p&&q>=1&&q<=20?{m:p,q}:null};
 function parseQR(t){const m=/^WONDER:([A-Z0-9]+)(?::([A-Za-z0-9_-]+))?$/i.exec(String(t).trim());if(!m)return null;let c={};try{if(m[2])c=JSON.parse(b64d(m[2]))}catch(e){}return {mid:m[1].toUpperCase(),n:c.n||'',s:c.s||'',e:(c.e||'').toLowerCase()}}
 function qrSvg(t){try{const q=qrcode(0,'M');q.addData(t);q.make();const n=q.getModuleCount();let d='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+2} ${r+2}h1v1h-1z`;return `<svg viewBox="0 0 ${n+4} ${n+4}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}catch(e){return ''}}
 
@@ -395,11 +400,11 @@ function vWal(){const u=U(),pp=u.pp||{},pr=m=>Math.min(1,(pp[m.id]||0)/RC(m));
  +`<h3>Dhurata dhe zbritje</h3>`+giftsAndDeals(u)
   +`<h3>Historiku i pikëve</h3>`+(hist||'<div class="card mut">Ende nuk ke blerje. Pas çdo blerjeje në dyqan fiton pikë.</div>')}
 function vMenu(){if(pd!=null){const pm=MENU.find(x=>x.id==pd);if(pm)return vProd(pm)}
- if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
-  return `<h1 class="ptitle">Menu</h1>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${c}</b><span>${n?n+' produkte':'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
+ if(cat==null){const T={'Standard churros':[IMGL.churros,'center'],'Uno churros':[PHOTOS[0],'center 40%'],'Party box':[IMGL.party,'center'],'Kids box':[IMGL.kids,'center 40%'],'Wonder box and cup':[IMGL.duo,'center 55%'],'Flavored Latte':[PHOTOS[1],'center 62%'],'Coffee':[PHOTOS[3],'center 60%']};
+  return `<h1 class="ptitle">Menu</h1>`+CATS.map(c=>{const n=MENU.filter(m=>m.c===c).length,t=T[c];return `<div class="ctile${t?'':' noimg'}" data-a="cat" data-v="${c}" role="button" tabindex="0" style="${t?`background-image:linear-gradient(90deg,rgba(60,25,5,.8),rgba(60,25,5,.3) 62%,rgba(60,25,5,0)),url(${t[0]});background-position:center,${t[1]}`:''}"><div><b>${c}</b><span>${n?n+(n===1?' produkt':' produkte'):'Së shpejti'}</span></div><span class="go2">›</span></div>`}).join('')}
  const its=MENU.filter(m=>m.c===cat);
  return `<div class="dh"><button class="dback" data-a="cback" aria-label="Kthehu te menyja">←</button><b>${cat}</b><i></i></div>`
- +(its.length?its.map(m=>`<div class="card item mi${m.i?'':' noth'}" data-a="prod" data-v="${m.id}" role="button" tabindex="0">${m.i?`<img class="th" src="${IMG[m.i]}" alt="${m.n}">`:''}<div class="t"><b>${m.n}${m.nw?'<span class="nw">I RI</span>':''}</b><span class="mut">${m.d}</span></div><span class="badge">${K(m.p)}</span></div>`).join(''):'<div class="card mut">Produktet e kësaj kategorie po shtohen së shpejti.</div>')}
+ +(its.length?its.map(m=>`<div class="card item mi${m.i?'':' noth'}" data-a="prod" data-v="${m.id}" role="button" tabindex="0">${m.i?`<img class="th" src="${IMG[m.i]}" alt="${m.n}">`:''}<div class="t"><b>${m.n}${m.nw?'<span class="nw">I RI</span>':''}</b><span class="mut">${m.d}</span></div><span class="badge">${KP(m)}</span></div>`).join(''):'<div class="card mut">Produktet e kësaj kategorie po shtohen së shpejti.</div>')}
 function vMe(){const u=U(),ini=((u.name||'')[0]||'')+((u.surname||'')[0]||''),row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
  const since=u.created?new Date(u.created).toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
  return `<h1 class="ptitle">Llogaria ime</h1><div class="card acct"><div class="ahead"><span class="avatar">${esc(ini.toUpperCase())}</span><div><b>${FN(u)}</b><span class="mut">Anëtar i Wonder Club${since?' që nga '+since:''}</span></div></div>`
@@ -471,13 +476,13 @@ function stArka(){const u=st.found&&db.users[st.found];
  if(!u)return h;
  const t=tier(u),ofs=u.offers||[];
  h+=`<div class="card"><b>${FN(u)}</b><div class="mut">${esc(st.found)} · ID ${u.mid}</div><div style="margin-top:6px">1 € blerje = 1 pikë</div><div class="fancy" style="font-size:38px">${fmtP(u.points)}<span style="font-size:18px"> pikë</span></div>${ppList(u)}</div>`
- +`<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e produktit</button><p class="mut" style="margin:-2px 0 12px;text-align:center">Kodi është te produkti në telefonin e klientit (Menu → produkti), me sasinë brenda. Pikët shkojnë te kuleta e ${esc(u.name)}.</p><div class="card"><b>Ose regjistro me dorë</b><div class="mut">1 € blerje = 1 pikë. Pikët mblidhen për secilin produkt veç e veç.</div><select id="spp">${MENU.map(m=>`<option value="${m.id}">${m.n} · ${K(m.p)}</option>`).join('')}</select><input type="text" inputmode="numeric" id="sqty" placeholder="Sasia" value="1"><button class="btn" style="width:100%" data-a="st_pts">Shto pikë</button></div><h3>Oferta</h3>`;
+ +`<button class="btn scanbtn" data-a="st_scan">📷 Skano QR-në e produktit</button><p class="mut" style="margin:-2px 0 12px;text-align:center">Kodi është te produkti në telefonin e klientit (Menu → produkti), me sasinë brenda. Pikët shkojnë te kuleta e ${esc(u.name)}.</p><div class="card"><b>Ose regjistro me dorë</b><div class="mut">1 € blerje = 1 pikë. Pikët mblidhen për secilin produkt veç e veç.</div><select id="spp">${MENU.filter(m=>m.p).map(m=>`<option value="${m.id}">${m.n} · ${K(m.p)}</option>`).join('')}</select><input type="text" inputmode="numeric" id="sqty" placeholder="Sasia" value="1"><button class="btn" style="width:100%" data-a="st_pts">Shto pikë</button></div><h3>Oferta</h3>`;
  h+=ofs.length?ofs.map((o,i)=>{const s=offerState(o);return s==='a'?`<div class="card row"><span>🏷️ ${OFFER_TXT}<br><span class="mut">Aktive: <span class="cdn" data-exp="${o.exp}">${Math.max(0,Math.ceil((o.exp-Date.now())/1000))}</span> sek</span></span><button class="btn sm" data-a="st_offer" data-v="${i}">Valido</button></div>`:`<div class="card mut">${s==='x'?'Oferta ka skaduar.':'Klienti nuk e ka aktivizuar ofertën.'}</div>`}).join(''):'<div class="card mut">Klienti nuk ka ofertë aktive.</div>';
  h+='<h3>Dhuratat</h3>'+(u.vouchers.length?u.vouchers.map((v,i)=>`<div class="card row"><span>🎁 ${esc(v.n)}</span><button class="btn sm" data-a="st_vuse" data-v="${i}">Përdor</button></div>`).join(''):'<div class="card mut">Klienti nuk ka dhurata.</div>');
  return h}
-function stQR(){const cats=[...new Set([...CATS,...MENU.map(m=>m.c)])].filter(c=>MENU.some(m=>m.c===c));
+function stQR(){const cats=[...new Set([...CATS,...MENU.map(m=>m.c)])].filter(c=>MENU.some(m=>m.c===c&&m.p));
  return `<div class="card noprint"><b>Kodet QR të produkteve</b><div class="mut">Rezervë, për rastin kur klienti s'mund ta hapë produktin në telefon. Zakonisht kodi i produktit skanohet në telefonin e klientit. Këto kode regjistrojnë 1 copë për skanim.</div><button class="btn" style="width:100%;margin-top:10px" data-a="st_print">🖨️ Printo kodet</button></div>`
- +cats.map(c=>`<h3 class="qcat">${esc(c)}</h3><div class="qgrid">${MENU.filter(m=>m.c===c).map(m=>`<div class="qcard"><div class="qimg">${qrSvg(PQR(m.id))}</div><b>${esc(m.n)}</b><span>${K(m.p)} · ${fmtP(m.p)} pikë</span><i>WONDER-P:${m.id}</i></div>`).join('')}</div>`).join('')}
+ +cats.map(c=>`<h3 class="qcat">${esc(c)}</h3><div class="qgrid">${MENU.filter(m=>m.c===c&&m.p).map(m=>`<div class="qcard"><div class="qimg">${qrSvg(PQR(m.id))}</div><b>${esc(m.n)}</b><span>${K(m.p)} · ${fmtP(m.p)} pikë</span><i>WONDER-P:${m.id}</i></div>`).join('')}</div>`).join('')}
 function stStaf(){return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)"><input type="text" inputmode="numeric" id="sp1" placeholder="PIN (4 deri në 8 shifra)" maxlength="8"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div><h3>Stafi i regjistruar</h3>`
  +((db.staff||[]).length?db.staff.map((s,i)=>`<div class="card row"><span>👤 ${esc(s.name)}</span><button class="btn ghost sm" data-a="st_del" data-v="${i}">Fshi</button></div>`).join(''):'<div class="card mut">Ende nuk ka staf të regjistruar.</div>')}
 function stKl(){const ks=Object.keys(db.users);return `<div class="mut" style="margin-bottom:8px">${ks.length} klientë të regjistruar në këtë pajisje.</div>`+ks.map(k=>{const u=db.users[k];return `<div class="card row"><span><b>${FN(u)}</b><br><span class="mut">${esc(k)} · ${u.mid}</span></span><b>${fmtP(u.points)} p</b></div>`}).join('')}

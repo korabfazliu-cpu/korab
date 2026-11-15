@@ -27,7 +27,7 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 |---|---|
 | Hyrja | Email, pastaj kodi 6-shifror, pastaj emri dhe mbiemri. **Kodi tani shfaqet në ekran ("Demo"), nuk dërgohet me email.** Ka edhe "Hyr me llogari demo". Poshtë është linku **"Si funksionon Wonder Club?"**, që hap shpjegimin në 6 hapa (regjistrimi, pikët, i 10-ti falas, dhuratat, ofertat, ditëlindja) dhe poshtë tij **menynë pa çmime** për vizitorët: kartela me foto që rrëshqasin anash, sipas kategorive, plus dip-et. Ka dy skeda kërcimi ("Si funksionon" / "Menyja") dhe butonin "Krijo llogarinë falas" (`howSheet()`). |
 | Start | Përshëndetje, pikët totale, foto karusel, oferta, dhurata e ditëlindjes (kur është muaji i saj). |
-| Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (2), Wonder box and cup (4), Kids box (0, "së shpejti"), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
+| Menu | 7 kategori me foto: Standard churros (2), Uno churros (6), Party box (4), Wonder box and cup (4), Kids box (1), Flavored Latte (1), Coffee (4). Plus 7 dip shtesë në listën e arkës. Vetëm tekst, pa ikona para emrave. Klikimi i produktit hap faqen e tij: foto, lloji, përmbajtja, **QR e produktit me zgjedhje sasie (1–20)**, dip-et ose shijet, përshkrimi, çmimi. |
 | Kuleta | Në krye, në të njëjtën kartelë: **pikët + QR personal + emri dhe ID**, shiriti i progresit, dhe poshtë udhëzimi për dy hapat në arkë. **"Produkt falas për ty"** shfaqet vetëm kur pikët e një produkti arrijnë pragun, me butonin "Merre falas". **"Dhurata dhe zbritje":** dhuratat personale, zbritjet dhe dhuratat e kompanisë (`PROMOS`, edhe në %), oferta 60 sekondëshe. Kur kompania s'ka promocion, ka një vend bosh të rezervuar. Në fund historiku. |
 | Profili ("Llogaria ime") | Kartelë personale: inicialet, emri, mbiemri, "Anëtar që nga", email-i, telefoni (nëse ka), ID-ja, data e lindjes. "Ndrysho të dhënat": telefoni (opsional, i validuar) dhe data e lindjes. "Si funksionon Wonder Club?", dalja. |
 
@@ -66,6 +66,8 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | 2 | Churros Large (10 churros + 2 dip) | Standard churros | 4.90 |
 | 21–26 | Uno Lotus / Blueberry / Raspberry / Pistachio / Bueno / Caramel | Uno churros | 1.80 secili |
 | 6 | Party Box (10 churros + 15 mini + 4 dip) | Party box | 12.00 |
+| 39 | Uno Party Box (6 Uno churros me shije të ndryshme) | Party box | **pa çmim ende** |
+| 40 | Party Box Mini & Uno (Uno churros + mini churros + 3 dip) | Party box | **pa çmim ende** |
 | 7 | Summer Box (40 mini + fruta + 4 dip) | Party box | 13.00 |
 | 20 | Twist Churros (të zhytur në çokollatë) | Wonder box and cup | 1.80 |
 | 3 | Wonder Duo (5 churros + 2 dip) | Wonder box and cup | 3.50 |
@@ -75,7 +77,9 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 | 28–31 | Americano 1.50 · Espresso 1.00 · Macchiato 1.50 · Hot Choco 1.50 | Coffee | |
 | 32–38 | Dip: Raspberry, Blueberry, Hazelnut, Vanilla, Nutella, Caramel, Pistachio | Dip | 0.50 secili |
 
-Kategoria **Kids box** ekziston, por ende pa produkte.
+| 41 | Kids Box (churros në gotë + Monte Drink + bllok vizatimi) | Kids box | **pa çmim ende** |
+
+Produktet pa çmim (`p:null`) shfaqen në meny me "Së shpejti", por **nuk kanë QR, nuk mbledhin pikë dhe nuk dalin te arka** derisa të vendoset çmimi (`RC()` kthen `Infinity`, `KP()` shfaq "Së shpejti"). Përmbajtja e tyre është shkruar sipas fotove dhe duhet konfirmuar nga pronari.
 
 ---
 

@@ -88,6 +88,21 @@ create table if not exists churros.promo_uses(
   used_at timestamptz, used_by uuid references churros.staff on delete set null,
   unique (promo_id, customer_id));
 
+-- v4: promotions for everyone or for selected customers; fixed-amount offers (€)
+alter table churros.promos add column if not exists audience text not null default 'all';
+alter table churros.promos add column if not exists amount numeric(8,2);
+alter table churros.promos drop constraint if exists promos_kind_check;
+alter table churros.promos add constraint promos_kind_check check (kind in ('pct','gift','eur'));
+create table if not exists churros.promo_targets(
+  promo_id bigint not null references churros.promos on delete cascade,
+  customer_id uuid not null references churros.customers on delete cascade,
+  primary key (promo_id, customer_id));
+create index if not exists promo_targets_cust on churros.promo_targets(customer_id);
+
+create or replace function churros.ptitle(p_kind text, p_pct int, p_amount numeric, p_title text) returns text language sql immutable as
+$$ select case p_kind when 'pct' then p_pct||'% zbritje: '||p_title
+                     when 'eur' then to_char(p_amount,'FM990.00')||' € zbritje: '||p_title else p_title end $$;
+
 create index if not exists vouchers_open on churros.vouchers(customer_id) where used_at is null;
 create index if not exists offers_open on churros.offers(customer_id) where used_at is null;
 create index if not exists orders_cust on churros.orders(customer_id, created_at desc);
@@ -152,14 +167,15 @@ create or replace function churros.card(p_id uuid) returns json language sql sta
                    'd',to_char(r.created_at at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI')) x
                  from churros.orders r join churros.products p on p.id = r.product_id
                  where r.customer_id = c.id and r.undone_at is null order by r.created_at desc limit 10) q), '[]'::json),
-    'promos', coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'title',p.title,'desc',p.descr,
-                 'from',p.from_date,'until',p.until_date,'code',u.code,'useId',u.id) order by p.id desc)
+    'promos', coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'amount',p.amount,'title',p.title,'desc',p.descr,
+                 'from',p.from_date,'until',p.until_date,'personal',p.audience='some','code',u.code,'useId',u.id) order by p.id desc)
                from churros.promos p left join churros.promo_uses u on u.promo_id = p.id and u.customer_id = c.id
                where p.active and (p.from_date is null or p.from_date <= churros.today())
-                 and (p.until_date is null or p.until_date >= churros.today()) and u.used_at is null), '[]'::json),
+                 and (p.until_date is null or p.until_date >= churros.today()) and u.used_at is null
+                 and (p.audience = 'all' or exists (select 1 from churros.promo_targets t where t.promo_id = p.id and t.customer_id = c.id))), '[]'::json),
     'used', coalesce((select json_agg(x order by x.t desc) from (
                  select v.name n, 'gift' k, v.used_at t from churros.vouchers v where v.customer_id = c.id and v.used_at is not null
-                 union all select case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, 'promo', pu.used_at
+                 union all select churros.ptitle(p.kind,p.pct,p.amount,p.title), 'promo', pu.used_at
                    from churros.promo_uses pu join churros.promos p on p.id = pu.promo_id where pu.customer_id = c.id and pu.used_at is not null
                  union all select '1 € zbritje për '||pr.name, 'offer', o.used_at
                    from churros.offers o join churros.products pr on pr.id = o.product_id where o.customer_id = c.id and o.used_at is not null
@@ -253,8 +269,9 @@ end $$;
 create or replace function public.wc_promo_activate(p_token text, p_promo bigint) returns json language plpgsql as $$
 declare cid uuid := churros.cust(p_token);
 begin
-  if not exists (select 1 from churros.promos where id = p_promo and active
-                   and (from_date is null or from_date <= churros.today()) and (until_date is null or until_date >= churros.today())) then
+  if not exists (select 1 from churros.promos p where p.id = p_promo and p.active
+                   and (p.from_date is null or p.from_date <= churros.today()) and (p.until_date is null or p.until_date >= churros.today())
+                   and (p.audience = 'all' or exists (select 1 from churros.promo_targets t where t.promo_id = p.id and t.customer_id = cid))) then
     raise exception 'EXPIRED' using errcode='P0001'; end if;
   if exists (select 1 from churros.promo_uses where promo_id = p_promo and customer_id = cid and used_at is not null) then
     raise exception 'USED' using errcode='P0001'; end if;
@@ -275,7 +292,7 @@ begin
     if was is not null then raise exception 'USED' using errcode='P0001'; end if;
     update churros.vouchers set used_at = now(), used_by = s.id where id = i;
   elsif k = 'P' then
-    select pu.customer_id, case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, pu.used_at
+    select pu.customer_id, churros.ptitle(p.kind,p.pct,p.amount,p.title), pu.used_at
       into cid, title, was from churros.promo_uses pu join churros.promos p on p.id = pu.promo_id where pu.id = i and pu.code = c for update of pu;
     if cid is null then raise exception 'CODE' using errcode='P0001'; end if;
     if was is not null then raise exception 'USED' using errcode='P0001'; end if;
@@ -460,7 +477,7 @@ begin
     'spent', (select coalesce(sum(total),0) from churros.orders where customer_id=p_id and undone_at is null),
     'redeemed', coalesce((select json_agg(json_build_object('n',x.n,'by',x.by,'d',to_char(x.t at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI')) order by x.t desc) from (
         select v.name n, st.name by, v.used_at t from churros.vouchers v left join churros.staff st on st.id=v.used_by where v.customer_id=p_id and v.used_at is not null
-        union all select case when p.kind='pct' then p.pct||'% zbritje: '||p.title else p.title end, st.name, pu.used_at
+        union all select churros.ptitle(p.kind,p.pct,p.amount,p.title), st.name, pu.used_at
           from churros.promo_uses pu join churros.promos p on p.id=pu.promo_id left join churros.staff st on st.id=pu.used_by where pu.customer_id=p_id and pu.used_at is not null
         union all select '1 € zbritje për '||pr.name, st.name, o.used_at
           from churros.offers o join churros.products pr on pr.id=o.product_id left join churros.staff st on st.id=o.used_by where o.customer_id=p_id and o.used_at is not null) x), '[]'::json),
@@ -489,22 +506,37 @@ end $$;
 create or replace function public.wc_promos(p_token text) returns json language plpgsql stable as $$
 declare s churros.staff := churros.staff_of(p_token, true);
 begin
-  return coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'title',p.title,'desc',p.descr,'from',p.from_date,'until',p.until_date,
+  return coalesce((select json_agg(json_build_object('id',p.id,'type',p.kind,'pct',p.pct,'amount',p.amount,'title',p.title,'desc',p.descr,'from',p.from_date,'until',p.until_date,
+      'audience',p.audience,
+      'targets',(select count(*) from churros.promo_targets t where t.promo_id=p.id),
+      'names',(select string_agg(x.n, ', ') from (select c.name||' '||left(c.surname,1)||'.' n from churros.promo_targets t join churros.customers c on c.id=t.customer_id
+               where t.promo_id=p.id order by c.name limit 4) x),
       'uses',(select count(*) from churros.promo_uses u where u.promo_id=p.id and u.used_at is not null),
       'live', p.active and (p.from_date is null or p.from_date <= churros.today()) and (p.until_date is null or p.until_date >= churros.today())) order by p.id desc)
     from churros.promos p where p.active), '[]'::json);
 end $$;
 
-create or replace function public.wc_promo_add(p_token text, p_kind text, p_pct int, p_title text, p_desc text, p_from date, p_until date) returns json
-language plpgsql as $$
-declare s churros.staff := churros.staff_of(p_token, true);
+drop function if exists public.wc_promo_add(text,text,int,text,text,date,date);
+-- p_customers: null = all customers; otherwise only the listed customers see it.
+create or replace function public.wc_promo_add(p_token text, p_kind text, p_pct int, p_amount numeric, p_title text, p_desc text,
+  p_from date, p_until date, p_customers uuid[]) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); pid bigint;
 begin
-  if p_kind not in ('pct','gift') then raise exception 'INPUT' using errcode='P0001'; end if;
+  if p_kind not in ('pct','gift','eur') then raise exception 'INPUT' using errcode='P0001'; end if;
   if p_kind = 'pct' and (p_pct is null or p_pct < 1 or p_pct > 100) then raise exception 'PCT' using errcode='P0001'; end if;
+  if p_kind = 'eur' and (p_amount is null or p_amount <= 0 or p_amount > 500) then raise exception 'AMOUNT' using errcode='P0001'; end if;
   if coalesce(trim(p_title),'') = '' or length(p_title) > 80 or length(coalesce(p_desc,'')) > 200 then raise exception 'NAME' using errcode='P0001'; end if;
   if p_from is not null and p_until is not null and p_until < p_from then raise exception 'DATE' using errcode='P0001'; end if;
-  insert into churros.promos(kind,pct,title,descr,from_date,until_date)
-  values (p_kind, case when p_kind='pct' then p_pct end, trim(p_title), nullif(trim(coalesce(p_desc,'')),''), p_from, p_until);
+  if p_customers is not null and (cardinality(p_customers) = 0 or cardinality(p_customers) > 5000) then raise exception 'TARGETS' using errcode='P0001'; end if;
+  insert into churros.promos(kind,pct,amount,title,descr,from_date,until_date,audience)
+  values (p_kind, case when p_kind='pct' then p_pct end, case when p_kind='eur' then round(p_amount,2) end,
+          trim(p_title), nullif(trim(coalesce(p_desc,'')),''), p_from, p_until, case when p_customers is null then 'all' else 'some' end)
+  returning id into pid;
+  if p_customers is not null then
+    insert into churros.promo_targets(promo_id, customer_id)
+    select pid, c.id from churros.customers c where c.id = any(p_customers) on conflict do nothing;
+    if not found then raise exception 'TARGETS' using errcode='P0001'; end if;
+  end if;
   return public.wc_promos(p_token);
 end $$;
 
@@ -538,4 +570,4 @@ begin
   return public.wc_staff_list(p_token);
 end $$;
 
-insert into churros.meta(k,v) values ('version','3') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','4') on conflict (k) do update set v = excluded.v;

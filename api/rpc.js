@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '3';
+const SCHEMA_VERSION = '4';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -46,7 +46,7 @@ const FN = {
   resetPin:      ['wc_reset_pin',     ['token', 'id', 'pin'], ['text', 'uuid', 'text']],
   giveGift:      ['wc_give_gift',     ['token', 'id', 'name'], ['text', 'uuid', 'text']],
   promos:        ['wc_promos',        ['token'], ['text']],
-  promoAdd:      ['wc_promo_add',     ['token', 'kind', 'pct', 'title', 'desc', 'from', 'until'], ['text', 'text', 'int', 'text', 'text', 'date', 'date']],
+  promoAdd:      ['wc_promo_add',     ['token', 'kind', 'pct', 'amount', 'title', 'desc', 'from', 'until', 'customers'], ['text', 'text', 'int', 'numeric', 'text', 'text', 'date', 'date', 'uuid[]']],
   promoDel:      ['wc_promo_del',     ['token', 'id'], ['text', 'bigint']],
   staffList:     ['wc_staff_list',    ['token'], ['text']],
   addStaff:      ['wc_add_staff',     ['token', 'name', 'pin'], ['text', 'text', 'text']],

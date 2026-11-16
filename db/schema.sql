@@ -908,22 +908,50 @@ begin
   return public.wc_stock(p_token);
 end $$;
 
--- v11: churros are counted in pieces. Three stock items, linked once to the products by the pieces in each (from the menu).
--- Runs only while the item does not exist yet, so changes made in the app are never overwritten.
+-- v12: stock as the shop keeps it. Runs once per database (meta 'stock_v12'), so later edits in the app are never overwritten.
+--  * Churros: ONE pool in pieces, taken by every kind of churros. Older 'Mini churros' / 'Uno churros' items are merged into it.
+--  * Sosera (sauces) and the packaging: cups 8/7/5 oz, Party box, Standard, sauce, Twist and Uno boxes. Coffee is not stocked.
 do $$
-declare it bigint; r record;
+declare pool bigint; it record; r record; n bigint;
 begin
-  for r in select * from (values
-      ('Churros', '[[1,5],[2,10],[6,10],[3,5]]'),
-      ('Mini churros', '[[6,15],[7,40],[4,15],[5,20]]'),
-      ('Uno churros', '[[21,1],[22,1],[23,1],[24,1],[25,1],[26,1],[39,6]]')) v(n, links) loop
-    if not exists (select 1 from churros.stock_items where active and lower(name) = lower(r.n)) then
-      insert into churros.stock_items(name, unit, min_qty) values (r.n, 'copë', 50) returning id into it;
+  if exists (select 1 from churros.meta where k = 'stock_v12') then return; end if;
+  select id into pool from churros.stock_items where active and lower(name) = 'churros';
+  if pool is null then
+    select id into pool from churros.stock_items where active and lower(name) = 'mini churros';
+    if pool is not null then update churros.stock_items set name = 'Churros' where id = pool;
+    else
+      insert into churros.stock_items(name, unit, min_qty) values ('Churros', 'copë', 50) returning id into pool;
       insert into churros.recipes(product_id, item_id, qty)
-        select (l->>0)::int, it, (l->>1)::numeric from json_array_elements(r.links::json) l
+        select v.p, pool, v.q from (values (1,5),(2,10),(6,25),(39,6),(7,40),(20,1),(3,5),(4,15),(5,20),(21,1),(22,1),(23,1),(24,1),(25,1),(26,1)) v(p,q)
+        where exists (select 1 from churros.products where id = v.p) on conflict do nothing;
+    end if;
+  end if;
+  for it in select * from churros.stock_items where active and id <> pool and lower(name) in ('mini churros','uno churros') loop
+    insert into churros.recipes(product_id, item_id, qty) select product_id, pool, qty from churros.recipes where item_id = it.id on conflict do nothing;
+    if it.qty <> 0 then
+      update churros.stock_items set qty = qty + it.qty where id = pool;
+      insert into churros.stock_moves(item_id, kind, delta, qty_after, note) select pool, 'in', it.qty, qty, 'Bashkuar nga ' || it.name from churros.stock_items where id = pool;
+    end if;
+    delete from churros.recipes where item_id = it.id;
+    update churros.stock_items set active = false where id = it.id;
+  end loop;
+  for r in select * from (values
+      ('Sosera',            '[[1,1],[2,2],[6,4],[39,4],[40,4],[7,4]]'),
+      ('Kutia e soserave',  '[[1,1],[2,2],[6,4],[39,4],[40,4],[7,4]]'),
+      ('Kuti Party Box',    '[[6,1],[39,1],[40,1],[7,1]]'),
+      ('Kuti Standard',     '[[1,1]]'),
+      ('Kutia e Twist',     '[[20,1]]'),
+      ('Kutia Uno',         '[[21,1],[22,1],[23,1],[24,1],[25,1],[26,1]]'),
+      ('Gota 8 oz', '[]'), ('Gota 7 oz', '[]'), ('Gota 5 oz', '[]')) v(nm, links) loop
+    if not exists (select 1 from churros.stock_items where active and lower(name) = lower(r.nm)) then
+      insert into churros.stock_items(name, unit, min_qty) values (r.nm, 'copë', 20) returning id into n;
+      insert into churros.recipes(product_id, item_id, qty)
+        select (l->>0)::int, n, (l->>1)::numeric from json_array_elements(r.links::json) l
         where exists (select 1 from churros.products where id = (l->>0)::int) on conflict do nothing;
     end if;
   end loop;
+  delete from churros.recipes where product_id in (27, 28, 29, 30, 31);
+  insert into churros.meta(k, v) values ('stock_v12', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','11') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','12') on conflict (k) do update set v = excluded.v;

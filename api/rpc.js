@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '4';
+const SCHEMA_VERSION = '6';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -40,6 +40,11 @@ const FN = {
   redeemCode:    ['wc_redeem_code',   ['token', 'code'], ['text', 'text']],
   validateOffer: ['wc_validate_offer',['token', 'offer'], ['text', 'bigint']],
   changePin:     ['wc_change_pin',    ['token', 'old', 'pin'], ['text', 'text', 'text']],
+  codePeek:      ['wc_code_peek',     ['token', 'code'], ['text', 'text']],
+  saleCreate:    ['wc_sale_create',   ['token', 'customer', 'items', 'codes', 'pay', 'cash'], ['text', 'uuid', 'json', 'json', 'text', 'numeric']],
+  sales:         ['wc_sales',         ['token', 'day'], ['text', 'date']],
+  saleVoid:      ['wc_sale_void',     ['token', 'id'], ['text', 'bigint']],
+  saleFiscal:    ['wc_sale_fiscal',   ['token', 'id', 'no'], ['text', 'bigint', 'text']],
   dashboard:     ['wc_dashboard',     ['token'], ['text']],
   customers:     ['wc_customers',     ['token', 'q'], ['text', 'text']],
   customer:      ['wc_customer',      ['token', 'id'], ['text', 'uuid']],
@@ -111,7 +116,7 @@ module.exports = async function handler(req, res) {
     const def = FN[fn];
     if (!def) return send(res, 404, { error: 'FN' });
     const [sqlFn, names, types] = def;
-    const vals = names.map(n => (args[n] === undefined || args[n] === '' ? null : args[n]));
+    const vals = names.map((n, i) => { const v = args[n]; if (v === undefined || v === '') return null; return types[i] === 'json' ? JSON.stringify(v) : v; });
     const ph = types.map((t, i) => `$${i + 1}::${t}`).join(',');
     const r = await db().query(`select public.${sqlFn}(${ph}) as r`, vals);
     const data = r.rows[0].r;

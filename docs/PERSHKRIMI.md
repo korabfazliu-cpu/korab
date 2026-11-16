@@ -34,8 +34,10 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 ### Dyqani (`/admin`)
 | Skeda | Kush | Çfarë bën |
 |---|---|---|
-| Paneli | admin | **Dashboard live** (rifreskohet çdo 4 sekonda): shitje sot (€ + numri i blerjeve), shitje këtë muaj, klientë (+ të rinj këtë javë), klientë aktivë 30 ditë, dhurata të përdorura / të hapura, pikë në kuleta. Grafiku i shitjeve 14 ditë, produktet më të shitura 30 ditë, stafi sot, aktiviteti i fundit (klikohet dhe hap klientin). |
-| Arka | staf + admin | **Rrjedha me dy hapa në një seancë kamere:** (1) skanon QR-në e klientit, klienti lidhet dhe kamera mbetet e hapur; (2) skanon QR-në e produktit **në telefonin e klientit** (sasia është brenda kodit), regjistrohet blerja dhe kamera mbyllet. Klienti gjendet edhe me ID, email ose telefon. Kartela e klientit rifreskohet live (p.sh. kur klienti aktivizon ofertën). "Anulo" heq blerjen (deri 30 minuta, vetëm stafi që e bëri ose admini). Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
+| Paneli | admin | **Dashboard live** (rifreskohet çdo 4 sekonda): shitje sot (€, numri, cash dhe kartë), paralajmërim kur ka shitje pa u shënuar në arkën fiskale, shitje këtë muaj, klientë (+ të rinj këtë javë), klientë aktivë 30 ditë, dhurata të përdorura / të hapura, pikë në kuleta. Grafiku i shitjeve 14 ditë, produktet më të shitura 30 ditë, stafi sot, aktiviteti i fundit (klikohet dhe hap klientin). |
+| **Arka** (shitja) | staf + admin | **Arkë shitëse për PC, tablet ose telefon.** Majtas produktet me foto, me kategori dhe kërkim; djathtas **fatura**: sasitë me − / +, klienti (opsional), dhuratat/zbritjet, nëntotali, zbritja, **totali** dhe pikët që fiton klienti. Pagesa **Cash** (paratë e marra, butonat Saktë / 5 / 10 / 20 / 50 €, **kusuri** llogaritet vetë) ose **Kartë**. "Përfundo shitjen" (ose **F9**) e ruan shitjen, shfrytëzon kodet dhe shton pikët te kuleta e klientit. Pastaj del **kuponi jo-fiskal** (printohet në printer 58/80 mm) dhe hapi **"U regjistrua në arkën fiskale"** me numrin e kuponit fiskal. **Skaneri USB/Bluetooth** punon kudo në faqe: skanon QR-në e klientit, të produktit (me sasi) ose të dhuratës, dhe ato shtohen në faturë. Mund të përdoret edhe kamera. Në telefon fatura del poshtë, me shiritin "🧾 Shporta". |
+| Shitjet | staf + admin | Shitjet e ditës (zgjidhet data): numri, totali, cash, kartë, zbritjet dhe sa janë **pa fiskalizuar**. Klikimi hap kuponin: ribotim, shënim fiskal, dhe **anulim (vetëm admini)**. Anulimi heq pikët dhe i rikthen dhuratat/zbritjet e përdorura. |
+| Pikë | staf + admin | **Rrjedha e vjetër me dy hapa (vetëm pikë, pa shitje) në një seancë kamere:** (1) skanon QR-në e klientit, klienti lidhet dhe kamera mbetet e hapur; (2) skanon QR-në e produktit **në telefonin e klientit** (sasia është brenda kodit), regjistrohet blerja dhe kamera mbyllet. Klienti gjendet edhe me ID, email ose telefon. Kartela e klientit rifreskohet live (p.sh. kur klienti aktivizon ofertën). "Anulo" heq blerjen (deri 30 minuta, vetëm stafi që e bëri ose admini). Regjistrim me dorë (produkti + sasia). Validon ofertën. Shënon dhuratën si të përdorur. |
 | QR e produkteve | admin | Rezervë: QR për çdo produkt me çmim (29, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
 | Klientët | admin | Të gjithë klientët, me kërkim (emër, email, telefon, ID): pikë, blerje, shpenzuar, vizita e fundit. Klikimi hap detajet: të dhënat, pikët sipas produktit, dhuratat, **dhuratat/zbritjet e shfrytëzuara (kur dhe nga kush)**, historiku; **jep dhuratë** dhe **vendos PIN të ri**. |
 | Ofertat | admin | Krijon **zbritje (%)**, **zbritje (€)** ose **dhuratë**, me titull, përshkrim dhe data. **Kujt i dërgohet:** *Të gjithë klientët* ose *Klientë të zgjedhur*. Zgjedhësi ka kërkim, shenja për zgjedhje, "Zgjidh të gjitha" dhe çipat e të zgjedhurve. Klientët e zgjedhur e shohin te Kuleta me shenjën "Vetëm për ty"; të tjerët nuk e shohin dhe nuk mund ta aktivizojnë. Nga kartela e një klienti: "Dërgo ofertë, zbritje ose dhuratë këtij klienti". Te lista shfaqet kujt i është dërguar dhe sa herë është shfrytëzuar. Mund të hiqen. |
@@ -53,7 +55,7 @@ Pamjet e ekraneve janë te `docs/screenshots/`.
 
 | Rregulli | Vlera |
 |---|---|
-| Pikët | **1 € blerje = 1 pikë.** Pikët mblidhen **për secilin produkt veç e veç**. |
+| Pikët | **1 € blerje = 1 pikë.** Pikët mblidhen **për secilin produkt veç e veç**. Te arka, pikët llogariten mbi **shumën e paguar**: kur ka zbritje, pikët e çdo produkti ulen në të njëjtin raport. |
 | Produkti falas | Kur pikët e një produkti arrijnë **çmimi × 9** (9 blerje), klienti e merr të 10-tin falas. Pikët e atij produkti zbriten me çmimi × 9 dhe krijohet një dhuratë ("[Produkti] falas"). |
 | Dhurata e mirëseardhjes | Çdo klient i ri merr 1 "Churros Standard falas" (2.50 €). |
 | Oferta e mirëseardhjes | 1 € zbritje te Churros Large (4.90 € bëhet 3.90 €). Klienti e aktivizon dhe i shfaqet një QR që vlen **60 sekonda**. Koha nuk ndalet. Stafi e skanon brenda kohës, pastaj oferta skadon. |
@@ -133,6 +135,8 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 | `exists`, `register`, `login`, `logout` | klienti | hyrja me email + PIN |
 | `me`, `setPhone`, `setBday`, `claimBday`, `activateOffer`, `redeem` | klienti | kuleta dhe profili |
 | `hasAdmin`, `setupAdmin` | — | krijimi i adminit të parë (me `SETUP_CODE`) |
+| `codePeek`, `saleCreate`, `sales`, `saleFiscal` | stafi | arka: shiko kodin pa e përdorur, krijo shitjen (çmimet dhe zbritjet llogariten në server, kodet shfrytëzohen në të njëjtin transaksion), shitjet e ditës, shënimi fiskal |
+| `saleVoid` | admini | anulon shitjen |
 | `promoActivate` | klienti | krijon kodin e tij për një promocion |
 | `staffLogin`, `staffMe`, `find`, `card`, `addPurchase`, `undoOrder`, `redeemCode`, `useVoucher`, `validateOffer`, `changePin` | stafi | arka (`redeemCode` shfrytëzon një dhuratë/zbritje nga QR-ja) |
 | `dashboard`, `customers`, `customer`, `resetPin`, `giveGift`, `promos`, `promoAdd`, `promoDel`, `staffList`, `addStaff`, `delStaff` | admini | paneli |
@@ -140,7 +144,7 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `FORBIDDEN`). Pikët llogariten **vetëm në server**, nga çmimet në tabelën `churros.products`. Kur ndryshon një çmim, ndryshohet te `MENU` në `index.html` dhe te `db/schema.sql`, dhe rritet `SCHEMA_VERSION` në `api/rpc.js`.
 
 ### Tabelat (`churros.*`)
-`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat, me `code`), `offers` (me `code`), `orders` (çdo blerje, me stafin dhe anulimin), `promos` (`kind` pct/eur/gift, `amount`, `audience` all/some), `promo_targets` (klientët e zgjedhur), `promo_uses` (kush e shfrytëzoi cilin promocion, kur dhe nga cili staf), `meta` (versioni i skemës). Çdo shfrytëzim ruan `used_at` dhe `used_by`, që të figurojë te admini.
+`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat, me `code`), `offers` (me `code`), `orders` (çdo blerje, me stafin dhe anulimin), `promos` (`kind` pct/eur/gift, `amount`, `audience` all/some), `promo_targets` (klientët e zgjedhur), `promo_uses` (kush e shfrytëzoi cilin promocion, kur dhe nga cili staf), `sales` (shitjet: nëntotali, zbritja, totali, pagesa, kusuri, statusi fiskal `pending/done/failed`, numri fiskal, anulimi), `sale_items`, `sale_discounts`, `meta` (versioni i skemës). Pamjet `tickets` dhe `lines` bashkojnë shitjet e arkës me skanimet e vjetra vetëm-pikë për panelin. Çdo shfrytëzim ruan `used_at` dhe `used_by`, që të figurojë te admini.
 
 ### Variablat në Vercel
 - `DATABASE_URL`: lidhja me Neon (pooled), e fshehtë.
@@ -152,7 +156,18 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 
 ---
 
-## 6. Kufizimet e prototipit (duhet zgjidhur në versionin e plotë)
+## 6. Lidhja me arkën fiskale (hapi i ardhshëm)
+
+Tani arka e Wonder Club është **arkë shitëse jo-fiskale**: çdo shitje ruhet me statusin fiskal `pending`, dhe stafi e regjistron në arkën fiskale dhe shënon numrin e kuponit fiskal (`saleFiscal`). Kjo mbetet edhe rezerva kur lidhja automatike nuk punon.
+
+Për lidhjen automatike duhen:
+1. **Pajisja fiskale ose ofruesi i softuerit fiskal i certifikuar nga ATK**, me dokumentacionin e tyre teknik (protokolli, API ose drajveri). ATK ka në EDI shërbimin "Kërkesë për Fiskalizim", që jep Kodin Unik për Fiskalizim, kusht për Softuerin Elektronik Fiskal (UA MF Nr. 01/2026).
+2. **Një urë lokale në PC-në e arkës** (program i vogël): e merr shitjen nga `/api/rpc`, e dërgon te printeri fiskal (USB/serial/rrjet), dhe e kthen numrin fiskal me `saleFiscal`. Shfletuesi nuk mund të flasë drejtpërdrejt me printerin fiskal.
+3. Testim me ofruesin, dhe konfirmim nga kontabilisti që procedura është në rregull.
+
+Fushat `fiscal_status`, `fiscal_no`, `fiscal_at`, `fiscal_error` janë gati për këtë.
+
+## 7. Kufizimet e prototipit (duhet zgjidhur në versionin e plotë)
 
 1. **Hyrja është me email + PIN, pa verifikim të email-it.** Për kod me email duhet një shërbim dërgimi (p.sh. Resend me domenin tuaj).
 2. **Rifreskimi live bëhet me polling** (çdo 4 s), jo me WebSocket. Për një dyqan mjafton plotësisht.
@@ -161,7 +176,7 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 
 ---
 
-## 7. Plani për aplikacionin e plotë
+## 8. Plani për aplikacionin e plotë
 
 ### Faza 1: backend ✅ (u krye më 16.11.2026)
 - **Bazë të dhënash e veçantë vetëm për Wonder Churros.** ⚠️ **Mos përdorni projektin Supabase `038-parking`.** Pronari ka kërkuar shprehimisht që ai të mos preket.
@@ -180,13 +195,13 @@ Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `F
 
 ---
 
-## 8. Publikimi i tanishëm
+## 9. Publikimi i tanishëm
 - **GitHub:** `korabfazliu-cpu/korab`. Dega `main` është versioni i vjetër, pa server, që është live tani. Dega **`backend`** ka versionin me bazë të dhënash dhe dashboard, dhe bashkohet me `main` sapo të vendoset `DATABASE_URL`.
 - **Vercel:** projekti `wonder-churros`. Çdo push në `main` publikohet automatikisht te https://wonder-churros.vercel.app.
 - Nuk ka hap build-i: faqe statike + një Vercel Function (`api/rpc.js`).
 - **Testimi lokal:** `npx vercel dev` me `DATABASE_URL` dhe `SETUP_CODE` në `.env`. Mund të përdoret edhe një PostgreSQL lokal: skema krijohet vetë në kërkesën e parë.
 
-## 9. Testimi i bërë
+## 10. Testimi i bërë
 U testua me Playwright në Chrome:
 - regjistrimi, menyja dhe kategoritë, faqja e produktit;
 - kuleta, oferta 60 sekondëshe, ditëlindja;
@@ -198,4 +213,5 @@ U testua me Playwright në Chrome:
 Të gjitha kaluan, pa gabime JavaScript. **Skanimi me telefon të vërtetë duhet provuar në dyqan.**
 - **Lidhja klient–admin (16.11)** u testua me PostgreSQL 16 lokal dhe dy shfletues (telefon + tablet): regjistrimi, konfigurimi i adminit, skanimi me kamerë (klient + 3 copë), pikët live te klienti me njoftim, oferta live te stafi, dhuratat, anulimi, promocionet live, stafi, paneli, kërkimi i klientëve, dhurata nga admini, ndryshimi i PIN-it, rifreskimet. Plus 35 kontrolle direkte të API-së.
 - **QR-të e dhuratave (16.11):** dhurata, promocioni dhe oferta aktivizohen te klienti, skanohen nga stafi (kamerë dhe kod i shtypur), shfrytëzohen një herë, telefoni i klientit kalon live në "U shfrytëzua!", dhe admini i sheh te detajet e klientit dhe te promocionet.
+- **Arka (16.11):** 14 kontrolle API (shitje pa klient, para të pamjaftueshme, shportë bosh, 3 zbritje njëherësh, pikët mbi shumën e paguar, kod i përdorur, fiskal, anulim, të drejtat) dhe 19 kontrolle në shfletues në PC (1366 px) dhe telefon: produktet, kategoritë, skaneri USB (produkt me sasi, klient, dhuratë), kusuri, F9, kuponi, shënimi fiskal, shitje me kartë, lista e ditës, anulimi, paneli.
 - **Propozimi SQL** u testua në PostgreSQL 16 lokal: regjistrimi, hyrja, PIN-i i gabuar, blerja, produkti falas, oferta, validimi, ndalimi i stafit te funksionet e adminit, dhe ndalimi i qasjes direkte në tabela.

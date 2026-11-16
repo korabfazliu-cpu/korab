@@ -217,6 +217,15 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .feed .ft{font-weight:700;font-variant-numeric:tabular-nums}.feed .chd{margin-top:5px}.feed .fx{display:flex;flex-direction:column;min-width:0}.feed .fx b{font-size:14px;overflow-wrap:anywhere}.feed .fx i,.feed .fr i{font-style:normal;font-size:12px;opacity:.75}.feed .fr{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .live2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
 @media (max-width:899px){.live2{grid-template-columns:minmax(0,1fr)}}
+/* ---- sauce picker ---- */
+.sline{color:#7C421C!important;opacity:1!important;font-weight:600}
+.scount{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:18px}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sbtn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:14px 12px;font:inherit;font-weight:700;color:var(--text);cursor:pointer;text-align:left}
+.sbtn.on{border-color:#7C421C;background:#fff1f6}.sbtn:disabled{opacity:.4}
+.sbtn i{font-style:normal;background:#7C421C;color:#fff;border-radius:999px;min-width:26px;height:26px;display:grid;place-items:center;font-size:14px}
+.scell{position:relative}.scell .sbtn{width:100%}
+.sminus{position:absolute;left:-6px;top:-8px;width:30px;height:30px;border-radius:50%;border:0;background:#4a2a17;color:#fff;font-weight:800;font-size:18px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 /* ---- roles & stock ---- */
 .rtag{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;margin-left:6px;background:#f6d3e3;color:#7C421C}.rtag.r-admin{background:#7C421C;color:#fff}.rtag.r-manager{background:#E8A33D;color:#4a2a17}
 .stk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -371,7 +380,7 @@ const IMGW={};
 const IMGBG={twist:'#fffdff',duo:'#fec3d7',summer:'#fec3d7',bites:'#fec3d6',churros:'#fdc3d9',party:'#fec3d7',unoparty:'#fcc4da',miniuno:'#fcc4da',kids:'#fcc4da',coffee:'#fcc4da'};
 const FULL=new Set(['twist','duo','summer','bites','churros','party','unoparty','miniuno','kids','coffee']);
 const DS={39:'Kutia e festës me 6 Uno churros, secili me shije tjetër: nga frutat e kuqe te pistachio, karameli dhe çokollata. Produkt i ri.',40:'Kombinimi i përsosur për shoqërinë: Uno churros me shije të ndryshme, mini churros krokante dhe 3 dip sauces. Produkt i ri.',41:'Kutia e fëmijëve: churros në gotë me topping, Monte Drink dhe një bllok vizatimi me lapsë për argëtim. Produkt i ri.',1:'5 churros të freskëta dhe krokante, të shoqëruara me 1 dip sipas zgjedhjes.',2:'10 churros krokante, me 2 dip sipas zgjedhjes. Ideale për t’i ndarë.',20:'Churros të zhytur në çokollatë dhe të zbukuruara me spërkatje e copëza. Produkt i ri.',3:'5 churros me 2 dip sauces, të servirura në tabakanë Wonder. Produkt i ri.',4:'15 mini churros në një kupë, me 2 toppings sipas dëshirës.',5:'20 mini churros me fruta sezonale dhe 2 dip sauces.',6:'10 churros, 15 mini churros dhe 4 dip sauces në një kuti të madhe për t’u ndarë.',7:'40 mini churros me fruta sezonale dhe 4 dip sauces në një kuti. Produkt i ri.',27:'Latte me shije sipas zgjedhjes: Caramel, Hazelnut, Toffee Crunch, Speculoos Cookie, Vanilla ose Popcorn.',28:'Kafe Americano.',29:'Espresso i fortë.',30:'Macchiato: espresso me pak qumësht.',31:'Çokollatë e nxehtë.'};
-const DIPS=[['🍓','Raspberry'],['🫐','Blueberry'],['🌰','Hazelnut'],['🍦','Vanilla'],['🍫','Nutella'],['🍯','Caramel'],['🟢','Pistachio']];
+const DIPS=[['🍓','Raspberry'],['🫐','Blueberry'],['🌰','Hazelnut'],['🍦','Vanilla'],['🍫','Nutella'],['🍯','Caramel'],['🟢','Pistachio'],['🍪','Lotus'],['🤍','White Choco']];
 const FLAV=['Caramel','Hazelnut','Toffee Crunch','Speculoos Cookie','Vanilla','Popcorn'];
 const XI={39:['6 Uno churros','Shije të ndryshme',''],40:['Uno churros + mini churros','3 dip sauces','d'],41:['Churros në gotë me topping','Monte Drink + bllok vizatimi me lapsë',''],1:['5 churros','1 dip sipas zgjedhjes','d'],2:['10 churros','2 dip sipas zgjedhjes','d'],20:['Churros të zhytur në çokollatë','Çokollatë',''],3:['5 churros','2 dip sauces','d'],6:['10 churros + 15 mini churros','4 dip sauces','d'],4:['15 mini churros','2 toppings',''],5:['20 mini churros + fruta sezonale','2 dip sauces','d'],7:['40 mini churros + fruta sezonale','4 dip sauces','d'],27:['Latte me shije','Shije sipas zgjedhjes','f']};
 let pd=null,mscroll=0,ms0=0,mx=0;const pqty={};
@@ -418,7 +427,9 @@ const MENU=[
 {id:35,c:'Dip',n:'Vanilla',d:'Dip shtesë',p:0.5,e:'🍦'},
 {id:36,c:'Dip',n:'Nutella',d:'Dip shtesë',p:0.5,e:'🍫'},
 {id:37,c:'Dip',n:'Caramel',d:'Dip shtesë',p:0.5,e:'🍯'},
-{id:38,c:'Dip',n:'Pistachio',d:'Dip shtesë',p:0.5,e:'🟢'}];
+{id:38,c:'Dip',n:'Pistachio',d:'Dip shtesë',p:0.5,e:'🟢'},
+{id:42,c:'Dip',n:'Lotus',d:'Dip shtesë',p:0.5,e:'🍪'},
+{id:43,c:'Dip',n:'White Choco',d:'Dip shtesë',p:0.5,e:'🤍'}];
 const TIERS=[{n:'Bronz',min:0,d:0},{n:'Argjend',min:50,d:5},{n:'Ar',min:150,d:10}];
 const REW=[{id:'r0',i:'churros',n:'Churros Standard',p:20,v:2.5},{id:'r1',i:'cup',n:'Mini Churros Cup',p:25,v:2.5},{id:'r2',i:'duo',n:'Wonder Duo',p:35,v:3.5},{id:'r5',i:'bites',n:'Wonder Bites',p:35,v:3.5},{id:'r3',i:'churros',n:'Churros Large',p:50,v:4.9},{id:'r4',i:'party',n:'Party Box',p:120,v:12}];
 const TOPUP=[{a:10,b:0},{a:30,b:5},{a:50,b:12}];
@@ -427,7 +438,7 @@ const NAV=[['home','Start','🏠'],['wal','Kuleta','👛'],['menu','Menu','🍩'
 const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',wal:'<svg viewBox="0 0 24 24"><path d="M6 6h11a2 2 0 0 1 2 2"/><rect x="3" y="6" width="18" height="14" rx="3"/><rect x="14" y="11" width="7" height="4" rx="2"/><circle cx="16.6" cy="13" r=".6"/></svg>',menu:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'};NAV.forEach(n=>n[2]=IC[n[0]]);
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
 // ---- connection with the server (/api/rpc) ----
-const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
+const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',SAUCES:'Zgjidh sosat për çdo produkt.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
 const errText=e=>ERR[e&&e.message]||ERR.SERVER;
 async function api(fn,args){let r;
  try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
@@ -837,8 +848,12 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  else if(a==='st_sf'){st.sf=v;render()}
  else if(a==='st_pcat'){POS.cat=v;posRefresh('grid');const g=document.querySelector('.pcats');if(g)g.querySelectorAll('.chp').forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
  else if(a==='st_padd1'){posAdd(+v,1);posRefresh()}
- else if(a==='st_pinc'){posAdd(+v,1);posRefresh()}
- else if(a==='st_pdec'){const l=POS.cart.find(x=>x.id==v);if(l){l.q--;if(l.q<1)POS.cart=POS.cart.filter(x=>x!==l)}posRefresh()}
+ else if(a==='st_pinc'){const l=POS.cart[+v];if(l){if(l.s)openSauce(l.id,1);else{l.q=Math.min(100,l.q+1);posRefresh()}}}
+ else if(a==='st_pdec'){const l=POS.cart[+v];if(l){l.q--;if(l.s)l.s=l.s.slice(0,l.q*SAUCEN[l.id]);if(l.q<1)POS.cart=POS.cart.filter(x=>x!==l)}posRefresh()}
+ else if(a==='st_sx'){if(PS&&PS.sel.length<PS.need){PS.sel.push(v);sauceSheet()}}
+ else if(a==='st_sxm'){if(PS){const i=PS.sel.lastIndexOf(v);if(i>=0)PS.sel.splice(i,1);sauceSheet()}}
+ else if(a==='st_sclr'){if(PS){PS.sel=[];sauceSheet()}}
+ else if(a==='st_sok'){if(PS&&PS.sel.length===PS.need){POS.cart.push({id:PS.id,q:PS.q,s:PS.sel.slice()});PS=null;closeS();posRefresh()}}
  else if(a==='st_pclearall'){POS={...POS,cart:[],cust:null,codes:[],cash:''};st.msg='';render()}
  else if(a==='st_pnocust'){if(POS.codes.length){say('Hiqi fillimisht dhuratat/zbritjet e këtij klienti.',true);return}POS.cust=null;posRefresh('bill')}
  else if(a==='st_pfindc'){const q=val('pcq');if(!q)return;if(/^WONDER/i.test(q)){onScan(q);return}const c=await run('find',{token:ST.tok,q});if(!c){say('Nuk u gjet klient me këtë ID, email ose telefon.',true);return}POS.cust=c;st.msg='';render()}
@@ -850,7 +865,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   if(!POS.cart.length){pe('Shporta është bosh.');return}
   const bad=T.ds.find(d=>d.type==='gift'&&!(+d.value>0)&&!(d.a>0));if(bad){pe('Shkruaj vlerën në € të dhuratës "'+bad.title+'".');return}
   if(isCashPay(POS.pay)&&POS.cash&&!(T.cash>=T.tot)){pe('Paratë e marra janë më pak se totali.');return}
-  const r=await run('saleCreate',{token:ST.tok,customer:POS.cust?POS.cust.id:null,items:POS.cart.map(l=>({id:l.id,qty:l.q})),codes:T.ds.map(d=>({code:d.code,amount:d.type==='gift'&&!(+d.value>0)?d.a:null})),pay:POS.pay,cash:isCashPay(POS.pay)&&POS.cash?T.cash:null});
+  const r=await run('saleCreate',{token:ST.tok,customer:POS.cust?POS.cust.id:null,items:POS.cart.map(l=>({id:l.id,qty:l.q,sauces:l.s||null})),codes:T.ds.map(d=>({code:d.code,amount:d.type==='gift'&&!(+d.value>0)?d.a:null})),pay:POS.pay,cash:isCashPay(POS.pay)&&POS.cash?T.cash:null});
   POS={...POS,cart:[],cust:null,codes:[],cash:'',q:'',cat:'all'};st.msg='';st.lastSale=r.sale;render();saleSheet(r.sale,true)}
  else if(a==='st_print_r'){document.body.classList.add('prr');window.print();setTimeout(()=>document.body.classList.remove('prr'),500)}
  else if(a==='st_fiscal'){const s=await run('saleFiscal',{token:ST.tok,id:+v,no:val('fno')});toast('U shënua: e regjistruar në arkën fiskale.');saleSheet(s,false);if(st.tab==='sales'){st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}}
@@ -884,23 +899,33 @@ const isCashPay=p=>p==='cash'||p==='kitchen';
 // One sale at a time: cart of products, optional customer, discount codes scanned from the customer's phone, payment.
 let POS={cart:[],cust:null,codes:[],pay:'cash',cash:'',cat:'all',q:'',done:null};
 const pName=m=>m.c==='Dip'?'Dip '+m.n:m.n;
+// Sauces the customer picks with a product, at the till. The count per piece is the server's too (products.sauces).
+const SAUCES=['Caramel','Blueberry','Nutella','Lotus','Raspberry','Pistachio','Hazelnut','White Choco'],SAUCEN={1:1,2:2,6:4,39:4,40:4,7:4};
+let PS=null;
+const sauceTxt=s=>{const c={};(s||[]).forEach(f=>c[f]=(c[f]||0)+1);return Object.entries(c).map(([f,n])=>n>1?f+' ×'+n:f).join(', ')};
+function openSauce(id,q){const m=MENU.find(x=>x.id===id);if(!m)return;PS={id,q:q||1,need:(q||1)*SAUCEN[id],sel:[]};sauceSheet()}
+function sauceSheet(){const m=MENU.find(x=>x.id===PS.id),n=PS.sel.length,c={};PS.sel.forEach(f=>c[f]=(c[f]||0)+1);
+ sheet(`<h2 class="fancy" style="margin:0">${PS.q>1?PS.q+' × ':''}${esc(pName(m))}</h2><p class="mut" style="margin:4px 0 10px">Zgjidh ${PS.need} ${PS.need>1?'sosera':'sos'} sipas klientit. Prek të njëjtin sos disa herë për më shumë.</p>`
+ +`<div class="scount"><b>${n} / ${PS.need}</b>${n?`<button class="lnk" data-a="st_sclr">Pastro</button>`:''}</div>`
+ +`<div class="sgrid">${SAUCES.map(f=>`<div class="scell"><button class="sbtn${c[f]?' on':''}" data-a="st_sx" data-v="${esc(f)}"${n>=PS.need&&!c[f]?' disabled':''}><span>${esc(f)}</span>${c[f]?`<i>${c[f]}</i>`:''}</button>${c[f]?`<button class="sminus" data-a="st_sxm" data-v="${esc(f)}" aria-label="Hiq një ${esc(f)}">−</button>`:''}</div>`).join('')}</div>`
+ +`<div class="two" style="margin-top:14px"><button class="btn ghost" data-a="close">Anulo</button><button class="btn" data-a="st_sok"${n===PS.need?'':' disabled'}>Shto në faturë</button></div>`)}
 const posItems=()=>POS.cart.map(l=>({...l,m:MENU.find(x=>x.id===l.id)})).filter(l=>l.m);
 function posTotals(){const sub=r2(posItems().reduce((a,l)=>a+l.m.p*l.q,0));
  let disc=0;const ds=POS.codes.map(c=>{let a=c.type==='pct'?r2(sub*c.pct/100):c.type==='gift'&&!(+c.value>0)?(+String(c.amount||'').replace(',','.')||0):+c.value;a=Math.max(0,a||0);disc+=a;return {...c,a}});
  disc=r2(Math.min(disc,sub));const tot=r2(sub-disc);const cash=+String(POS.cash||'').replace(',','.');
  return {sub,disc,tot,ds,cash,change:isCashPay(POS.pay)&&cash>=tot?r2(cash-tot):null,count:POS.cart.reduce((a,l)=>a+l.q,0)}}
-function posAdd(id,q){const m=MENU.find(x=>x.id===id);if(!m||!m.p)return false;const l=POS.cart.find(x=>x.id===id);if(l)l.q=Math.min(100,l.q+(q||1));else POS.cart.push({id,q:Math.min(100,q||1)});return true}
+function posAdd(id,q){const m=MENU.find(x=>x.id===id);if(!m||!m.p)return false;if(SAUCEN[id]){openSauce(id,q||1);return true}const l=POS.cart.find(x=>x.id===id&&!x.s);if(l)l.q=Math.min(100,l.q+(q||1));else POS.cart.push({id,q:Math.min(100,q||1)});return true}
 function posGrid(){const cats=['all',...CATS.filter(c=>MENU.some(m=>m.c===c&&m.p)),'Dip'];
  const q=POS.q.trim().toLowerCase();
  const its=MENU.filter(m=>m.p&&(POS.cat==='all'||m.c===POS.cat)&&(!q||pName(m).toLowerCase().includes(q)));
  return `<div class="pcats">${cats.map(c=>`<button class="chp${POS.cat===c?' on':''}" data-a="st_pcat" data-v="${esc(c)}">${c==='all'?'Të gjitha':c==='Dip'?'Dip-et':esc(c)}</button>`).join('')}</div>`
  +`<input type="search" id="posq" placeholder="Kërko produktin…" value="${esc(POS.q)}" autocomplete="off">`
- +`<div class="pgrid">${its.map(m=>{const l=POS.cart.find(x=>x.id===m.id);return `<button class="ptile${m.i?'':' noimg'}" data-a="st_padd1" data-v="${m.id}">${m.i?`<img src="${IMG[m.i]}" alt="" loading="lazy">`:''}<b>${esc(pName(m))}</b><span>${K(m.p)}</span>${l?`<i class="pq">${l.q}</i>`:''}</button>`}).join('')||'<p class="mut">Asnjë produkt.</p>'}</div>`}
+ +`<div class="pgrid">${its.map(m=>{const l=(n=>n?{q:n}:null)(POS.cart.filter(x=>x.id===m.id).reduce((a,x)=>a+x.q,0));return `<button class="ptile${m.i?'':' noimg'}" data-a="st_padd1" data-v="${m.id}">${m.i?`<img src="${IMG[m.i]}" alt="" loading="lazy">`:''}<b>${esc(pName(m))}</b><span>${K(m.p)}</span>${l?`<i class="pq">${l.q}</i>`:''}</button>`}).join('')||'<p class="mut">Asnjë produkt.</p>'}</div>`}
 function posBill(){const T=posTotals(),c=POS.cust;
  let h=`<div class="card bill" id="bill"><div class="row"><b class="bt">Fatura</b>${POS.cart.length||POS.codes.length||c?'<button class="lnk" data-a="st_pclearall">Pastro</button>':''}</div>`;
  h+=c?`<div class="bcust"><span class="avatar sm">${esc(((c.name||'')[0]||'')+((c.surname||'')[0]||''))}</span><span class="t"><b>${FN(c)}</b><i>ID ${c.mid} · ${fmtP(c.points)} pikë${(c.vouchers||[]).length?' · '+c.vouchers.length+' dhuratë':''}</i></span><button class="x" data-a="st_pnocust" aria-label="Hiqe klientin">×</button></div>`
   :`<div class="bnocust"><button class="btn ghost sm" data-a="st_scan">📷 Klienti</button><input type="text" id="pcq" placeholder="ID, email ose tel." autocomplete="off"><button class="btn ghost sm" data-a="st_pfindc">Gjej</button></div>`;
- h+=`<div class="blines">${posItems().map(l=>`<div class="bl"><span class="t"><b>${esc(pName(l.m))}</b><i>${K(l.m.p)}</i></span><span class="stp"><button class="btn ghost sm" data-a="st_pdec" data-v="${l.id}" aria-label="Më pak">−</button><b>${l.q}</b><button class="btn ghost sm" data-a="st_pinc" data-v="${l.id}" aria-label="Më shumë">+</button></span><b class="lt">${K(l.m.p*l.q)}</b></div>`).join('')||'<p class="mut" style="margin:8px 2px">Shto produkte nga lista ose skano QR-në e produktit në telefonin e klientit.</p>'}</div>`;
+ h+=`<div class="blines">${posItems().map((l,ix)=>`<div class="bl"><span class="t"><b>${esc(pName(l.m))}</b><i>${K(l.m.p)}</i>${l.s?`<i class="sline">Sos: ${esc(sauceTxt(l.s))}</i>`:''}</span><span class="stp"><button class="btn ghost sm" data-a="st_pdec" data-v="${ix}" aria-label="Më pak">−</button><b>${l.q}</b><button class="btn ghost sm" data-a="st_pinc" data-v="${ix}" aria-label="Më shumë">+</button></span><b class="lt">${K(l.m.p*l.q)}</b></div>`).join('')||'<p class="mut" style="margin:8px 2px">Shto produkte nga lista ose skano QR-në e produktit në telefonin e klientit.</p>'}</div>`;
  if(T.ds.length)h+=`<div class="bdisc">${T.ds.map((d,i)=>`<div class="bl dl"><span class="t"><b>🏷️ ${esc(d.title)}</b>${d.type==='gift'&&!(+d.value>0)?`<i>Vlera e dhuratës: <input class="gamt" data-i="${i}" type="text" inputmode="decimal" value="${esc(d.amount||'')}" placeholder="€"></i>`:''}</span><b class="lt">−${K(d.a)}</b><button class="x" data-a="st_pdelcode" data-v="${i}" aria-label="Hiqe">×</button></div>`).join('')}</div>`;
  h+=`<button class="btn ghost sm wide2" data-a="st_scan">📷 Skano dhuratë / zbritje</button>`;
  h+=`<div class="btot"><div class="row"><span>Nëntotali</span><b>${K(T.sub)}</b></div>${T.disc?`<div class="row"><span>Zbritje</span><b>−${K(T.disc)}</b></div>`:''}<div class="row big"><span>TOTALI</span><b>${K(T.tot)}</b></div>${c&&T.tot?`<div class="row"><span>Pikë për ${esc(c.name)}</span><b>+${fmtP(T.tot)}</b></div>`:''}</div>`;
@@ -918,7 +943,7 @@ function posRefresh(part){if(st.tab!=='pos'){render();return}const b=$('bill');i
  if(f&&$(f)&&f!=='posq'){const i=$(f);i.focus();try{i.setSelectionRange(pos,pos)}catch(_){}}}
 // receipt (non-fiscal preview; the fiscal receipt comes from the fiscal register)
 function rcpt(s){return `<div class="rcpt"><img src="${LOGO}" alt="Wonder Churros"><b>Wonder Churros</b><span>Kupon jo-fiskal · ${s.no}</span><span>${s.d}${s.staff?' · '+esc(s.staff):''}</span><hr>`
- +s.items.map(i=>`<div class="rr"><span>${i.q} × ${esc(i.n)}</span><b>${K(i.t)}</b></div>`).join('')
+ +s.items.map(i=>`<div class="rr"><span>${i.q} × ${esc(i.n)}${i.s&&i.s.length?`<br><small>Sos: ${esc(sauceTxt(i.s))}</small>`:''}</span><b>${K(i.t)}</b></div>`).join('')
  +(s.discounts.length?'<hr>'+s.discounts.map(d=>`<div class="rr"><span>${esc(d.n)}</span><b>−${K(d.a)}</b></div>`).join(''):'')
  +`<hr><div class="rr big"><span>TOTALI</span><b>${K(s.total)}</b></div><div class="rr"><span>${PAYN[s.pay]||s.pay}</span><b>${isCashPay(s.pay)?K(s.cash):K(s.total)}</b></div>${isCashPay(s.pay)?`<div class="rr"><span>Kusuri</span><b>${K(s.change)}</b></div>`:''}`
  +(s.customer?`<hr><div class="rr"><span>Klienti</span><b>${esc(s.customer.name)}</b></div><div class="rr"><span>Pikë të fituara</span><b>+${fmtP(s.points)}</b></div>`:'')
@@ -994,7 +1019,7 @@ async function handleCode(txt,cam){const s=String(txt).trim();
     POS.cust=r.card;POS.codes.push({code:s,title:r.title,type:r.type,value:r.value,pct:r.pct,amount:''});
     return {stop:true,msg:`🏷️ U shtua në faturë: ${r.title}. Shfrytëzohet kur përfundon shitja.`}}
    const pp=parseP(s);
-   if(pp){posAdd(pp.m.id,pp.q);return {linked:true,stop:!cam,msg:`+ ${pp.q} × ${pName(pp.m)}`}}
+   if(pp){if(SAUCEN[pp.m.id]){setTimeout(()=>openSauce(pp.m.id,pp.q),350);return {linked:true,stop:true,msg:`Zgjidh sosin për ${pp.q} × ${pName(pp.m)}`}}posAdd(pp.m.id,pp.q);return {linked:true,stop:!cam,msg:`+ ${pp.q} × ${pName(pp.m)}`}}
    if(/^WONDER-P:/i.test(s))return {bad:true,msg:'Ky kod produkti nuk vlen.',stop:!cam};
    const p=parseQR(s);if(!p)return {bad:true,msg:'Ky QR nuk është i Wonder Club.',stop:!cam};
    const c=await api('find',{token:ST.tok,q:p.mid});if(!c)return {bad:true,msg:'Ky klient nuk u gjet.',stop:!cam};

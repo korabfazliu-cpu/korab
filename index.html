@@ -203,6 +203,20 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .qcard{background:#fff;border:2px solid #7C421C;border-radius:18px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px;color:#4a2a17}
 .qcard .qimg svg{width:100%;display:block}.qcard b{font-size:15px;line-height:1.2}.qcard span{font-size:12.5px;color:#7a4d33}.qcard i{font-style:normal;font-size:10.5px;color:#999;letter-spacing:.03em}
+/* ---- payment channels (validated categorical palette, light + dark) ---- */
+:root{--ch-card:#A0511A;--ch-wolt:#1F86C7;--ch-cash:#C9861C;--ch-kitchen:#2E9E6B;--ch-other:#b9a7ae}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ch-card:#C8682E;--ch-wolt:#3F8BD4;--ch-cash:#B08A22;--ch-kitchen:#2F9566;--ch-other:#7a6268}}
+.ch-card{background:var(--ch-card);fill:var(--ch-card)}.ch-wolt{background:var(--ch-wolt);fill:var(--ch-wolt)}.ch-cash{background:var(--ch-cash);fill:var(--ch-cash)}.ch-kitchen{background:var(--ch-kitchen);fill:var(--ch-kitchen)}.ch-other{background:var(--ch-other);fill:var(--ch-other)}.ch-none{background:var(--line)}
+.chd{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:baseline;font-style:normal}
+.paym.p4{grid-template-columns:1fr 1fr}.paym.p4 button{display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px}.paym.p4 button.on .chd{outline:2px solid #fff}
+.split{display:flex;gap:2px;height:22px;border-radius:6px;overflow:hidden;margin:10px 0 8px}.split i{display:block;min-width:3px}
+.stab{width:100%;border-collapse:collapse;font-size:14px}.stab th{font-weight:600;text-align:left;opacity:.7;font-size:12px;padding:4px 0}.stab td{padding:6px 0;border-top:1px dashed var(--line)}.stab th:not(:first-child),.stab td:not(:first-child){text-align:right}.stab .tt td{border-top:2px solid var(--line);font-weight:700}
+.lgd{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;margin:6px 0 2px}
+.chart.hc .gl{stroke:var(--line);stroke-width:1}.chart.hc .hit{fill:transparent}.chart.hc .hb:hover .hit{fill:color-mix(in srgb, var(--text) 6%, transparent)}.chart.hc .hb.now .hit{fill:color-mix(in srgb, var(--text) 4%, transparent)}
+.feed{list-style:none;margin:0;padding:0;max-height:430px;overflow:auto}.feed li{display:grid;grid-template-columns:46px 14px minmax(0,1fr) auto;gap:6px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.feed .ft{font-weight:700;font-variant-numeric:tabular-nums}.feed .chd{margin-top:5px}.feed .fx{display:flex;flex-direction:column;min-width:0}.feed .fx b{font-size:14px;overflow-wrap:anywhere}.feed .fx i,.feed .fr i{font-style:normal;font-size:12px;opacity:.75}.feed .fr{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.live2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+@media (max-width:899px){.live2{grid-template-columns:minmax(0,1fr)}}
 /* ---- roles & stock ---- */
 .rtag{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;margin-left:6px;background:#f6d3e3;color:#7C421C}.rtag.r-admin{background:#7C421C;color:#fff}.rtag.r-manager{background:#E8A33D;color:#4a2a17}
 .stk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -637,15 +651,37 @@ const eur=n=>K(n);
 function barChart(days){if(!days||!days.length)return '';const W=640,H=200,pl=8,pr=8,pt=22,pb=28,max=Math.max(1,...days.map(d=>+d.sales)),bw=(W-pl-pr)/days.length;
  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Shitjet e 14 ditëve të fundit">`+days.map((d,i)=>{const h=(H-pt-pb)*(+d.sales/max),x=pl+i*bw+bw*.16,w=bw*.68,y=H-pb-h,last=i===days.length-1;
   return `<g><title>${d.d}: ${eur(d.sales)} · ${d.orders} blerje</title><rect x="${x}" y="${H-pb-Math.max(h,2)}" width="${w}" height="${Math.max(h,2)}" rx="5" fill="${last?'#7C421C':'#E79BBE'}"/>${+d.sales>0&&(last||i%2===1||days.length<=7)?`<text x="${x+w/2}" y="${y-6}" text-anchor="middle" class="cv">${Math.round(+d.sales)}</text>`:''}${i%2===days.length%2||last?`<text x="${x+w/2}" y="${H-9}" text-anchor="middle" class="cl${last?' on':''}">${last?'Sot':d.d}</text>`:''}</g>`}).join('')+`</svg>`}
+// ---- live today: channel split, hourly chart, categories, timeline ----
+function liveSplit(p,label){const tot=CH.reduce((a,[k])=>a+(p&&p[k]?+p[k].t:0),0)+(p&&p.other?+p.other.t:0),rows=[...CH.map(([k,l])=>[k,l]),['other','Vetëm pikë (pa arkë)']].filter(([k])=>k!=='other'||(p&&p.other));
+ return `<div class="split" role="img" aria-label="Ndarja e të hyrave ${label}">${tot?rows.filter(([k])=>p&&p[k]&&+p[k].t>0).map(([k,l])=>`<i class="ch-${k}" style="flex:${+p[k].t}" title="${l}: ${eur(p[k].t)}"></i>`).join(''):'<i class="ch-none" style="flex:1"></i>'}</div>`
+ +`<table class="stab"><thead><tr><th>Mënyra</th><th>Shitje</th><th>Shuma</th><th>%</th></tr></thead><tbody>${rows.map(([k,l])=>{const v=p&&p[k]?p[k]:{t:0,n:0};return `<tr><td><i class="chd ch-${k}"></i>${l}</td><td>${v.n}</td><td><b>${eur(v.t)}</b></td><td>${tot?Math.round(+v.t/tot*100):0}%</td></tr>`}).join('')}<tr class="tt"><td>Gjithsej</td><td>${rows.reduce((a,[k])=>a+(p&&p[k]?+p[k].n:0),0)}</td><td><b>${eur(tot)}</b></td><td></td></tr></tbody></table>`}
+function hourChart(hrs,nowHour){const keys=[...CH.map(c=>c[0]),'other'],sum=h=>keys.reduce((a,k)=>a+(+h[k]||0),0);
+ const used=hrs.filter(h=>h.n>0).map(h=>h.h),nowH=nowHour==null?new Date().getHours():+nowHour,a=Math.min(8,...used,nowH),b=Math.max(22,...used,nowH),L=hrs.filter(h=>h.h>=a&&h.h<=b);
+ const W=720,H=230,pl=40,pr=6,pt=12,pb=26,max=Math.max(1,...L.map(sum)),nice=max<=20?Math.ceil(max/5)*5:max<=100?Math.ceil(max/20)*20:Math.ceil(max/50)*50,bw=(W-pl-pr)/L.length;
+ const y=v=>H-pb-(H-pt-pb)*v/nice,grid=[0,.5,1].map(f=>`<line x1="${pl}" x2="${W-pr}" y1="${y(nice*f)}" y2="${y(nice*f)}" class="gl"/><text x="${pl-6}" y="${y(nice*f)+4}" text-anchor="end" class="cl">${Math.round(nice*f)}</text>`).join('');
+ return `<svg class="chart hc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Shitjet sot sipas orës dhe mënyrës së pagesës">${grid}`+L.map((h,i)=>{let acc=0;const x=pl+i*bw+bw*.18,w=bw*.64,tot=sum(h);
+   const segs=keys.filter(k=>+h[k]>0).map((k,j,arr)=>{const y0=y(acc),y1=y(acc+ +h[k]);acc+=+h[k];const top=j===arr.length-1,hh=Math.max(1,y0-y1-(top?0:2));
+     return top?`<path class="ch-${k}" d="M${x} ${y0} V${y1+Math.min(4,hh)} q0 -4 4 -4 H${x+w-4} q4 0 4 4 V${y0} Z"/>`:`<rect class="ch-${k}" x="${x}" y="${y1+2}" width="${w}" height="${hh}"/>`}).join('');
+   const tip=`${String(h.h).padStart(2,'0')}:00–${String(h.h+1).padStart(2,'0')}:00 · ${h.n} shitje · ${eur(tot)}`+keys.filter(k=>+h[k]>0).map(k=>`\n${PAYN[k]}: ${eur(h[k])}`).join('');
+   return `<g class="hb${h.h===nowH?' now':''}"><title>${tip}</title><rect class="hit" x="${pl+i*bw}" y="${pt}" width="${bw}" height="${H-pt-pb}"/>${segs}${(h.h%2===0||h.h===nowH)?`<text x="${x+w/2}" y="${H-8}" text-anchor="middle" class="cl${h.h===nowH?' on':''}">${String(h.h).padStart(2,'0')}</text>`:''}</g>`}).join('')+`</svg>`}
+function catSplit(prods){const by={};prods.forEach(p=>{const m=MENU.find(x=>x.id===+p.id),c=m?(m.c==='Dip'?'Dip-et':m.c):'Tjetër';by[c]=by[c]||{q:0,s:0};by[c].q+=+p.q;by[c].s+=+p.s});
+ const L=Object.entries(by).sort((a,b)=>b[1].s-a[1].s),mx=Math.max(1,...L.map(x=>x[1].s));
+ return L.length?L.map(([c,v])=>`<div class="tb"><div class="row"><span>${esc(c)}</span><b>${eur(v.s)} · ${v.q} copë</b></div><div class="pbar"><i style="width:${Math.round(v.s/mx*100)}%"></i></div></div>`).join(''):'<div class="mut">Ende pa shitje sot.</div>'}
+function liveFeed(f){return f.length?`<ol class="feed">${f.map(r=>`<li><span class="ft">${r.t}</span><i class="chd ch-${r.pay||'other'}"></i><span class="fx"><b>${esc(r.n||'')}</b><i>${PAYN[r.pay||'other']}${r.c?' · 👤 '+esc(r.c):''}${r.by?' · '+esc(r.by):''}${+r.disc>0?' · zbritje '+eur(r.disc):''}</i></span><span class="fr"><b>${K(r.total)}</b>${r.src==='S'?`<i class="fb ${r.fiscal==='done'?'ok':''}">${r.fiscal==='done'?'fiskal ✓':'pa fiskal'}</i>`:''}</span></li>`).join('')}</ol>`:'<div class="mut">Shitjet e sotme shfaqen këtu menjëherë.</div>'}
+function stLive(d){const lv=d.live;if(!lv)return '';const p=lv.pays||{};
+ return `<div class="dgrid live2"><div class="card"><div class="row"><b>Ndarja e të hyrave sot</b><span class="live">● live</span></div>${liveSplit(p.today,'sot')}<details style="margin-top:10px"><summary class="mut">Ky muaj</summary>${liveSplit(p.month,'këtë muaj')}</details></div>`
+ +`<div class="card"><div class="row"><b>Shitjet sot sipas orës</b><span class="mut">€</span></div><div class="lgd">${[...CH,['other','Vetëm pikë']].map(c=>`<span><i class="chd ch-${c[0]}"></i>${c[1]}</span>`).join('')}</div>${hourChart(lv.hours||[],lv.hour)}</div></div>`
+ +`<div class="dgrid live2"><div class="card"><b>Itinerari i shitjeve sot</b><div class="mut" style="margin-bottom:6px">Çdo shitje sipas kohës, më e reja lart</div>${liveFeed(lv.feed||[])}</div>`
+ +`<div class="card"><b>Sipas llojit sot</b><div class="mut" style="margin-bottom:8px">Kategoritë e produkteve</div>${catSplit(lv.products||[])}</div></div>`}
 function stDash(){const d=st.dash;if(!d)return '<div class="card mut">Duke ngarkuar panelin…</div>';const k=d.kpi;
  const kp=(l,v,s,c)=>`<div class="kpi${c?' '+c:''}"><span>${l}</span><b>${v}</b>${s?`<i>${s}</i>`:''}</div>`;
  const tmax=Math.max(1,...(d.top||[]).map(t=>+t.q));
  return `<div class="dhead"><h1 class="ptitle" style="margin:0">Paneli</h1><span class="live">● live${st.dashAt?' · '+st.dashAt.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):''}</span></div>`
- +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' shitje · cash '+eur(k.cashToday||0)+' · kartë '+eur(k.cardToday||0),'hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të shfrytëzuara',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
- +(+k.lowStock?`<button class="card warnc" data-a="st_tab" data-v="stock">⚠️ <b>${k.lowStock} artikuj</b> në stok janë nën minimum. Hapi te Stoku →</button>`:'')+(+k.fiscalPending?`<button class="card warnc" data-a="st_tab" data-v="sales">⚠️ <b>${k.fiscalPending} shitje</b> pa u shënuar në arkën fiskale. Hapi te Shitjet →</button>`:'')+`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
+ +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' shitje','hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të shfrytëzuara',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
+ +(+k.lowStock?`<button class="card warnc" data-a="st_tab" data-v="stock">⚠️ <b>${k.lowStock} artikuj</b> në stok janë nën minimum. Hapi te Stoku →</button>`:'')+(+k.fiscalPending?`<button class="card warnc" data-a="st_tab" data-v="sales">⚠️ <b>${k.fiscalPending} shitje</b> pa u shënuar në arkën fiskale. Hapi te Shitjet →</button>`:'')+stLive(d)+`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
  +`<div class="dgrid"><div class="card"><b>Produktet më të shitura</b><div class="mut" style="margin-bottom:8px">30 ditët e fundit</div>${(d.top||[]).length?d.top.map(t=>`<div class="tb"><div class="row"><span>${esc(t.n)}</span><b>${t.q} copë</b></div><div class="pbar"><i style="width:${Math.round(+t.q/tmax*100)}%"></i></div></div>`).join(''):'<div class="mut">Ende pa shitje.</div>'}</div>`
  +`<div class="card"><b>Stafi sot</b><div style="margin-top:8px">${(d.staffToday||[]).map(s=>`<div class="row"><span>👤 ${esc(s.n)}</span><b>${s.orders} · ${eur(s.sales)}</b></div>`).join('')||'<div class="mut">—</div>'}</div></div></div>`
- +`<div class="card"><div class="row"><b>Aktiviteti i fundit</b><button class="btn ghost sm" data-a="st_tab" data-v="kl">Klientët →</button></div><div class="acts">${(d.recent||[]).length?d.recent.map(r=>`<${r.cid?'button':'div'} class="act${r.undone?' undone':''}"${r.cid?` data-a="st_cust" data-v="${r.cid}"`:''}><span><b>${esc(r.c)}</b><i>${esc(r.n||'')}${r.pay?' · '+(r.pay==='cash'?'Cash':'Kartë'):''}${r.by?' · '+esc(r.by):''}</i></span><span><b>${K(r.total)}</b><i>${r.d}</i></span></${r.cid?'button':'div'}>`).join(''):'<div class="mut">Ende pa aktivitet. Blerjet shfaqen këtu menjëherë.</div>'}</div></div>`}
+ +`<div class="card"><div class="row"><b>Aktiviteti i fundit</b><button class="btn ghost sm" data-a="st_tab" data-v="kl">Klientët →</button></div><div class="acts">${(d.recent||[]).length?d.recent.map(r=>`<${r.cid?'button':'div'} class="act${r.undone?' undone':''}"${r.cid?` data-a="st_cust" data-v="${r.cid}"`:''}><span><b>${esc(r.c)}</b><i>${esc(r.n||'')}${r.pay?' · '+PAYN[r.pay]:''}${r.by?' · '+esc(r.by):''}</i></span><span><b>${K(r.total)}</b><i>${r.d}</i></span></${r.cid?'button':'div'}>`).join(''):'<div class="mut">Ende pa aktivitet. Blerjet shfaqen këtu menjëherë.</div>'}</div></div>`}
 
 function stKl(){const l=st.kl;
  return `<div class="card"><input type="search" id="klq" placeholder="Kërko me emër, email, telefon ose ID" value="${esc(st.klq)}" autocapitalize="none"></div>`
@@ -796,6 +832,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   if(!/^\d{4,6}$/.test(pin)){say('PIN-i duhet të ketë 4 deri në 6 shifra.',true);return}
   const role=isOwner()&&st.nrole==='manager'?'manager':'staff';st.staff=await run('addStaff',{token:ST.tok,name:n,pin,role});say(`${role==='manager'?'Menaxheri':'Stafi'} "${n}" u shtua. Hyrja: ${n} + PIN-i i zgjedhur.`)}
  else if(a==='st_del'){st.staff=await run('delStaff',{token:ST.tok,id:v});say('Stafi u fshi.')}
+ else if(a==='st_sf'){st.sf=v;render()}
  else if(a==='st_pcat'){POS.cat=v;posRefresh('grid');const g=document.querySelector('.pcats');if(g)g.querySelectorAll('.chp').forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
  else if(a==='st_padd1'){posAdd(+v,1);posRefresh()}
  else if(a==='st_pinc'){posAdd(+v,1);posRefresh()}
@@ -804,14 +841,14 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  else if(a==='st_pnocust'){if(POS.codes.length){say('Hiqi fillimisht dhuratat/zbritjet e këtij klienti.',true);return}POS.cust=null;posRefresh('bill')}
  else if(a==='st_pfindc'){const q=val('pcq');if(!q)return;if(/^WONDER/i.test(q)){onScan(q);return}const c=await run('find',{token:ST.tok,q});if(!c){say('Nuk u gjet klient me këtë ID, email ose telefon.',true);return}POS.cust=c;st.msg='';render()}
  else if(a==='st_pdelcode'){POS.codes.splice(+v,1);posRefresh('bill')}
- else if(a==='st_ppay'){POS.pay=v;posRefresh('bill');if(v==='cash'&&$('pcash'))$('pcash').focus()}
+ else if(a==='st_ppay'){POS.pay=v;posRefresh('bill');if(isCashPay(v)&&$('pcash'))$('pcash').focus()}
  else if(a==='st_pcashq'){const T=posTotals();POS.cash=v==='exact'?T.tot.toFixed(2):String(v);posRefresh('bill')}
  else if(a==='st_pgobill'){const b=$('bill');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})}
  else if(a==='st_psell'){const T=posTotals(),pe=m=>{const e=$('pse');if(e)e.textContent=m};
   if(!POS.cart.length){pe('Shporta është bosh.');return}
   const bad=T.ds.find(d=>d.type==='gift'&&!(+d.value>0)&&!(d.a>0));if(bad){pe('Shkruaj vlerën në € të dhuratës "'+bad.title+'".');return}
-  if(POS.pay==='cash'&&POS.cash&&!(T.cash>=T.tot)){pe('Paratë e marra janë më pak se totali.');return}
-  const r=await run('saleCreate',{token:ST.tok,customer:POS.cust?POS.cust.id:null,items:POS.cart.map(l=>({id:l.id,qty:l.q})),codes:T.ds.map(d=>({code:d.code,amount:d.type==='gift'&&!(+d.value>0)?d.a:null})),pay:POS.pay,cash:POS.pay==='cash'&&POS.cash?T.cash:null});
+  if(isCashPay(POS.pay)&&POS.cash&&!(T.cash>=T.tot)){pe('Paratë e marra janë më pak se totali.');return}
+  const r=await run('saleCreate',{token:ST.tok,customer:POS.cust?POS.cust.id:null,items:POS.cart.map(l=>({id:l.id,qty:l.q})),codes:T.ds.map(d=>({code:d.code,amount:d.type==='gift'&&!(+d.value>0)?d.a:null})),pay:POS.pay,cash:isCashPay(POS.pay)&&POS.cash?T.cash:null});
   POS={...POS,cart:[],cust:null,codes:[],cash:'',q:'',cat:'all'};st.msg='';st.lastSale=r.sale;render();saleSheet(r.sale,true)}
  else if(a==='st_print_r'){document.body.classList.add('prr');window.print();setTimeout(()=>document.body.classList.remove('prr'),500)}
  else if(a==='st_fiscal'){const s=await run('saleFiscal',{token:ST.tok,id:+v,no:val('fno')});toast('U shënua: e regjistruar në arkën fiskale.');saleSheet(s,false);if(st.tab==='sales'){st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}}
@@ -834,6 +871,10 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  else if(a==='st_cpin'){const o=val('op'),n=val('np');if(!/^\d{4,6}$/.test(n)){say('PIN-i i ri duhet të ketë 4 deri në 6 shifra.',true);return}await run('changePin',{token:ST.tok,old:o,pin:n});say('PIN-i yt u ndryshua.')}
  }catch(x){if(x&&x.message==='EXISTS')x=new Error('NAMEEXISTS');if(a==='st_psell'){const e=$('pse');if(e)e.textContent=errText(x)}else if(['st_fiscal','st_svoid','st_smove','st_sedit','st_rsave'].includes(a)){const e=$('sse');if(e)e.textContent=errText(x)}else if(a==='st_login')er(errText(x));else if(a==='st_sadd'){const e=$('sie');if(e)e.textContent=errText(x)}else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
 
+// Payment channels, in a fixed order (the dashboard colours follow the channel, never its rank).
+const CH=[['card','POS (kartë)','💳'],['wolt','Wolt','🛵'],['cash','Cash fiskal','💶'],['kitchen','Cash kuzhina','🍳']];
+const PAYN={card:'POS (kartë)',wolt:'Wolt',cash:'Cash fiskal',kitchen:'Cash kuzhina',other:'Vetëm pikë'};
+const isCashPay=p=>p==='cash'||p==='kitchen';
 // ================= TILL (POS) =================
 // One sale at a time: cart of products, optional customer, discount codes scanned from the customer's phone, payment.
 let POS={cart:[],cust:null,codes:[],pay:'cash',cash:'',cat:'all',q:'',done:null};
@@ -842,7 +883,7 @@ const posItems=()=>POS.cart.map(l=>({...l,m:MENU.find(x=>x.id===l.id)})).filter(
 function posTotals(){const sub=r2(posItems().reduce((a,l)=>a+l.m.p*l.q,0));
  let disc=0;const ds=POS.codes.map(c=>{let a=c.type==='pct'?r2(sub*c.pct/100):c.type==='gift'&&!(+c.value>0)?(+String(c.amount||'').replace(',','.')||0):+c.value;a=Math.max(0,a||0);disc+=a;return {...c,a}});
  disc=r2(Math.min(disc,sub));const tot=r2(sub-disc);const cash=+String(POS.cash||'').replace(',','.');
- return {sub,disc,tot,ds,cash,change:POS.pay==='cash'&&cash>=tot?r2(cash-tot):null,count:POS.cart.reduce((a,l)=>a+l.q,0)}}
+ return {sub,disc,tot,ds,cash,change:isCashPay(POS.pay)&&cash>=tot?r2(cash-tot):null,count:POS.cart.reduce((a,l)=>a+l.q,0)}}
 function posAdd(id,q){const m=MENU.find(x=>x.id===id);if(!m||!m.p)return false;const l=POS.cart.find(x=>x.id===id);if(l)l.q=Math.min(100,l.q+(q||1));else POS.cart.push({id,q:Math.min(100,q||1)});return true}
 function posGrid(){const cats=['all',...CATS.filter(c=>MENU.some(m=>m.c===c&&m.p)),'Dip'];
  const q=POS.q.trim().toLowerCase();
@@ -858,8 +899,8 @@ function posBill(){const T=posTotals(),c=POS.cust;
  if(T.ds.length)h+=`<div class="bdisc">${T.ds.map((d,i)=>`<div class="bl dl"><span class="t"><b>🏷️ ${esc(d.title)}</b>${d.type==='gift'&&!(+d.value>0)?`<i>Vlera e dhuratës: <input class="gamt" data-i="${i}" type="text" inputmode="decimal" value="${esc(d.amount||'')}" placeholder="€"></i>`:''}</span><b class="lt">−${K(d.a)}</b><button class="x" data-a="st_pdelcode" data-v="${i}" aria-label="Hiqe">×</button></div>`).join('')}</div>`;
  h+=`<button class="btn ghost sm wide2" data-a="st_scan">📷 Skano dhuratë / zbritje</button>`;
  h+=`<div class="btot"><div class="row"><span>Nëntotali</span><b>${K(T.sub)}</b></div>${T.disc?`<div class="row"><span>Zbritje</span><b>−${K(T.disc)}</b></div>`:''}<div class="row big"><span>TOTALI</span><b>${K(T.tot)}</b></div>${c&&T.tot?`<div class="row"><span>Pikë për ${esc(c.name)}</span><b>+${fmtP(T.tot)}</b></div>`:''}</div>`;
- h+=`<div class="paym"><button class="${POS.pay==='cash'?'on':''}" data-a="st_ppay" data-v="cash">💶 Cash</button><button class="${POS.pay==='card'?'on':''}" data-a="st_ppay" data-v="card">💳 Kartë</button></div>`;
- if(POS.pay==="cash")h+=`<div class="cashrow"><label class="lbl" for="pcash">Paratë e marra</label><input type="text" id="pcash" inputmode="decimal" placeholder="Paratë e marra (€)" value="${esc(POS.cash)}" autocomplete="off"><div class="qcash">${['exact',5,10,20,50].map(v=>`<button class="chp" data-a="st_pcashq" data-v="${v}">${v==='exact'?'Saktë':v+' €'}</button>`).join('')}</div><div class="row chg"><span>Kusuri</span><b id="pchg">${T.change==null?(POS.cash?'<span class="err">Mungojnë '+K(T.tot-T.cash)+'</span>':'—'):K(T.change)}</b></div></div>`;
+ h+=`<div class="paym p4">${CH.map(([k,l,ic])=>`<button class="${POS.pay===k?'on':''}" data-a="st_ppay" data-v="${k}"><i class="chd ch-${k}"></i>${ic} ${l}</button>`).join('')}</div>`;
+ if(isCashPay(POS.pay))h+=`<div class="cashrow"><label class="lbl" for="pcash">Paratë e marra</label><input type="text" id="pcash" inputmode="decimal" placeholder="Paratë e marra (€)" value="${esc(POS.cash)}" autocomplete="off"><div class="qcash">${['exact',5,10,20,50].map(v=>`<button class="chp" data-a="st_pcashq" data-v="${v}">${v==='exact'?'Saktë':v+' €'}</button>`).join('')}</div><div class="row chg"><span>Kusuri</span><b id="pchg">${T.change==null?(POS.cash?'<span class="err">Mungojnë '+K(T.tot-T.cash)+'</span>':'—'):K(T.change)}</b></div></div>`;
  h+=`<p class="err" id="pse"></p><button class="btn pay" data-a="st_psell"${POS.cart.length?'':' disabled'}>Përfundo shitjen · ${K(T.tot)}</button><p class="mut kb">Shkurtore: F9 = përfundo · skaneri USB punon kudo në këtë faqe</p></div>`;
  return h}
 function stPos(){const T=posTotals();
@@ -874,11 +915,11 @@ function posRefresh(part){if(st.tab!=='pos'){render();return}const b=$('bill');i
 function rcpt(s){return `<div class="rcpt"><img src="${LOGO}" alt="Wonder Churros"><b>Wonder Churros</b><span>Kupon jo-fiskal · ${s.no}</span><span>${s.d}${s.staff?' · '+esc(s.staff):''}</span><hr>`
  +s.items.map(i=>`<div class="rr"><span>${i.q} × ${esc(i.n)}</span><b>${K(i.t)}</b></div>`).join('')
  +(s.discounts.length?'<hr>'+s.discounts.map(d=>`<div class="rr"><span>${esc(d.n)}</span><b>−${K(d.a)}</b></div>`).join(''):'')
- +`<hr><div class="rr big"><span>TOTALI</span><b>${K(s.total)}</b></div><div class="rr"><span>${s.pay==='cash'?'Cash':'Kartë'}</span><b>${s.pay==='cash'?K(s.cash):K(s.total)}</b></div>${s.pay==='cash'?`<div class="rr"><span>Kusuri</span><b>${K(s.change)}</b></div>`:''}`
+ +`<hr><div class="rr big"><span>TOTALI</span><b>${K(s.total)}</b></div><div class="rr"><span>${PAYN[s.pay]||s.pay}</span><b>${isCashPay(s.pay)?K(s.cash):K(s.total)}</b></div>${isCashPay(s.pay)?`<div class="rr"><span>Kusuri</span><b>${K(s.change)}</b></div>`:''}`
  +(s.customer?`<hr><div class="rr"><span>Klienti</span><b>${esc(s.customer.name)}</b></div><div class="rr"><span>Pikë të fituara</span><b>+${fmtP(s.points)}</b></div>`:'')
  +`<hr><span>${s.fiscal==='done'?'Kupon fiskal: '+esc(s.fiscalNo||'✓'):'Kuponi fiskal lëshohet nga arka fiskale.'}</span>${s.voided?'<b class="err">ANULUAR</b>':''}<span>Faleminderit! 🍩</span></div>`}
 function saleSheet(s,fresh){
- sheet(`${fresh?`<div class="gdone" style="margin-bottom:6px"><div class="gok">✓</div><h2 class="fancy" style="margin:4px 0">Shitja u krye</h2>${s.pay==='cash'&&+s.change>0?`<p class="chgbig">Kusuri: <b>${K(s.change)}</b></p>`:''}</div>`:''}`
+ sheet(`${fresh?`<div class="gdone" style="margin-bottom:6px"><div class="gok">✓</div><h2 class="fancy" style="margin:4px 0">Shitja u krye</h2>${isCashPay(s.pay)&&+s.change>0?`<p class="chgbig">Kusuri: <b>${K(s.change)}</b></p>`:''}</div>`:''}`
  +rcpt(s)
  +(s.voided?'':s.fiscal==='done'?`<p class="good" style="text-align:center;margin:10px 0">✓ E regjistruar në arkën fiskale${s.fiscalNo?' · '+esc(s.fiscalNo):''}</p>`
   :`<div class="card fisc"><b>Arka fiskale</b><div class="mut">Regjistroje këtë shitje në arkën fiskale (${K(s.total)}). Pastaj shëno numrin e kuponit fiskal.</div><input type="text" id="fno" placeholder="Nr. i kuponit fiskal (opsional)" autocomplete="off"><button class="btn" style="width:100%" data-a="st_fiscal" data-v="${s.id}">✓ U regjistrua në arkën fiskale</button></div>`)
@@ -888,8 +929,9 @@ function saleSheet(s,fresh){
 // ---- sales of the day ----
 function stSales(){const d=st.sales;
  return `<div class="row" style="margin-bottom:10px"><h2 class="fancy" style="margin:0;font-size:28px">Shitjet</h2><input type="date" id="sday" value="${esc(st.sday||'')}" style="max-width:170px;margin:0"></div>`
- +(d==null?'<div class="card mut">Duke ngarkuar…</div>':`<div class="kpis">${[['Shitje',d.sum.count],['Totali',K(d.sum.total)],['Cash',K(d.sum.cash)],['Kartë',K(d.sum.card)],['Zbritje',K(d.sum.discount)],['Pa fiskalizuar',d.sum.fiscalPending]].map(([l,v],i)=>`<div class="kpi${i===1?' hl':''}${l==='Pa fiskalizuar'&&+v>0?' warn':''}"><span>${l}</span><b>${v}</b></div>`).join('')}</div>`
-  +(d.list.length?d.list.map(s=>`<button class="card sale${s.voided?' undone':''}" data-a="st_sale" data-v="${s.id}"><span class="t"><b>${s.no} · ${s.d.slice(11)}</b><i>${esc(s.items.map(i=>i.q+' × '+i.n).join(', '))}</i><i>${s.customer?'👤 '+esc(s.customer.name)+' · ':''}${esc(s.staff||'')} · ${s.pay==='cash'?'Cash':'Kartë'}</i></span><span class="r"><b>${s.voided?'anuluar':K(s.total)}</b>${s.voided?'':`<i class="fb ${s.fiscal==='done'?'ok':''}">${s.fiscal==='done'?'fiskal ✓':'pa fiskalizuar'}</i>`}</span></button>`).join(''):'<div class="card mut">Asnjë shitje këtë ditë.</div>'))}
+ +(d==null?'<div class="card mut">Duke ngarkuar…</div>':`<div class="kpis">${[['Shitje',d.sum.count],['Totali',K(d.sum.total)],...CH.map(([k,l])=>[l,K(d.sum[k]||0),k]),['Zbritje',K(d.sum.discount)],['Pa fiskalizuar',d.sum.fiscalPending]].map(([l,v,k],i)=>`<div class="kpi${i===1?' hl':''}${l==='Pa fiskalizuar'&&+v>0?' warn':''}"><span>${k?`<i class="chd ch-${k}"></i>`:''}${l}</span><b>${v}</b></div>`).join('')}</div>`
+  +`<div class="pcats" style="margin:4px 0 10px">${[['all','Të gjitha'],...CH.map(c=>[c[0],c[1]])].map(([k,l])=>`<button class="chp${(st.sf||'all')===k?' on':''}" data-a="st_sf" data-v="${k}">${k==='all'?'':`<i class="chd ch-${k}"></i>`}${l}</button>`).join('')}</div>`
+  +((L=>L.length?L.map(s=>`<button class="card sale${s.voided?' undone':''}" data-a="st_sale" data-v="${s.id}"><span class="t"><b>${s.no} · ${s.d.slice(11)}</b><i>${esc(s.items.map(i=>i.q+' × '+i.n).join(', '))}</i><i>${s.customer?'👤 '+esc(s.customer.name)+' · ':''}${esc(s.staff||'')} · <i class="chd ch-${s.pay}"></i>${PAYN[s.pay]||s.pay}</i></span><span class="r"><b>${s.voided?'anuluar':K(s.total)}</b>${s.voided?'':`<i class="fb ${s.fiscal==='done'?'ok':''}">${s.fiscal==='done'?'fiskal ✓':'pa fiskalizuar'}</i>`}</span></button>`).join(''):'<div class="card mut">Asnjë shitje këtu.</div>')(d.list.filter(s=>!st.sf||st.sf==='all'||s.pay===st.sf))))}
 // ---- USB / Bluetooth scanner: fast keystrokes ending with Enter, anywhere on the till ----
 let kb={s:'',t:0};
 document.addEventListener('keydown',e=>{if(!STAFF_APP||!db.role)return;

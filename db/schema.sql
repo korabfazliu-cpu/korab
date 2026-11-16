@@ -123,6 +123,9 @@ create table if not exists churros.sale_discounts(
   sale_id bigint not null references churros.sales on delete cascade,
   kind text not null check (kind in ('V','P','O')), ref_id bigint not null, title text not null, amount numeric(10,2) not null);
 alter table churros.orders add column if not exists sale_id bigint references churros.sales on delete set null;
+-- v8: four payment channels: card = POS terminal, cash = cash at the fiscal till, wolt = Wolt order, kitchen = cash at the kitchen.
+alter table churros.sales drop constraint if exists sales_pay_check;
+alter table churros.sales add constraint sales_pay_check check (pay in ('cash','card','wolt','kitchen'));
 create index if not exists sales_time on churros.sales(created_at);
 create index if not exists sale_items_sale on churros.sale_items(sale_id);
 
@@ -528,7 +531,7 @@ language plpgsql as $$
 declare s churros.staff := churros.staff_of(p_token); sid bigint; sub numeric := 0; disc numeric := 0; tot numeric; cust uuid := p_customer;
   it record; cd record; m text[]; k text; i bigint; c text; r record; amt numeric; n int := 0;
 begin
-  if p_pay not in ('cash','card') then raise exception 'PAY' using errcode='P0001'; end if;
+  if p_pay not in ('cash','card','wolt','kitchen') then raise exception 'PAY' using errcode='P0001'; end if;
   if p_items is null or json_array_length(p_items) = 0 then raise exception 'EMPTY' using errcode='P0001'; end if;
   if json_array_length(p_items) > 60 or json_array_length(coalesce(p_codes,'[]'::json)) > 10 then raise exception 'INPUT' using errcode='P0001'; end if;
   if cust is not null and not exists (select 1 from churros.customers where id = cust) then raise exception 'NOTFOUND' using errcode='P0001'; end if;
@@ -573,10 +576,10 @@ begin
   disc := least(disc, sub);
   tot := sub - disc;
   perform churros.stock_apply(sid, -1, s.id);
-  if p_pay = 'cash' and p_cash is not null and p_cash < tot then raise exception 'CASH' using errcode='P0001'; end if;
+  if p_pay in ('cash','kitchen') and p_cash is not null and p_cash < tot then raise exception 'CASH' using errcode='P0001'; end if;
   update churros.sales set customer_id = cust, subtotal = sub, discount = disc, total = tot,
-    cash_given = case when p_pay='cash' then coalesce(p_cash, tot) end,
-    change_due = case when p_pay='cash' then coalesce(p_cash, tot) - tot end where id = sid;
+    cash_given = case when p_pay in ('cash','kitchen') then coalesce(p_cash, tot) end,
+    change_due = case when p_pay in ('cash','kitchen') then coalesce(p_cash, tot) - tot end where id = sid;
   -- loyalty points for the customer: 1 € = 1 point per product, as before
   if cust is not null then
     -- points on what the customer actually paid: each product's share of the total after discounts
@@ -600,6 +603,8 @@ begin
               'total', coalesce(sum(total) filter (where voided_at is null),0),
               'cash', coalesce(sum(total) filter (where voided_at is null and pay='cash'),0),
               'card', coalesce(sum(total) filter (where voided_at is null and pay='card'),0),
+              'wolt', coalesce(sum(total) filter (where voided_at is null and pay='wolt'),0),
+              'kitchen', coalesce(sum(total) filter (where voided_at is null and pay='kitchen'),0),
               'discount', coalesce(sum(discount) filter (where voided_at is null),0),
               'voided', count(*) filter (where voided_at is not null),
               'fiscalPending', count(*) filter (where voided_at is null and fiscal_status <> 'done'))
@@ -659,6 +664,26 @@ begin
                   + (select count(*) from churros.offers where used_at is not null),
      'giftsOpen', (select count(*) from churros.vouchers where used_at is null),
      'pointsOpen', (select coalesce(sum(pts),0) from churros.points)),
+   -- today, live: by hour and channel, by channel, by product, and every sale in order
+   'live', (select json_build_object(
+      'hour', extract(hour from now() at time zone 'Europe/Belgrade')::int,
+      'hours', (select json_agg(json_build_object('h', h, 'card', coalesce(x.card,0), 'cash', coalesce(x.cash,0), 'wolt', coalesce(x.wolt,0), 'kitchen', coalesce(x.kit,0), 'other', coalesce(x.oth,0), 'n', coalesce(x.n,0)) order by h)
+         from generate_series(0,23) h left join (select extract(hour from created_at at time zone 'Europe/Belgrade')::int hh,
+           sum(total) filter (where pay='card') card, sum(total) filter (where pay='cash') cash, sum(total) filter (where pay='wolt') wolt,
+           sum(total) filter (where pay='kitchen') kit, sum(total) filter (where pay is null) oth, count(*) n
+           from churros.tickets where (created_at at time zone 'Europe/Belgrade')::date = d group by 1) x on x.hh = h),
+      'pays', (select json_build_object(
+           'today', (select json_object_agg(coalesce(pay,'other'), json_build_object('t', amt, 'n', cnt)) from (select pay, sum(total) amt, count(*) cnt from churros.tickets where (created_at at time zone 'Europe/Belgrade')::date = d group by pay) z),
+           'month', (select json_object_agg(coalesce(pay,'other'), json_build_object('t', amt, 'n', cnt)) from (select pay, sum(total) amt, count(*) cnt from churros.tickets where date_trunc('month',(created_at at time zone 'Europe/Belgrade')) = date_trunc('month', d::timestamp) group by pay) z))),
+      'products', coalesce((select json_agg(json_build_object('id', product_id, 'q', qq, 's', amt)) from (select product_id, sum(qty) qq, sum(line_total) amt from churros.lines where (created_at at time zone 'Europe/Belgrade')::date = d group by product_id) z), '[]'::json),
+      'feed', coalesce((select json_agg(f) from (select json_build_object('id', k.id, 'src', k.src, 't', to_char(k.created_at at time zone 'Europe/Belgrade','HH24:MI'), 'total', k.total, 'pay', k.pay,
+            'by', st.name, 'c', case when c.id is null then null else c.name||' '||left(c.surname,1)||'.' end, 'cid', k.customer_id,
+            'n', case when k.src='S' then (select string_agg(i.qty||' × '||i.name, ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
+                      else (select o.qty||' × '||p.name from churros.orders o join churros.products p on p.id=o.product_id where o.id=k.id) end,
+            'fiscal', case when k.src='S' then (select fiscal_status from churros.sales where id=k.id) end,
+            'disc', case when k.src='S' then (select discount from churros.sales where id=k.id) end) f
+          from churros.tickets k left join churros.customers c on c.id=k.customer_id left join churros.staff st on st.id=k.staff_id
+          where (k.created_at at time zone 'Europe/Belgrade')::date = d order by k.created_at desc limit 60) y), '[]'::json))),
    'days', (select json_agg(json_build_object('d', to_char(g,'DD.MM'), 'sales', coalesce(x.s,0), 'orders', coalesce(x.n,0)) order by g)
             from generate_series(d - 13, d, interval '1 day') g
             left join (select (created_at at time zone 'Europe/Belgrade')::date dd, sum(total) s, count(*) n
@@ -869,4 +894,4 @@ begin
   return public.wc_stock(p_token);
 end $$;
 
-insert into churros.meta(k,v) values ('version','7') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','10') on conflict (k) do update set v = excluded.v;

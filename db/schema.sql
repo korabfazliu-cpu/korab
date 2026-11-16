@@ -853,10 +853,10 @@ create or replace function public.wc_stock(p_token text) returns json language p
 declare s churros.staff := churros.staff_of(p_token, true);
 begin
   return json_build_object(
-    'items', coalesce((select json_agg(json_build_object('id',i.id,'name',i.name,'unit',i.unit,'qty',i.qty,'min',i.min_qty,'low',i.qty <= i.min_qty,
+    'items', coalesce((select json_agg(json_build_object('id',i.id,'name',i.name,'unit',i.unit,'sauce',i.name ilike 'Soser %' and churros.sauce_ok(substr(i.name,7)),'qty',i.qty,'min',i.min_qty,'low',i.qty <= i.min_qty,
         'uses', coalesce((select json_agg(json_build_object('p',p.name,'q',r.qty) order by p.name) from churros.recipes r join churros.products p on p.id=r.product_id where r.item_id=i.id), '[]'::json))
       order by (i.qty <= i.min_qty) desc, i.name) from churros.stock_items i where i.active), '[]'::json),
-    'products', coalesce((select json_agg(json_build_object('id',p.id,'name',p.name,
+    'products', coalesce((select json_agg(json_build_object('id',p.id,'name',p.name,'sauces',p.sauces,
         'recipe', coalesce((select json_agg(json_build_object('item',r.item_id,'q',r.qty)) from churros.recipes r join churros.stock_items i on i.id=r.item_id and i.active where r.product_id=p.id), '[]'::json))
       order by p.id) from churros.products p where p.active and p.price is not null), '[]'::json),
     'moves', coalesce((select json_agg(z) from (select json_build_object('d',to_char(m.created_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'),'item',i.name,'unit',i.unit,
@@ -984,4 +984,13 @@ begin
   insert into churros.meta(k, v) values ('stock_v13', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','13') on conflict (k) do update set v = excluded.v;
+-- v14: the sauces are stocked per flavour (taken by the customer's pick), so the one 'Sosera' total item goes. Once per database.
+do $$
+begin
+  if exists (select 1 from churros.meta where k = 'stock_v14') then return; end if;
+  delete from churros.recipes where item_id in (select id from churros.stock_items where active and lower(name) = 'sosera');
+  update churros.stock_items set active = false where active and lower(name) = 'sosera';
+  insert into churros.meta(k, v) values ('stock_v14', '1');
+end $$;
+
+insert into churros.meta(k,v) values ('version','14') on conflict (k) do update set v = excluded.v;

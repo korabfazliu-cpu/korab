@@ -28,6 +28,9 @@ create table if not exists churros.staff(
   fails int not null default 0, locked_until timestamptz,
   created_at timestamptz not null default now());
 create unique index if not exists staff_name_uq on churros.staff(lower(name));
+-- v7: three roles. admin = the owner (pronari), manager = menaxheri (everything the owner does except managing managers), staff = till only.
+alter table churros.staff drop constraint if exists staff_role_check;
+alter table churros.staff add constraint staff_role_check check (role in ('admin','manager','staff'));
 
 create table if not exists churros.sessions(
   token_hash text primary key,
@@ -133,6 +136,35 @@ create or replace view churros.lines as
   union all
   select o.product_id, o.qty, o.total, o.created_at from churros.orders o where o.sale_id is null and o.undone_at is null;
 
+create table if not exists churros.stock_items(
+  id bigint generated always as identity primary key,
+  name text not null, unit text not null default 'copë', qty numeric(12,3) not null default 0, min_qty numeric(12,3) not null default 0,
+  active boolean not null default true, created_at timestamptz not null default now());
+create table if not exists churros.stock_moves(
+  id bigint generated always as identity primary key,
+  item_id bigint not null references churros.stock_items on delete cascade,
+  kind text not null check (kind in ('in','out','count','sale','void')),
+  delta numeric(12,3) not null, qty_after numeric(12,3) not null, note text,
+  sale_id bigint references churros.sales on delete set null, staff_id uuid references churros.staff on delete set null,
+  created_at timestamptz not null default now());
+create index if not exists stock_moves_time on churros.stock_moves(created_at desc);
+create table if not exists churros.recipes(
+  product_id int not null references churros.products on delete cascade,
+  item_id bigint not null references churros.stock_items on delete cascade,
+  qty numeric(12,3) not null check (qty > 0), primary key (product_id, item_id));
+
+-- Takes (sign -1) or gives back (sign +1) the stock a sale used, by the products' recipes. Stock may go below zero: a sale is never blocked.
+create or replace function churros.stock_apply(p_sale bigint, p_sign int, p_staff uuid) returns void language plpgsql as $$
+declare x record;
+begin
+  for x in select r.item_id, sum(r.qty * i.qty) q from churros.sale_items i join churros.recipes r on r.product_id = i.product_id
+           join churros.stock_items si on si.id = r.item_id and si.active where i.sale_id = p_sale group by r.item_id loop
+    update churros.stock_items set qty = qty + p_sign * x.q where id = x.item_id;
+    insert into churros.stock_moves(item_id,kind,delta,qty_after,sale_id,staff_id)
+      select x.item_id, case when p_sign < 0 then 'sale' else 'void' end, p_sign * x.q, qty, p_sale, p_staff from churros.stock_items where id = x.item_id;
+  end loop;
+end $$;
+
 create or replace function churros.ptitle(p_kind text, p_pct int, p_amount numeric, p_title text) returns text language sql immutable as
 $$ select case p_kind when 'pct' then p_pct||'% zbritje: '||p_title
                      when 'eur' then to_char(p_amount,'FM990.00')||' € zbritje: '||p_title else p_title end $$;
@@ -180,7 +212,7 @@ begin
   select st.* into s from churros.sessions se join churros.staff st on st.id = se.staff_id
    where se.token_hash = encode(digest(coalesce(p_token,''),'sha256'),'hex') and se.expires_at > now();
   if s.id is null then raise exception 'SESSION' using errcode='P0001'; end if;
-  if p_admin and s.role <> 'admin' then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  if p_admin and s.role not in ('admin','manager') then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
   return s;
 end $$;
 
@@ -429,7 +461,7 @@ create or replace function public.wc_undo_order(p_token text, p_order bigint) re
 declare s churros.staff := churros.staff_of(p_token); o churros.orders;
 begin
   select * into o from churros.orders where id = p_order and undone_at is null
-     and created_at > now() - interval '30 minutes' and (staff_id = s.id or s.role = 'admin') for update;
+     and created_at > now() - interval '30 minutes' and (staff_id = s.id or s.role in ('admin','manager')) for update;
   if o.id is null then raise exception 'UNDO' using errcode='P0001'; end if;
   update churros.orders set undone_at = now() where id = o.id;
   update churros.points set pts = greatest(0, pts - o.pts) where customer_id = o.customer_id and product_id = o.product_id;
@@ -540,6 +572,7 @@ begin
   end loop;
   disc := least(disc, sub);
   tot := sub - disc;
+  perform churros.stock_apply(sid, -1, s.id);
   if p_pay = 'cash' and p_cash is not null and p_cash < tot then raise exception 'CASH' using errcode='P0001'; end if;
   update churros.sales set customer_id = cust, subtotal = sub, discount = disc, total = tot,
     cash_given = case when p_pay='cash' then coalesce(p_cash, tot) end,
@@ -560,7 +593,7 @@ begin
 end $$;
 
 create or replace function public.wc_sales(p_token text, p_day date) returns json language plpgsql stable as $$
-declare s churros.staff := churros.staff_of(p_token); d date := coalesce(p_day, churros.today());
+declare s churros.staff := churros.staff_of(p_token, true); d date := coalesce(p_day, churros.today());
 begin
   return json_build_object('day', d,
     'sum', (select json_build_object('count', count(*) filter (where voided_at is null),
@@ -581,6 +614,7 @@ begin
   select * into sl from churros.sales where id = p_id for update;
   if sl.id is null or sl.voided_at is not null then raise exception 'INPUT' using errcode='P0001'; end if;
   update churros.sales set voided_at = now(), voided_by = s.id where id = sl.id;
+  perform churros.stock_apply(sl.id, 1, s.id);
   for o in select * from churros.orders where sale_id = sl.id and undone_at is null loop
     update churros.orders set undone_at = now() where id = o.id;
     update churros.points set pts = greatest(0, pts - o.pts) where customer_id = o.customer_id and product_id = o.product_id;
@@ -617,6 +651,7 @@ begin
      'cashToday', (select coalesce(sum(total),0) from churros.tickets where pay='cash' and (created_at at time zone 'Europe/Belgrade')::date = d),
      'cardToday', (select coalesce(sum(total),0) from churros.tickets where pay='card' and (created_at at time zone 'Europe/Belgrade')::date = d),
      'fiscalPending', (select count(*) from churros.sales where voided_at is null and fiscal_status <> 'done'),
+     'lowStock', (select count(*) from churros.stock_items where active and qty <= min_qty),
      'salesMonth', (select coalesce(sum(total),0) from churros.tickets where date_trunc('month',(created_at at time zone 'Europe/Belgrade')) = date_trunc('month', d::timestamp)),
      'activeMonth', (select count(distinct customer_id) from churros.tickets where customer_id is not null and (created_at at time zone 'Europe/Belgrade')::date > d - 30),
      'giftsUsed', (select count(*) from churros.vouchers where used_at is not null)
@@ -743,24 +778,95 @@ end $$;
 create or replace function public.wc_staff_list(p_token text) returns json language plpgsql stable as $$
 declare s churros.staff := churros.staff_of(p_token, true);
 begin
-  return coalesce((select json_agg(json_build_object('id',id,'name',name,'role',role) order by role, name) from churros.staff), '[]'::json);
+  return coalesce((select json_agg(json_build_object('id',id,'name',name,'role',role,'me',id = s.id)
+    order by case role when 'admin' then 0 when 'manager' then 1 else 2 end, name) from churros.staff), '[]'::json);
 end $$;
 
-create or replace function public.wc_add_staff(p_token text, p_name text, p_pin text) returns json language plpgsql as $$
-declare s churros.staff := churros.staff_of(p_token, true);
+drop function if exists public.wc_add_staff(text,text,text);
+create or replace function public.wc_add_staff(p_token text, p_name text, p_pin text, p_role text) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); r text := coalesce(nullif(p_role,''),'staff');
 begin
+  if r not in ('staff','manager') then raise exception 'INPUT' using errcode='P0001'; end if;
+  if r = 'manager' and s.role <> 'admin' then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
   if coalesce(trim(p_name),'') = '' or length(p_name) > 40 or lower(trim(p_name)) = 'admin' then raise exception 'NAME' using errcode='P0001'; end if;
   perform churros.check_pin(p_pin);
   if exists (select 1 from churros.staff where lower(name) = lower(trim(p_name))) then raise exception 'EXISTS' using errcode='P0001'; end if;
-  insert into churros.staff(name,pin_hash,role) values (trim(p_name), crypt(p_pin, gen_salt('bf')), 'staff');
+  insert into churros.staff(name,pin_hash,role) values (trim(p_name), crypt(p_pin, gen_salt('bf')), r);
   return public.wc_staff_list(p_token);
 end $$;
 
 create or replace function public.wc_del_staff(p_token text, p_id uuid) returns json language plpgsql as $$
-declare s churros.staff := churros.staff_of(p_token, true);
+declare s churros.staff := churros.staff_of(p_token, true); v churros.staff;
 begin
-  delete from churros.staff where id = p_id and role = 'staff';
+  select * into v from churros.staff where id = p_id;
+  if v.id is null or v.role = 'admin' or v.id = s.id then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  if v.role = 'manager' and s.role <> 'admin' then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  delete from churros.sessions where staff_id = v.id;
+  delete from churros.staff where id = v.id;
   return public.wc_staff_list(p_token);
 end $$;
 
-insert into churros.meta(k,v) values ('version','6') on conflict (k) do update set v = excluded.v;
+-- ---------------------------------------------------------------- stock (manager / owner)
+create or replace function public.wc_stock(p_token text) returns json language plpgsql stable as $$
+declare s churros.staff := churros.staff_of(p_token, true);
+begin
+  return json_build_object(
+    'items', coalesce((select json_agg(json_build_object('id',i.id,'name',i.name,'unit',i.unit,'qty',i.qty,'min',i.min_qty,'low',i.qty <= i.min_qty,
+        'uses', coalesce((select json_agg(json_build_object('p',p.name,'q',r.qty) order by p.name) from churros.recipes r join churros.products p on p.id=r.product_id where r.item_id=i.id), '[]'::json))
+      order by (i.qty <= i.min_qty) desc, i.name) from churros.stock_items i where i.active), '[]'::json),
+    'products', coalesce((select json_agg(json_build_object('id',p.id,'name',p.name,
+        'recipe', coalesce((select json_agg(json_build_object('item',r.item_id,'q',r.qty)) from churros.recipes r join churros.stock_items i on i.id=r.item_id and i.active where r.product_id=p.id), '[]'::json))
+      order by p.id) from churros.products p where p.active and p.price is not null), '[]'::json),
+    'moves', coalesce((select json_agg(z) from (select json_build_object('d',to_char(m.created_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'),'item',i.name,'unit',i.unit,
+        'kind',m.kind,'delta',m.delta,'after',m.qty_after,'note',m.note,'by',st.name,'sale',m.sale_id) z
+      from churros.stock_moves m join churros.stock_items i on i.id=m.item_id left join churros.staff st on st.id=m.staff_id
+      order by m.created_at desc, m.id desc limit 40) y), '[]'::json));
+end $$;
+
+create or replace function public.wc_stock_save(p_token text, p_id bigint, p_name text, p_unit text, p_min numeric) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true);
+begin
+  if coalesce(trim(p_name),'') = '' or length(p_name) > 60 then raise exception 'NAME' using errcode='P0001'; end if;
+  if p_unit not in ('copë','kg','g','l','ml','pako') or coalesce(p_min,0) < 0 then raise exception 'INPUT' using errcode='P0001'; end if;
+  if exists (select 1 from churros.stock_items where active and lower(name)=lower(trim(p_name)) and id is distinct from p_id) then raise exception 'EXISTS' using errcode='P0001'; end if;
+  if p_id is null then insert into churros.stock_items(name,unit,min_qty) values (trim(p_name), p_unit, coalesce(p_min,0));
+  else update churros.stock_items set name=trim(p_name), unit=p_unit, min_qty=coalesce(p_min,0) where id=p_id and active;
+    if not found then raise exception 'INPUT' using errcode='P0001'; end if; end if;
+  return public.wc_stock(p_token);
+end $$;
+
+create or replace function public.wc_stock_move(p_token text, p_item bigint, p_kind text, p_qty numeric, p_note text) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); i churros.stock_items; d numeric;
+begin
+  select * into i from churros.stock_items where id=p_item and active for update;
+  if i.id is null or p_kind not in ('in','out','count') or p_qty is null or p_qty < 0 or p_qty > 1000000 or length(coalesce(p_note,'')) > 120 then raise exception 'INPUT' using errcode='P0001'; end if;
+  if p_kind <> 'count' and p_qty = 0 then raise exception 'INPUT' using errcode='P0001'; end if;
+  d := case p_kind when 'in' then p_qty when 'out' then -p_qty else p_qty - i.qty end;
+  update churros.stock_items set qty = qty + d where id=i.id;
+  insert into churros.stock_moves(item_id,kind,delta,qty_after,note,staff_id) values (i.id,p_kind,d,i.qty+d,nullif(trim(coalesce(p_note,'')),''),s.id);
+  return public.wc_stock(p_token);
+end $$;
+
+create or replace function public.wc_stock_del(p_token text, p_id bigint) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true);
+begin
+  update churros.stock_items set active=false where id=p_id;
+  delete from churros.recipes where item_id=p_id;
+  return public.wc_stock(p_token);
+end $$;
+
+-- What one piece of a product uses from stock. p_items: [{"item":1,"q":0.15}, ...]; an empty list clears it.
+create or replace function public.wc_recipe_set(p_token text, p_product int, p_items json) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); x record;
+begin
+  if not exists (select 1 from churros.products where id=p_product) then raise exception 'INPUT' using errcode='P0001'; end if;
+  delete from churros.recipes where product_id=p_product;
+  for x in select (e->>'item')::bigint item, (e->>'q')::numeric q from json_array_elements(coalesce(p_items,'[]'::json)) e loop
+    if x.q is null or x.q <= 0 then continue; end if;
+    if x.q > 10000 or not exists (select 1 from churros.stock_items where id=x.item and active) then raise exception 'INPUT' using errcode='P0001'; end if;
+    insert into churros.recipes(product_id,item_id,qty) values (p_product,x.item,x.q);
+  end loop;
+  return public.wc_stock(p_token);
+end $$;
+
+insert into churros.meta(k,v) values ('version','7') on conflict (k) do update set v = excluded.v;

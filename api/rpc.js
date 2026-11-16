@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '6';
+const SCHEMA_VERSION = '7';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -54,7 +54,12 @@ const FN = {
   promoAdd:      ['wc_promo_add',     ['token', 'kind', 'pct', 'amount', 'title', 'desc', 'from', 'until', 'customers'], ['text', 'text', 'int', 'numeric', 'text', 'text', 'date', 'date', 'uuid[]']],
   promoDel:      ['wc_promo_del',     ['token', 'id'], ['text', 'bigint']],
   staffList:     ['wc_staff_list',    ['token'], ['text']],
-  addStaff:      ['wc_add_staff',     ['token', 'name', 'pin'], ['text', 'text', 'text']],
+  addStaff:      ['wc_add_staff',     ['token', 'name', 'pin', 'role'], ['text', 'text', 'text', 'text']],
+  stock:         ['wc_stock',         ['token'], ['text']],
+  stockSave:     ['wc_stock_save',    ['token', 'id', 'name', 'unit', 'min'], ['text', 'bigint', 'text', 'text', 'numeric']],
+  stockMove:     ['wc_stock_move',    ['token', 'item', 'kind', 'qty', 'note'], ['text', 'bigint', 'text', 'numeric', 'text']],
+  stockDel:      ['wc_stock_del',     ['token', 'id'], ['text', 'bigint']],
+  recipeSet:     ['wc_recipe_set',    ['token', 'product', 'items'], ['text', 'int', 'json']],
   delStaff:      ['wc_del_staff',     ['token', 'id'], ['text', 'uuid']],
 };
 

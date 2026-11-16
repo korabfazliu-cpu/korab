@@ -203,6 +203,18 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .qcard{background:#fff;border:2px solid #7C421C;border-radius:18px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px;color:#4a2a17}
 .qcard .qimg svg{width:100%;display:block}.qcard b{font-size:15px;line-height:1.2}.qcard span{font-size:12.5px;color:#7a4d33}.qcard i{font-style:normal;font-size:10.5px;color:#999;letter-spacing:.03em}
+/* ---- roles & stock ---- */
+.rtag{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;margin-left:6px;background:#f6d3e3;color:#7C421C}.rtag.r-admin{background:#7C421C;color:#fff}.rtag.r-manager{background:#E8A33D;color:#4a2a17}
+.stk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:899px){.stk{grid-template-columns:minmax(0,1fr)}}
+.card.sitem{display:flex;width:100%;text-align:left;justify-content:space-between;gap:10px;font:inherit;color:inherit;cursor:pointer;align-items:center}
+.sitem .t,.sitem .r{display:flex;flex-direction:column;min-width:0}.sitem .r{align-items:flex-end;flex:none}.sitem i{font-style:normal;font-size:12.5px;opacity:.75}
+.sitem.low{border-color:#c98a00;background:#fff6e0}.sitem.low .r b{color:#b3261e}
+.mv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}.mv span{display:flex;flex-direction:column;min-width:0}.mv i{font-style:normal;font-size:12px;opacity:.7}
+.mv .neg{color:#b3261e}.mv .pos{color:#1d7a3a}
+.seg3.skind{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.seg3.skind button{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px 6px;font:inherit;font-weight:700;color:var(--text);cursor:pointer}.seg3.skind button.on{background:#7C421C;border-color:#7C421C;color:#fff}
+.rcp{max-height:52vh;overflow:auto}.rrow{display:grid;grid-template-columns:1fr 110px 44px;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line)}.rrow input{margin:2px 0!important;text-align:right}.rrow i{font-style:normal;opacity:.7}
+main select{width:100%}
 /* ---- till (POS) ---- */
 main.wide{max-width:1280px}
 .pos{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
@@ -401,7 +413,7 @@ const NAV=[['home','Start','🏠'],['wal','Kuleta','👛'],['menu','Menu','🍩'
 const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',wal:'<svg viewBox="0 0 24 24"><path d="M6 6h11a2 2 0 0 1 2 2"/><rect x="3" y="6" width="18" height="14" rx="3"/><rect x="14" y="11" width="7" height="4" rx="2"/><circle cx="16.6" cy="13" r=".6"/></svg>',menu:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'};NAV.forEach(n=>n[2]=IC[n[0]]);
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
 // ---- connection with the server (/api/rpc) ----
-const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
+const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
 const errText=e=>ERR[e&&e.message]||ERR.SERVER;
 async function api(fn,args){let r;
  try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
@@ -591,7 +603,8 @@ document.addEventListener('change',async e=>{const id=e.target.id;
 
 // ---- staff / admin ----
 let st={sales:null,sday:'',tab:'pos',q:'',found:null,msg:'',bad:false,last:null,dash:null,dashAt:null,kl:null,klq:'',promos:null,staff:null,hasAdmin:null};
-const isAdm=()=>db.role&&db.role.t==='admin';
+const isAdm=()=>db.role&&(db.role.t==='admin'||db.role.t==='manager'),isOwner=()=>db.role&&db.role.t==='admin';
+const ROLE={admin:'Pronar',manager:'Menaxher',staff:'Staf'};
 async function staffPoll(){if(!STAFF_APP||!ST.tok||document.hidden||scanS)return;
  try{if(st.tab==='dash'&&isAdm()){st.dash=await api('dashboard',{token:ST.tok});st.dashAt=new Date();if(!typingIn())render()}
   else if(st.tab==='arka'&&st.found){const c=await api('card',{token:ST.tok,customer:st.found.id});if(sig(c)!==sig(st.found)){st.found=c;if(!typingIn())render()}}}catch(e){}}
@@ -629,7 +642,7 @@ function stDash(){const d=st.dash;if(!d)return '<div class="card mut">Duke ngark
  const tmax=Math.max(1,...(d.top||[]).map(t=>+t.q));
  return `<div class="dhead"><h1 class="ptitle" style="margin:0">Paneli</h1><span class="live">● live${st.dashAt?' · '+st.dashAt.toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):''}</span></div>`
  +`<div class="kpis">${kp('Shitje sot',eur(k.salesToday),k.ordersToday+' shitje · cash '+eur(k.cashToday||0)+' · kartë '+eur(k.cardToday||0),'hl')}${kp('Shitje këtë muaj',eur(k.salesMonth))}${kp('Klientë',k.customers,'+'+k.newWeek+' këtë javë')}${kp('Klientë aktivë',k.activeMonth,'30 ditët e fundit')}${kp('Dhurata të shfrytëzuara',k.giftsUsed,k.giftsOpen+' të hapura')}${kp('Pikë në kuleta',fmtP(k.pointsOpen))}</div>`
- +(+k.fiscalPending?`<button class="card warnc" data-a="st_tab" data-v="sales">⚠️ <b>${k.fiscalPending} shitje</b> pa u shënuar në arkën fiskale. Hapi te Shitjet →</button>`:'')+`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
+ +(+k.lowStock?`<button class="card warnc" data-a="st_tab" data-v="stock">⚠️ <b>${k.lowStock} artikuj</b> në stok janë nën minimum. Hapi te Stoku →</button>`:'')+(+k.fiscalPending?`<button class="card warnc" data-a="st_tab" data-v="sales">⚠️ <b>${k.fiscalPending} shitje</b> pa u shënuar në arkën fiskale. Hapi te Shitjet →</button>`:'')+`<div class="card"><div class="row"><b>Shitjet, 14 ditët e fundit</b><span class="mut">€</span></div>${barChart(d.days)}</div>`
  +`<div class="dgrid"><div class="card"><b>Produktet më të shitura</b><div class="mut" style="margin-bottom:8px">30 ditët e fundit</div>${(d.top||[]).length?d.top.map(t=>`<div class="tb"><div class="row"><span>${esc(t.n)}</span><b>${t.q} copë</b></div><div class="pbar"><i style="width:${Math.round(+t.q/tmax*100)}%"></i></div></div>`).join(''):'<div class="mut">Ende pa shitje.</div>'}</div>`
  +`<div class="card"><b>Stafi sot</b><div style="margin-top:8px">${(d.staffToday||[]).map(s=>`<div class="row"><span>👤 ${esc(s.n)}</span><b>${s.orders} · ${eur(s.sales)}</b></div>`).join('')||'<div class="mut">—</div>'}</div></div></div>`
  +`<div class="card"><div class="row"><b>Aktiviteti i fundit</b><button class="btn ghost sm" data-a="st_tab" data-v="kl">Klientët →</button></div><div class="acts">${(d.recent||[]).length?d.recent.map(r=>`<${r.cid?'button':'div'} class="act${r.undone?' undone':''}"${r.cid?` data-a="st_cust" data-v="${r.cid}"`:''}><span><b>${esc(r.c)}</b><i>${esc(r.n||'')}${r.pay?' · '+(r.pay==='cash'?'Cash':'Kartë'):''}${r.by?' · '+esc(r.by):''}</i></span><span><b>${K(r.total)}</b><i>${r.d}</i></span></${r.cid?'button':'div'}>`).join(''):'<div class="mut">Ende pa aktivitet. Blerjet shfaqen këtu menjëherë.</div>'}</div></div>`}
@@ -678,26 +691,57 @@ document.addEventListener('change',e=>{const n=e.target.name;
  else if(n==='aud'){const some=e.target.value==='some';$('pickwrap').hidden=!some;if(some&&PK.res==null)pickSearch();pickRender()}});
 let pkT=null;document.addEventListener('input',e=>{if(e.target.id==='pkq'){PK.q=e.target.value;clearTimeout(pkT);pkT=setTimeout(pickSearch,300)}});
 
-function stStaf(){const l=st.staff;
- return `<div class="card"><b>Regjistro staf të ri</b><input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)" maxlength="40"><input type="text" inputmode="numeric" id="sp1" maxlength="6" placeholder="PIN (4–6 shifra)"><button class="btn" style="width:100%" data-a="st_addstaff">Regjistro</button></div>`
- +'<h3>Stafi</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.map(s=>`<div class="card row"><span>👤 ${esc(s.name)} <span class="mut">${s.role==='admin'?'admin':'staf'}</span></span>${s.role==='admin'?'':`<button class="btn ghost sm" data-a="st_del" data-v="${s.id}">Fshi</button>`}</div>`).join(''))
+function stStaf(){const l=st.staff,own=isOwner();
+ return `<div class="card"><b>Shto përdorues</b><div class="mut" style="margin:4px 0 6px">${own?'<b>Staf:</b> vetëm Arka (shitja deri te printimi i kuponit). <b>Menaxher:</b> gjithçka, edhe stoku dhe raportet.':'Menaxheri shton vetëm staf. Menaxherët i shton pronari.'}</div>`
+ +(own?`<div class="paym" style="margin:6px 0"><button class="${st.nrole!=='manager'?'on':''}" data-a="st_nrole" data-v="staff">Staf</button><button class="${st.nrole==='manager'?'on':''}" data-a="st_nrole" data-v="manager">Menaxher</button></div>`:'')
+ +`<input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)" maxlength="40"><input type="text" inputmode="numeric" id="sp1" maxlength="6" placeholder="PIN (4–6 shifra)"><button class="btn" style="width:100%" data-a="st_addstaff">Shto ${own&&st.nrole==='manager'?'menaxherin':'stafin'}</button></div>`
+ +'<h3>Përdoruesit</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.map(s=>{const can=!s.me&&s.role!=='admin'&&(own||s.role==='staff');
+   return `<div class="card row"><span>👤 ${esc(s.role==='admin'?'Pronari (admin)':s.name)} <span class="rtag r-${s.role}">${ROLE[s.role]||s.role}</span>${s.me?' <span class="mut">(ti)</span>':''}</span>${can?`<button class="btn ghost sm" data-a="st_del" data-v="${s.id}">Fshi</button>`:''}</div>`}).join(''))
  +`<div class="card"><b>Ndrysho PIN-in tënd</b><input type="password" inputmode="numeric" id="op" maxlength="6" placeholder="PIN-i aktual"><input type="password" inputmode="numeric" id="np" maxlength="6" placeholder="PIN-i i ri (4–6 shifra)"><button class="btn ghost" style="width:100%" data-a="st_cpin">Ndrysho</button></div>`}
+
+// ---- stock (manager / owner) ----
+const UNITS=['copë','kg','g','l','ml','pako'],KIND={in:'Hyrje',out:'Dalje',count:'Numërim',sale:'Shitje',void:'Anulim'};
+const fq=n=>{const x=Math.round(Number(n)*1000)/1000;return String(x).replace('.',',')};
+function stStock(){const d=st.stock;if(!d)return '<div class="card mut">Duke ngarkuar stokun…</div>';
+ const low=d.items.filter(i=>i.low).length,today=new Date().toLocaleDateString('sq-AL',{day:'2-digit',month:'2-digit'}).replace('/','.');
+ return `<div class="row" style="margin-bottom:10px"><h2 class="fancy" style="margin:0;font-size:28px">Stoku</h2></div>`
+ +`<div class="kpis">${[['Artikuj',d.items.length],['Nën minimum',low],['Produkte me recetë',d.products.filter(p=>p.recipe.length).length]].map(([l,v],i)=>`<div class="kpi${i===1&&low?' warn':''}"><span>${l}</span><b>${v}</b></div>`).join('')}</div>`
+ +`<div class="stk"><div>`
+ +(d.items.length?d.items.map(i=>`<button class="card sitem${i.low?' low':''}" data-a="st_sitem" data-v="${i.id}"><span class="t"><b>${esc(i.name)}</b><i>${i.uses.length?'Përdoret te: '+esc(i.uses.map(u=>u.p).join(', ')):'Pa recetë'}</i></span><span class="r"><b>${fq(i.qty)} ${esc(i.unit)}</b><i>${i.low?'⚠️ nën minimumin ('+fq(i.min)+')':'min. '+fq(i.min)}</i></span></button>`).join('')
+   :'<div class="card mut">Ende pa artikuj. Shto artikujt që i blen dyqani (brumë, çokollatë, gota, kuti, Monte Drink…).</div>')
+ +`<div class="card"><b>Shto artikull stoku</b><input type="text" id="si_n" placeholder="Emri, p.sh. Çokollatë Nutella" maxlength="60"><div class="two"><label class="mut">Njësia<select id="si_u">${UNITS.map(u=>`<option>${u}</option>`).join('')}</select></label><label class="mut">Minimumi<input type="text" inputmode="decimal" id="si_m" placeholder="p.sh. 5"></label></div><p class="err" id="sie"></p><button class="btn" style="width:100%" data-a="st_sadd">Shto</button></div>`
+ +`</div><div><div class="card"><b>Recetat</b><div class="mut" style="margin:4px 0 8px">Sa harxhon nga stoku çdo copë e shitur. Arka e zbret vetë stokun te çdo shitje, dhe e rikthen kur shitja anulohet.</div>`
+ +d.products.map(p=>`<button class="act" data-a="st_recipe" data-v="${p.id}"><span><b>${esc(p.name)}</b><i>${p.recipe.length?esc(p.recipe.map(r=>{const it=d.items.find(i=>i.id===r.item);return it?fq(r.q)+' '+it.unit+' '+it.name:''}).join(' · ')):'Pa recetë'}</i></span><span><b>›</b></span></button>`).join('')+`</div>`
+ +`<div class="card"><b>Lëvizjet e fundit</b>${d.moves.length?d.moves.map(m=>`<div class="mv"><span><b>${esc(m.item)}</b><i>${KIND[m.kind]||m.kind}${m.sale?' S-'+String(m.sale).padStart(6,'0'):''}${m.note?' · '+esc(m.note):''}${m.by?' · '+esc(m.by):''} · ${m.d}</i></span><b class="${+m.delta<0?'neg':'pos'}">${+m.delta>0?'+':''}${fq(m.delta)} ${esc(m.unit)}</b></div>`).join(''):'<div class="mut" style="margin-top:6px">Asnjë lëvizje.</div>'}</div></div></div>`}
+function stockSheet(id){const d=st.stock,i=d&&d.items.find(x=>x.id==id);if(!i)return;st.skind=st.skind||'in';
+ sheet(`<h2 class="fancy" style="margin:0 0 4px">${esc(i.name)}</h2><div class="kpi${i.low?' warn':''}" style="margin:6px 0 12px"><span>Në stok</span><b>${fq(i.qty)} ${esc(i.unit)}</b><i>${i.low?'⚠️ Nën minimumin ('+fq(i.min)+' '+esc(i.unit)+')':'Minimumi: '+fq(i.min)+' '+esc(i.unit)}</i></div>`
+ +`<div class="seg3 skind">${[['in','Hyrje'],['out','Dalje / humbje'],['count','Numërim']].map(([k,l])=>`<button class="${st.skind===k?'on':''}" data-a="st_skind" data-v="${k}" data-i="${i.id}">${l}</button>`).join('')}</div>`
+ +`<label class="lbl" for="sm_q">${st.skind==='count'?'Sasia e numëruar tani ('+esc(i.unit)+')':st.skind==='in'?'Sa erdhën ('+esc(i.unit)+')':'Sa dolën ('+esc(i.unit)+')'}</label><input type="text" inputmode="decimal" id="sm_q" placeholder="0"><input type="text" id="sm_n" maxlength="120" placeholder="Shënim (opsional): furnitori, fatura, arsyeja…"><p class="err" id="sse"></p><button class="btn" style="width:100%" data-a="st_smove" data-v="${i.id}">Ruaj</button>`
+ +`<details style="margin-top:14px"><summary><b>Ndrysho artikullin</b></summary><input type="text" id="se_n" value="${esc(i.name)}" maxlength="60"><div class="two"><label class="mut">Njësia<select id="se_u">${UNITS.map(u=>`<option${u===i.unit?' selected':''}>${u}</option>`).join('')}</select></label><label class="mut">Minimumi<input type="text" inputmode="decimal" id="se_m" value="${fq(i.min)}"></label></div><div class="two"><button class="btn ghost" data-a="st_sedit" data-v="${i.id}">Ruaj ndryshimet</button><button class="btn ghost" style="color:#b3261e" data-a="st_sdel" data-v="${i.id}">Fshi artikullin</button></div></details>`
+ +`<button class="btn ghost wide" style="justify-content:center;margin-top:12px" data-a="close">Mbyll</button>`);setTimeout(()=>{const q=$('sm_q');if(q)q.focus()},50)}
+function recipeSheet(pid){const d=st.stock,p=d&&d.products.find(x=>x.id==pid);if(!p)return;
+ sheet(`<h2 class="fancy" style="margin:0">${esc(p.name)}</h2><p class="mut">Sa harxhon <b>1 copë</b> nga secili artikull. Lëre bosh atë që nuk përdoret.</p>`
+ +(d.items.length?`<div class="rcp">${d.items.map(i=>{const r=p.recipe.find(x=>x.item===i.id);return `<label class="rrow"><span>${esc(i.name)}</span><input type="text" inputmode="decimal" class="rq" data-i="${i.id}" value="${r?fq(r.q):''}" placeholder="0"><i>${esc(i.unit)}</i></label>`}).join('')}</div><p class="err" id="sse"></p><button class="btn" style="width:100%;margin-top:10px" data-a="st_rsave" data-v="${p.id}">Ruaj recetën</button>`
+  :'<div class="card mut">Shto fillimisht artikujt e stokut.</div>')
+ +`<button class="btn ghost wide" style="justify-content:center;margin-top:10px" data-a="close">Mbyll</button>`)}
+const num=s=>{const v=String(s==null?'':s).trim().replace(',','.');return v===''?null:Number(v)};
 
 function stQR(){const cats=[...new Set([...CATS,...MENU.map(m=>m.c)])].filter(c=>MENU.some(m=>m.c===c&&m.p));
  return `<div class="card noprint"><b>Kodet QR të produkteve</b><div class="mut">Rezervë, për rastin kur klienti s'mund ta hapë produktin në telefon. Zakonisht kodi i produktit skanohet në telefonin e klientit. Këto kode regjistrojnë 1 copë për skanim.</div><button class="btn" style="width:100%;margin-top:10px" data-a="st_print">🖨️ Printo kodet</button></div>`
  +cats.map(c=>`<h3 class="qcat">${esc(c)}</h3><div class="qgrid">${MENU.filter(m=>m.c===c&&m.p).map(m=>`<div class="qcard"><div class="qimg">${qrSvg(PQR(m.id))}</div><b>${esc(m.n)}</b><span>${K(m.p)} · ${fmtP(m.p)} pikë</span><i>WONDER-P:${m.id}</i></div>`).join('')}</div>`).join('')}
 
 function renderStaff(){const adm=isAdm();
- $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros"><div class="hb"><b style="align-self:center">${adm?'Admin':esc(ST.name||'Staf')}</b><button data-a="st_out"><span>⎋</span>Dil</button></div>`;
- const tabs=adm?[['dash','Paneli'],['pos','Arka'],['sales','Shitjet'],['arka','Pikë'],['kl','Klientët'],['promo','Ofertat'],['staf','Stafi'],['qr','QR']]:[['pos','Arka'],['sales','Shitjet'],['arka','Pikë']];
- if(!tabs.some(t=>t[0]===st.tab))st.tab='pos';$('main').classList.toggle('wide',st.tab==='pos'||st.tab==='sales'||st.tab==='dash');
+ $('hdr').innerHTML=`<img src="${LOGO}" alt="Wonder Churros"><div class="hb"><b style="align-self:center">${isOwner()?'Pronar':esc(ST.name||'Staf')}${db.role&&db.role.t==='manager'?' · Menaxher':''}</b><button data-a="st_out"><span>⎋</span>Dil</button></div>`;
+ const tabs=adm?[['dash','Paneli'],['pos','Arka'],['sales','Shitjet'],['stock','Stoku'],['arka','Pikë'],['kl','Klientët'],['promo','Ofertat'],['staf','Stafi'],['qr','QR']]:[['pos','Arka']];
+ if(!tabs.some(t=>t[0]===st.tab))st.tab='pos';$('main').classList.toggle('wide',st.tab==='pos'||st.tab==='sales'||st.tab==='dash'||st.tab==='stock');
  let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${st.tab===k?'on':''}" data-a="st_tab" data-v="${k}">${l}</button>`).join('')}</div>`;
  if(st.msg)h+=`<div class="card ${st.bad?'':'good'} ${st.last&&!st.bad&&st.tab==='arka'?'row':''}" ${st.bad?'style="color:#b3261e"':''}><span>${esc(st.msg)}</span>${st.last&&!st.bad&&st.tab==='arka'?'<button class="btn ghost sm" data-a="st_undo">Anulo</button>':''}</div>`;
- h+=({pos:stPos,sales:stSales,dash:stDash,arka:stArka,kl:stKl,promo:stPromo,staf:stStaf,qr:stQR})[st.tab]();
+ h+=({stock:stStock,pos:stPos,sales:stSales,dash:stDash,arka:stArka,kl:stKl,promo:stPromo,staf:stStaf,qr:stQR})[st.tab]();
  $('main').innerHTML=h}
 async function loadTab(){try{
  if(st.tab==='dash'){st.dash=await api('dashboard',{token:ST.tok});st.dashAt=new Date()}
  else if(st.tab==='kl')st.kl=await api('customers',{token:ST.tok,q:st.klq});
+ else if(st.tab==='stock')st.stock=await api('stock',{token:ST.tok});
  else if(st.tab==='sales')st.sales=await api('sales',{token:ST.tok,day:st.sday||null});
  else if(st.tab==='promo')st.promos=await api('promos',{token:ST.tok});
  else if(st.tab==='staf')st.staff=await api('staffList',{token:ST.tok});
@@ -716,7 +760,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   if(st.hasAdmin===false){if(pin!==val('sp2')){er('PIN-et nuk përputhen.');return}r=await run('setupAdmin',{code:val('scode'),pin})}
   else{const un=val('su');if(!un){er('Shkruaj përdoruesin.');return}r=await run('staffLogin',{name:un,pin})}
   ST={tok:r.token,role:r.role,name:r.name};LS.set('wc_stok',r.token);db.role={t:r.role};
-  st={...st,tab:r.role==='admin'?'dash':'pos',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}
+  st={...st,tab:r.role==='staff'?'pos':'dash',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}
  else if(a==='st_out'){stopScan();const t=ST.tok;ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null;st={...st,found:null,msg:'',last:null,dash:null,kl:null};clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
  else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render();loadTab();scrollTo(0,0)}
  else if(a==='st_find'){const q=val('sq');if(!q)return;if(/^WONDER(-P|-G)?:/i.test(q)){onScan(q);return}st.q=q;
@@ -750,7 +794,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  else if(a==='st_addstaff'){const n=val('sn1'),pin=val('sp1');
   if(!n||n.toLowerCase()==='admin'){say('Shkruaj një emër të vlefshëm (jo "admin").',true);return}
   if(!/^\d{4,6}$/.test(pin)){say('PIN-i duhet të ketë 4 deri në 6 shifra.',true);return}
-  st.staff=await run('addStaff',{token:ST.tok,name:n,pin});say(`Stafi "${n}" u regjistrua. Hyrja: ${n} + PIN-i i zgjedhur.`)}
+  const role=isOwner()&&st.nrole==='manager'?'manager':'staff';st.staff=await run('addStaff',{token:ST.tok,name:n,pin,role});say(`${role==='manager'?'Menaxheri':'Stafi'} "${n}" u shtua. Hyrja: ${n} + PIN-i i zgjedhur.`)}
  else if(a==='st_del'){st.staff=await run('delStaff',{token:ST.tok,id:v});say('Stafi u fshi.')}
  else if(a==='st_pcat'){POS.cat=v;posRefresh('grid');const g=document.querySelector('.pcats');if(g)g.querySelectorAll('.chp').forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
  else if(a==='st_padd1'){posAdd(+v,1);posRefresh()}
@@ -773,8 +817,22 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  else if(a==='st_fiscal'){const s=await run('saleFiscal',{token:ST.tok,id:+v,no:val('fno')});toast('U shënua: e regjistruar në arkën fiskale.');saleSheet(s,false);if(st.tab==='sales'){st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}}
  else if(a==='st_svoid'){if(!confirm('Ta anulojmë këtë shitje? Pikët e klientit hiqen dhe dhuratat/zbritjet e përdorura rikthehen.'))return;const s=await run('saleVoid',{token:ST.tok,id:+v});toast('Shitja u anulua.');saleSheet(s,false);st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}
  else if(a==='st_sale'){const s=((st.sales&&st.sales.list)||[]).find(x=>x.id==v)||(st.lastSale&&st.lastSale.id==v?st.lastSale:null);if(s)saleSheet(s,false)}
+ else if(a==='st_nrole'){st.nrole=v;render()}
+ else if(a==='st_sitem'){st.skind='in';stockSheet(v)}
+ else if(a==='st_skind'){st.skind=v;stockSheet(b.dataset.i)}
+ else if(a==='st_sadd'){const n=val('si_n'),m=num(val('si_m'));const e=$('sie');if(!n){e.textContent='Shkruaj emrin.';return}if(m!=null&&!(m>=0)){e.textContent='Minimumi duhet të jetë numër.';return}
+  st.stock=await run('stockSave',{token:ST.tok,id:null,name:n,unit:$('si_u').value,min:m||0});render();toast('Artikulli u shtua. Hape për të shënuar sasinë që ke.')}
+ else if(a==='st_smove'){const q=num(val('sm_q')),e=$('sse');if(q==null||!(q>=0)||(st.skind!=='count'&&q===0)){e.textContent='Shkruaj sasinë.';return}
+  st.stock=await run('stockMove',{token:ST.tok,item:+v,kind:st.skind,qty:q,note:val('sm_n')});closeS();render();toast(st.skind==='in'?'Hyrja u regjistrua.':st.skind==='out'?'Dalja u regjistrua.':'Numërimi u ruajt.')}
+ else if(a==='st_sedit'){const m=num(val('se_m'));if(m==null||!(m>=0)){$('sse').textContent='Minimumi duhet të jetë numër.';return}
+  st.stock=await run('stockSave',{token:ST.tok,id:+v,name:val('se_n'),unit:$('se_u').value,min:m});stockSheet(v);render();toast('U ruajt.')}
+ else if(a==='st_sdel'){if(!confirm('Ta fshijmë këtë artikull? Hiqet edhe nga recetat.'))return;st.stock=await run('stockDel',{token:ST.tok,id:+v});closeS();render()}
+ else if(a==='st_recipe'){recipeSheet(v)}
+ else if(a==='st_rsave'){const items=[];let bad=false;document.querySelectorAll('.rq').forEach(x=>{const q=num(x.value);if(q==null)return;if(!(q>=0)){bad=true;return}if(q>0)items.push({item:+x.dataset.i,q})});
+  if(bad){$('sse').textContent='Sasitë duhet të jenë numra.';return}
+  st.stock=await run('recipeSet',{token:ST.tok,product:+v,items});closeS();render();toast('Receta u ruajt.')}
  else if(a==='st_cpin'){const o=val('op'),n=val('np');if(!/^\d{4,6}$/.test(n)){say('PIN-i i ri duhet të ketë 4 deri në 6 shifra.',true);return}await run('changePin',{token:ST.tok,old:o,pin:n});say('PIN-i yt u ndryshua.')}
- }catch(x){if(a==='st_psell'){const e=$('pse');if(e)e.textContent=errText(x)}else if(a==='st_fiscal'||a==='st_svoid'){const e=$('sse');if(e)e.textContent=errText(x)}else if(a==='st_login')er(errText(x));else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
+ }catch(x){if(x&&x.message==='EXISTS')x=new Error('NAMEEXISTS');if(a==='st_psell'){const e=$('pse');if(e)e.textContent=errText(x)}else if(['st_fiscal','st_svoid','st_smove','st_sedit','st_rsave'].includes(a)){const e=$('sse');if(e)e.textContent=errText(x)}else if(a==='st_login')er(errText(x));else if(a==='st_sadd'){const e=$('sie');if(e)e.textContent=errText(x)}else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
 
 // ================= TILL (POS) =================
 // One sale at a time: cart of products, optional customer, discount codes scanned from the customer's phone, payment.
@@ -921,7 +979,7 @@ document.addEventListener('scroll',e=>{const s=e.target;if(s&&s.id==='mcar')fx(s
 (async()=>{
  if(STAFF_APP){
   if(ST.tok){$('auth').innerHTML=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Duke u lidhur…</p>`;
-   try{const r=await api('staffMe',{token:ST.tok});ST.role=r.role;ST.name=r.name;db.role={t:r.role};st.hasAdmin=true;st.tab=r.role==='admin'?'dash':'arka';render();loadTab();startPoll();return}catch(e){}}
+   try{const r=await api('staffMe',{token:ST.tok});ST.role=r.role;ST.name=r.name;db.role={t:r.role};st.hasAdmin=true;st.tab=r.role==='staff'?'pos':'dash';render();loadTab();startPoll();return}catch(e){}}
   try{st.hasAdmin=(await api('hasAdmin')).admin}catch(e){st.hasAdmin=true;render();const x=$('ae');if(x)x.textContent=errText(e);return}
   render();return}
  if(S.tok){$('auth').innerHTML=`<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><p class="sm">Duke hapur kuletën…</p>`;

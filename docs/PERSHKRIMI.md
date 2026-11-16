@@ -44,6 +44,14 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | Profili ("Llogaria ime") | Kartelë personale: inicialet, emri, mbiemri, "Anëtar që nga", email-i, telefoni (nëse ka), ID-ja, data e lindjes. "Ndrysho të dhënat": telefoni (opsional, i validuar) dhe data e lindjes (vendoset vetëm një herë). Ruhen në server. "Si funksionon Wonder Club?", dalja. |
 
 ### Dyqani (`/admin`)
+
+**Tre lloje përdoruesish:**
+| Roli | Kush | Qasja |
+|---|---|---|
+| **Pronar** (`admin`) | krijohet një herë me `SETUP_CODE` | gjithçka; vetëm ai shton dhe fshin menaxherë |
+| **Menaxher** (`manager`) | e shton pronari | gjithçka (paneli, shitjet, anulimi, **stoku**, klientët, ofertat, QR), shton dhe fshin staf |
+| **Staf** (`staff`) | e shton pronari ose menaxheri | **vetëm Arka**: shitja, klienti, dhuratat, pagesa, kuponi (printimi) dhe shënimi fiskal. Nuk sheh listën e shitjeve, nuk anulon, nuk ka qasje te stoku apo klientët. Kufizimi zbatohet edhe në server. |
+
 | Skeda | Kush | Çfarë bën |
 |---|---|---|
 | Paneli | admin | **Dashboard live** (rifreskohet çdo 4 sekonda): shitje sot (€, numri, cash dhe kartë), paralajmërim kur ka shitje pa u shënuar në arkën fiskale, shitje këtë muaj, klientë (+ të rinj këtë javë), klientë aktivë 30 ditë, dhurata të përdorura / të hapura, pikë në kuleta. Grafiku i shitjeve 14 ditë, produktet më të shitura 30 ditë, stafi sot, aktiviteti i fundit (klikohet dhe hap klientin). |
@@ -53,7 +61,8 @@ Kërkesa kryesore e pronarit: *të dhënat e të gjithë klientëve të ruhen n�
 | QR e produkteve | admin | Rezervë: QR për çdo produkt me çmim (29, 1 copë për skanim), sipas kategorive, me buton printimi (4 kode për rresht në A4). |
 | Klientët | admin | Të gjithë klientët, me kërkim (emër, email, telefon, ID): pikë, blerje, shpenzuar, vizita e fundit. Klikimi hap detajet: të dhënat, pikët sipas produktit, dhuratat, **dhuratat/zbritjet e shfrytëzuara (kur dhe nga kush)**, historiku; **jep dhuratë** dhe **vendos PIN të ri**. |
 | Ofertat | admin | Krijon **zbritje (%)**, **zbritje (€)** ose **dhuratë**, me titull, përshkrim dhe data. **Kujt i dërgohet:** *Të gjithë klientët* ose *Klientë të zgjedhur*. Zgjedhësi ka kërkim, shenja për zgjedhje, "Zgjidh të gjitha" dhe çipat e të zgjedhurve. Klientët e zgjedhur e shohin te Kuleta me shenjën "Vetëm për ty"; të tjerët nuk e shohin dhe nuk mund ta aktivizojnë. Nga kartela e një klienti: "Dërgo ofertë, zbritje ose dhuratë këtij klienti". Te lista shfaqet kujt i është dërguar dhe sa herë është shfrytëzuar. Mund të hiqen. |
-| Stafi | admin | Shton dhe fshin staf (emër + PIN 4–6 shifra). Ndryshon PIN-in e vet. |
+| **Stoku** | menaxher + pronar | Artikujt e stokut (emri, njësia copë/kg/g/l/ml/pako, sasia, minimumi). Për çdo artikull: **Hyrje** (malli që erdhi), **Dalje / humbje**, **Numërim** (vendos sasinë reale), me shënim. **Recetat:** sa harxhon 1 copë e çdo produkti nga secili artikull; çdo shitje e zbret stokun vetë dhe anulimi e rikthen. Artikujt nën minimum dalin të parët, me ngjyrë, dhe paneli paralajmëron. Lëvizjet e fundit (kush, kur, shitja). Shitja nuk bllokohet kurrë nga stoku. |
+| Stafi | menaxher + pronar | Shton dhe fshin përdorues (emër + PIN 4–6 shifra), me rolin Staf ose Menaxher (Menaxher: vetëm pronari). Ndryshon PIN-in e vet. Fshirja mbyll menjëherë seancat e atij përdoruesi. |
 
 - **Hyrja e stafit:** admini i parë krijohet një herë të vetme te `/admin` me **kodin e konfigurimit** (variabla `SETUP_CODE` në Vercel). Më pas hyhet me përdoruesin `admin` ose me emrin e stafit, plus PIN-in. Seanca e stafit zgjat 14 orë. Të gjitha PIN-et ruhen me bcrypt. Pas 5 PIN-eve të gabuara llogaria bllokohet 15 minuta.
 - **Skaneri:** përdor `BarcodeDetector` aty ku e mbështet shfletuesi, përndryshe `jsQR` (`/js/jsqr.js`). Fusha e kërkimit pranon Enter, prandaj punon edhe me skaner USB ose Bluetooth.
@@ -148,7 +157,8 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 | `me`, `setPhone`, `setBday`, `claimBday`, `activateOffer`, `redeem` | klienti | kuleta dhe profili |
 | `hasAdmin`, `setupAdmin` | — | krijimi i adminit të parë (me `SETUP_CODE`) |
 | `codePeek`, `saleCreate`, `sales`, `saleFiscal` | stafi | arka: shiko kodin pa e përdorur, krijo shitjen (çmimet dhe zbritjet llogariten në server, kodet shfrytëzohen në të njëjtin transaksion), shitjet e ditës, shënimi fiskal |
-| `saleVoid` | admini | anulon shitjen |
+| `saleVoid` | menaxher + pronar | anulon shitjen dhe rikthen stokun |
+| `stock`, `stockSave`, `stockMove`, `stockDel`, `recipeSet` | menaxher + pronar | stoku dhe recetat |
 | `promoActivate` | klienti | krijon kodin e tij për një promocion |
 | `staffLogin`, `staffMe`, `find`, `card`, `addPurchase`, `undoOrder`, `redeemCode`, `useVoucher`, `validateOffer`, `changePin` | stafi | arka (`redeemCode` shfrytëzon një dhuratë/zbritje nga QR-ja) |
 | `dashboard`, `customers`, `customer`, `resetPin`, `giveGift`, `promos`, `promoAdd`, `promoDel`, `staffList`, `addStaff`, `delStaff` | admini | paneli |
@@ -156,7 +166,7 @@ Një produkt i ri mund të shtohet pa çmim (`p:null`): shfaqet në meny me "Së
 Përgjigjja: `{data}` ose `{error:"KODI"}` (p.sh. `PIN`, `LOCKED`, `SESSION`, `FORBIDDEN`). Pikët llogariten **vetëm në server**, nga çmimet në tabelën `churros.products`. Kur ndryshon një çmim, ndryshohet te `MENU` në `index.html` dhe te `db/schema.sql`, dhe rritet `SCHEMA_VERSION` në `api/rpc.js`.
 
 ### Tabelat (`churros.*`)
-`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat, me `code`), `offers` (me `code`), `orders` (çdo blerje, me stafin dhe anulimin), `promos` (`kind` pct/eur/gift, `amount`, `audience` all/some), `promo_targets` (klientët e zgjedhur), `promo_uses` (kush e shfrytëzoi cilin promocion, kur dhe nga cili staf), `sales` (shitjet: nëntotali, zbritja, totali, pagesa, kusuri, statusi fiskal `pending/done/failed`, numri fiskal, anulimi), `sale_items`, `sale_discounts`, `meta` (versioni i skemës). Pamjet `tickets` dhe `lines` bashkojnë shitjet e arkës me skanimet e vjetra vetëm-pikë për panelin. Çdo shfrytëzim ruan `used_at` dhe `used_by`, që të figurojë te admini.
+`products`, `customers` (email, emri, telefoni, PIN bcrypt, ditëlindja), `staff`, `sessions` (token-ët si SHA-256), `points` (pikët për klient × produkt), `vouchers` (dhuratat, me `code`), `offers` (me `code`), `orders` (çdo blerje, me stafin dhe anulimin), `promos` (`kind` pct/eur/gift, `amount`, `audience` all/some), `promo_targets` (klientët e zgjedhur), `promo_uses` (kush e shfrytëzoi cilin promocion, kur dhe nga cili staf), `sales` (shitjet: nëntotali, zbritja, totali, pagesa, kusuri, statusi fiskal `pending/done/failed`, numri fiskal, anulimi), `sale_items`, `sale_discounts`, `stock_items` (artikujt, sasia, minimumi), `stock_moves` (çdo lëvizje: hyrje, dalje, numërim, shitje, anulim, me sasinë pas saj), `recipes` (produkt × artikull × sasi), `meta` (versioni i skemës). Pamjet `tickets` dhe `lines` bashkojnë shitjet e arkës me skanimet e vjetra vetëm-pikë për panelin. Çdo shfrytëzim ruan `used_at` dhe `used_by`, që të figurojë te admini.
 
 ### Variablat në Vercel
 - `DATABASE_URL`: lidhja me Neon (pooled), e fshehtë.
@@ -226,4 +236,5 @@ Të gjitha kaluan, pa gabime JavaScript. **Skanimi me telefon të vërtetë duhe
 - **Lidhja klient–admin (16.11)** u testua me PostgreSQL 16 lokal dhe dy shfletues (telefon + tablet): regjistrimi, konfigurimi i adminit, skanimi me kamerë (klient + 3 copë), pikët live te klienti me njoftim, oferta live te stafi, dhuratat, anulimi, promocionet live, stafi, paneli, kërkimi i klientëve, dhurata nga admini, ndryshimi i PIN-it, rifreskimet. Plus 35 kontrolle direkte të API-së.
 - **QR-të e dhuratave (16.11):** dhurata, promocioni dhe oferta aktivizohen te klienti, skanohen nga stafi (kamerë dhe kod i shtypur), shfrytëzohen një herë, telefoni i klientit kalon live në "U shfrytëzua!", dhe admini i sheh te detajet e klientit dhe te promocionet.
 - **Arka (16.11):** 14 kontrolle API (shitje pa klient, para të pamjaftueshme, shportë bosh, 3 zbritje njëherësh, pikët mbi shumën e paguar, kod i përdorur, fiskal, anulim, të drejtat) dhe 19 kontrolle në shfletues në PC (1366 px) dhe telefon: produktet, kategoritë, skaneri USB (produkt me sasi, klient, dhuratë), kusuri, F9, kuponi, shënimi fiskal, shitje me kartë, lista e ditës, anulimi, paneli.
+- **Rolet dhe stoku (16.11):** 28 kontrolle API (pronar/menaxher/staf, ndalimet në server, fshirja, stoku, recetat, zbritja nga shitja dhe rikthimi nga anulimi) dhe 12 kontrolle në shfletues (pronari shton menaxher, menaxheri shton staf dhe artikuj, receta, stafi sheh vetëm Arkën dhe shet, stoku zbret).
 - **Propozimi SQL** u testua në PostgreSQL 16 lokal: regjistrimi, hyrja, PIN-i i gabuar, blerja, produkti falas, oferta, validimi, ndalimi i stafit te funksionet e adminit, dhe ndalimi i qasjes direkte në tabela.

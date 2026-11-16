@@ -168,7 +168,7 @@ begin
   end loop;
   -- the sauce flavours the customer picked: one piece each from 'Soser <flavour>'
   for x in select si.id item_id, count(*) q from churros.sale_items i cross join lateral unnest(i.sauces) f
-           join churros.stock_items si on si.active and lower(si.name) = lower('Soser ' || f) where i.sale_id = p_sale group by si.id loop
+           join churros.stock_items si on si.active and lower(si.name) in (lower('Dip ' || f), lower('Soser ' || f)) where i.sale_id = p_sale group by si.id loop
     update churros.stock_items set qty = qty + p_sign * x.q where id = x.item_id;
     insert into churros.stock_moves(item_id,kind,delta,qty_after,sale_id,staff_id)
       select x.item_id, case when p_sign < 0 then 'sale' else 'void' end, p_sign * x.q, qty, p_sale, p_staff from churros.stock_items where id = x.item_id;
@@ -853,7 +853,7 @@ create or replace function public.wc_stock(p_token text) returns json language p
 declare s churros.staff := churros.staff_of(p_token, true);
 begin
   return json_build_object(
-    'items', coalesce((select json_agg(json_build_object('id',i.id,'name',i.name,'unit',i.unit,'sauce',i.name ilike 'Soser %' and churros.sauce_ok(substr(i.name,7)),'qty',i.qty,'min',i.min_qty,'low',i.qty <= i.min_qty,
+    'items', coalesce((select json_agg(json_build_object('id',i.id,'name',i.name,'unit',i.unit,'sauce',(i.name ilike 'Dip %' and churros.sauce_ok(substr(i.name,5))) or (i.name ilike 'Soser %' and churros.sauce_ok(substr(i.name,7))),'qty',i.qty,'min',i.min_qty,'low',i.qty <= i.min_qty,
         'uses', coalesce((select json_agg(json_build_object('p',p.name,'q',r.qty) order by p.name) from churros.recipes r join churros.products p on p.id=r.product_id where r.item_id=i.id), '[]'::json))
       order by (i.qty <= i.min_qty) desc, i.name) from churros.stock_items i where i.active), '[]'::json),
     'products', coalesce((select json_agg(json_build_object('id',p.id,'name',p.name,'sauces',p.sauces,
@@ -993,4 +993,16 @@ begin
   insert into churros.meta(k, v) values ('stock_v14', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','14') on conflict (k) do update set v = excluded.v;
+-- v15: "sos" means dip: the flavour stock items are named 'Dip <flavour>'. Once per database.
+do $$
+begin
+  if exists (select 1 from churros.meta where k = 'stock_v15') then return; end if;
+  update churros.stock_items si set name = 'Dip ' || substr(si.name, 7)
+   where si.active and si.name ilike 'Soser %' and churros.sauce_ok(substr(si.name, 7))
+     and not exists (select 1 from churros.stock_items x where x.active and lower(x.name) = lower('Dip ' || substr(si.name, 7)));
+  update churros.stock_items set name = 'Kutia e dip-eve' where active and lower(name) = 'kutia e soserave'
+     and not exists (select 1 from churros.stock_items x where x.active and lower(x.name) = 'kutia e dip-eve');
+  insert into churros.meta(k, v) values ('stock_v15', '1');
+end $$;
+
+insert into churros.meta(k,v) values ('version','15') on conflict (k) do update set v = excluded.v;

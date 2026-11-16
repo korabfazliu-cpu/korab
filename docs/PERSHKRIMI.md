@@ -7,6 +7,18 @@
 
 ---
 
+## 0. Publikimi në cloud, shkurt
+
+1. **Kodi:** hapni zip-in (ose degën `backend` në GitHub). Nuk ka hap build-i: `index.html` + `api/rpc.js` (Node 18+) + `db/schema.sql`.
+2. **Baza:** krijoni një bazë **PostgreSQL** (p.sh. Neon, falas). Mos përdorni projektin Supabase `038-parking`.
+3. **Hostimi:** Vercel (ose çdo host që shërben faqe statike + një funksion Node). Te Vercel: *Import* projektin, pa Framework, pa Build Command.
+4. **Variablat:** `DATABASE_URL` (lidhja *pooled* e bazës, Sensitive) dhe `SETUP_CODE` (një kod i fshehtë për adminin e parë).
+5. **Hapi i parë:** hapni `/admin`, futni `SETUP_CODE` dhe zgjidhni PIN-in e adminit. Tabelat krijohen vetë në kërkesën e parë. Klientët përdorin `/`.
+
+Për App Store dhe Google Play, shih seksionin 8, Faza 3.
+
+---
+
 ## 1. Qëllimi
 
 Program besnikërie për dyqanin **Wonder Churros**, me dy aplikacione:

@@ -894,4 +894,36 @@ begin
   return public.wc_stock(p_token);
 end $$;
 
-insert into churros.meta(k,v) values ('version','10') on conflict (k) do update set v = excluded.v;
+-- Which products use one stock item, and how much per piece sold. p_items: [{"product":1,"q":5}, ...]; empty clears it.
+create or replace function public.wc_recipe_item_set(p_token text, p_item bigint, p_items json) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); x record;
+begin
+  if not exists (select 1 from churros.stock_items where id=p_item and active) then raise exception 'INPUT' using errcode='P0001'; end if;
+  delete from churros.recipes where item_id=p_item;
+  for x in select (e->>'product')::int pid, (e->>'q')::numeric q from json_array_elements(coalesce(p_items,'[]'::json)) e loop
+    if x.q is null or x.q <= 0 then continue; end if;
+    if x.q > 10000 or not exists (select 1 from churros.products where id=x.pid) then raise exception 'INPUT' using errcode='P0001'; end if;
+    insert into churros.recipes(product_id,item_id,qty) values (x.pid,p_item,x.q);
+  end loop;
+  return public.wc_stock(p_token);
+end $$;
+
+-- v11: churros are counted in pieces. Three stock items, linked once to the products by the pieces in each (from the menu).
+-- Runs only while the item does not exist yet, so changes made in the app are never overwritten.
+do $$
+declare it bigint; r record;
+begin
+  for r in select * from (values
+      ('Churros', '[[1,5],[2,10],[6,10],[3,5]]'),
+      ('Mini churros', '[[6,15],[7,40],[4,15],[5,20]]'),
+      ('Uno churros', '[[21,1],[22,1],[23,1],[24,1],[25,1],[26,1],[39,6]]')) v(n, links) loop
+    if not exists (select 1 from churros.stock_items where active and lower(name) = lower(r.n)) then
+      insert into churros.stock_items(name, unit, min_qty) values (r.n, 'copë', 50) returning id into it;
+      insert into churros.recipes(product_id, item_id, qty)
+        select (l->>0)::int, it, (l->>1)::numeric from json_array_elements(r.links::json) l
+        where exists (select 1 from churros.products where id = (l->>0)::int) on conflict do nothing;
+    end if;
+  end loop;
+end $$;
+
+insert into churros.meta(k,v) values ('version','11') on conflict (k) do update set v = excluded.v;

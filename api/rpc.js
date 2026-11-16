@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '10';
+const SCHEMA_VERSION = '11';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -59,6 +59,7 @@ const FN = {
   stockSave:     ['wc_stock_save',    ['token', 'id', 'name', 'unit', 'min'], ['text', 'bigint', 'text', 'text', 'numeric']],
   stockMove:     ['wc_stock_move',    ['token', 'item', 'kind', 'qty', 'note'], ['text', 'bigint', 'text', 'numeric', 'text']],
   stockDel:      ['wc_stock_del',     ['token', 'id'], ['text', 'bigint']],
+  recipeItemSet: ['wc_recipe_item_set', ['token', 'item', 'items'], ['text', 'bigint', 'json']],
   recipeSet:     ['wc_recipe_set',    ['token', 'product', 'items'], ['text', 'int', 'json']],
   delStaff:      ['wc_del_staff',     ['token', 'id'], ['text', 'uuid']],
 };

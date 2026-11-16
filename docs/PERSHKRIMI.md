@@ -205,7 +205,7 @@ Fushat `fiscal_status`, `fiscal_no`, `fiscal_at`, `fiscal_error` janë gati për
 - **Bazë të dhënash e veçantë vetëm për Wonder Churros.** ⚠️ **Mos përdorni projektin Supabase `038-parking`.** Pronari ka kërkuar shprehimisht që ai të mos preket.
 - Baza: Neon Postgres (falas), skema `churros` te `db/schema.sql`, API te `api/rpc.js`. Rregullat e seksionit 3 zbatohen në server.
 - Hyrja e klientit: email + PIN. Admini i parë: me `SETUP_CODE`. Rifreskimi live: polling çdo 4 s.
-- **Mbetet:** të vendoset `DATABASE_URL` në Vercel dhe dega `backend` të bashkohet me `main`.
+- ✅ **Live që më 16.11.2026:** baza Neon `wonder-churros-db` (Free, Frankfurt) është lidhur përmes Vercel Storage, që vendos vetë `DATABASE_URL`; dega `backend` u bashkua me `main`.
 
 ### Faza 2: përmirësime
 - Admini: eksport CSV i klientëve dhe i blerjeve.
@@ -219,7 +219,7 @@ Fushat `fiscal_status`, `fiscal_no`, `fiscal_at`, `fiscal_error` janë gati për
 ---
 
 ## 9. Publikimi i tanishëm
-- **GitHub:** `korabfazliu-cpu/korab`. Dega `main` është versioni i vjetër, pa server, që është live tani. Dega **`backend`** ka versionin me bazë të dhënash dhe dashboard, dhe bashkohet me `main` sapo të vendoset `DATABASE_URL`.
+- **GitHub:** `korabfazliu-cpu/korab`. Dega **`main`** është versioni live, me bazë të dhënash. Dega `backend` përdoret për zhvillim dhe bashkohet me `main` kur një ndryshim është gati.
 - **Vercel:** projekti `wonder-churros`. Çdo push në `main` publikohet automatikisht te https://wonder-churros.vercel.app.
 - Nuk ka hap build-i: faqe statike + një Vercel Function (`api/rpc.js`).
 - **Testimi lokal:** `npx vercel dev` me `DATABASE_URL` dhe `SETUP_CODE` në `.env`. Mund të përdoret edhe një PostgreSQL lokal: skema krijohet vetë në kërkesën e parë.

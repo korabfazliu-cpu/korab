@@ -166,6 +166,13 @@ begin
     insert into churros.stock_moves(item_id,kind,delta,qty_after,sale_id,staff_id)
       select x.item_id, case when p_sign < 0 then 'sale' else 'void' end, p_sign * x.q, qty, p_sale, p_staff from churros.stock_items where id = x.item_id;
   end loop;
+  -- the sauce flavours the customer picked: one piece each from 'Soser <flavour>'
+  for x in select si.id item_id, count(*) q from churros.sale_items i cross join lateral unnest(i.sauces) f
+           join churros.stock_items si on si.active and lower(si.name) = lower('Soser ' || f) where i.sale_id = p_sale group by si.id loop
+    update churros.stock_items set qty = qty + p_sign * x.q where id = x.item_id;
+    insert into churros.stock_moves(item_id,kind,delta,qty_after,sale_id,staff_id)
+      select x.item_id, case when p_sign < 0 then 'sale' else 'void' end, p_sign * x.q, qty, p_sale, p_staff from churros.stock_items where id = x.item_id;
+  end loop;
 end $$;
 
 create or replace function churros.ptitle(p_kind text, p_pct int, p_amount numeric, p_title text) returns text language sql immutable as
@@ -183,8 +190,14 @@ insert into churros.products(id,name,price) values
 (21,'Uno Lotus',1.8),(22,'Uno Blueberry',1.8),(23,'Uno Raspberry',1.8),(24,'Uno Pistachio',1.8),(25,'Uno Bueno',1.8),(26,'Uno Caramel',1.8),
 (4,'Mini Churros Cup',2.5),(5,'Wonder Bites',3.5),(39,'Uno Party Box',12),(40,'Party Box Mini & Uno',12),(41,'Kids Box',3.99),
 (7,'Summer Box',13),(27,'Flavoured Latte',2),(28,'Americano',1.5),(29,'Espresso',1),(30,'Macchiato',1.5),(31,'Hot Choco',1.5),
-(32,'Dip Raspberry',0.5),(33,'Dip Blueberry',0.5),(34,'Dip Hazelnut',0.5),(35,'Dip Vanilla',0.5),(36,'Dip Nutella',0.5),(37,'Dip Caramel',0.5),(38,'Dip Pistachio',0.5)
+(32,'Dip Raspberry',0.5),(33,'Dip Blueberry',0.5),(34,'Dip Hazelnut',0.5),(35,'Dip Vanilla',0.5),(36,'Dip Nutella',0.5),(37,'Dip Caramel',0.5),(38,'Dip Pistachio',0.5),(42,'Dip Lotus',0.5),(43,'Dip White Choco',0.5)
 on conflict (id) do update set name = excluded.name, price = excluded.price;
+-- v13: how many sauces the customer picks with each product (the till asks for the flavours).
+alter table churros.products add column if not exists sauces int not null default 0;
+update churros.products set sauces = case id when 1 then 1 when 2 then 2 when 6 then 4 when 39 then 4 when 40 then 4 when 7 then 4 else 0 end;
+alter table churros.sale_items add column if not exists sauces text[];
+create or replace function churros.sauce_ok(f text) returns boolean language sql immutable as $$
+  select f in ('Caramel','Blueberry','Nutella','Lotus','Raspberry','Pistachio','Hazelnut','White Choco') $$;
 
 -- ---------------------------------------------------------------- helpers
 create or replace function churros.today() returns date language sql stable as
@@ -256,7 +269,7 @@ create or replace function churros.sale_json(p_id bigint) returns json language 
   select json_build_object('id', s.id, 'no', 'S-'||lpad(s.id::text, 6, '0'),
     'd', to_char(s.created_at at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI'),
     'staff', st.name, 'customer', case when c.id is null then null else json_build_object('id',c.id,'name',c.name||' '||c.surname,'mid',c.mid) end,
-    'items', coalesce((select json_agg(json_build_object('id',i.product_id,'n',i.name,'p',i.price,'q',i.qty,'t',i.line_total) order by i.id) from churros.sale_items i where i.sale_id = s.id), '[]'::json),
+    'items', coalesce((select json_agg(json_build_object('id',i.product_id,'s',i.sauces,'n',i.name,'p',i.price,'q',i.qty,'t',i.line_total) order by i.id) from churros.sale_items i where i.sale_id = s.id), '[]'::json),
     'discounts', coalesce((select json_agg(json_build_object('n',x.title,'a',x.amount) order by x.id) from churros.sale_discounts x where x.sale_id = s.id), '[]'::json),
     'subtotal', s.subtotal, 'discount', s.discount, 'total', s.total, 'pay', s.pay, 'cash', s.cash_given, 'change', s.change_due,
     'points', (select coalesce(sum(o.pts),0) from churros.orders o where o.sale_id = s.id),
@@ -536,10 +549,14 @@ begin
   if json_array_length(p_items) > 60 or json_array_length(coalesce(p_codes,'[]'::json)) > 10 then raise exception 'INPUT' using errcode='P0001'; end if;
   if cust is not null and not exists (select 1 from churros.customers where id = cust) then raise exception 'NOTFOUND' using errcode='P0001'; end if;
   insert into churros.sales(staff_id, customer_id, subtotal, discount, total, pay) values (s.id, cust, 0, 0, 0, p_pay) returning id into sid;
-  for it in select (x->>'id')::int pid, (x->>'qty')::int q from json_array_elements(p_items) x loop
+  for it in select (x->>'id')::int pid, (x->>'qty')::int q,
+      case when json_typeof(x->'sauces') = 'array' then array(select json_array_elements_text(x->'sauces')) end sc from json_array_elements(p_items) x loop
     select * into r from churros.products where id = it.pid and active and price is not null;
     if r.id is null or it.q is null or it.q < 1 or it.q > 100 then raise exception 'INPUT' using errcode='P0001'; end if;
-    insert into churros.sale_items(sale_id, product_id, name, price, qty, line_total) values (sid, r.id, r.name, r.price, it.q, round(r.price*it.q,2));
+    if r.sauces > 0 then
+      if coalesce(cardinality(it.sc),0) <> it.q * r.sauces or exists (select 1 from unnest(it.sc) f where not churros.sauce_ok(f)) then raise exception 'SAUCES' using errcode='P0001'; end if;
+    elsif coalesce(cardinality(it.sc),0) > 0 then raise exception 'INPUT' using errcode='P0001'; end if;
+    insert into churros.sale_items(sale_id, product_id, name, price, qty, line_total, sauces) values (sid, r.id, r.name, r.price, it.q, round(r.price*it.q,2), case when r.sauces > 0 then it.sc end);
     sub := sub + round(r.price*it.q,2);
   end loop;
   for cd in select trim(x->>'code') code, nullif(x->>'amount','')::numeric camt from json_array_elements(coalesce(p_codes,'[]'::json)) x loop
@@ -678,7 +695,7 @@ begin
       'products', coalesce((select json_agg(json_build_object('id', product_id, 'q', qq, 's', amt)) from (select product_id, sum(qty) qq, sum(line_total) amt from churros.lines where (created_at at time zone 'Europe/Belgrade')::date = d group by product_id) z), '[]'::json),
       'feed', coalesce((select json_agg(f) from (select json_build_object('id', k.id, 'src', k.src, 't', to_char(k.created_at at time zone 'Europe/Belgrade','HH24:MI'), 'total', k.total, 'pay', k.pay,
             'by', st.name, 'c', case when c.id is null then null else c.name||' '||left(c.surname,1)||'.' end, 'cid', k.customer_id,
-            'n', case when k.src='S' then (select string_agg(i.qty||' × '||i.name, ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
+            'n', case when k.src='S' then (select string_agg(i.qty||' × '||i.name||coalesce(' ('||array_to_string(i.sauces,', ')||')',''), ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
                       else (select o.qty||' × '||p.name from churros.orders o join churros.products p on p.id=o.product_id where o.id=k.id) end,
             'fiscal', case when k.src='S' then (select fiscal_status from churros.sales where id=k.id) end,
             'disc', case when k.src='S' then (select discount from churros.sales where id=k.id) end) f
@@ -694,7 +711,7 @@ begin
             group by p.name order by sum(l.qty) desc limit 6) z), '[]'::json),
    'recent', coalesce((select json_agg(r) from (select json_build_object('id',k.id,'src',k.src,'cid',k.customer_id,
               'c',coalesce(c.name||' '||c.surname,'Klient pa llogari'),
-              'n',case when k.src='S' then (select string_agg(i.qty||' × '||i.name, ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
+              'n',case when k.src='S' then (select string_agg(i.qty||' × '||i.name||coalesce(' ('||array_to_string(i.sauces,', ')||')',''), ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
                        else (select o.qty||' × '||p.name from churros.orders o join churros.products p on p.id=o.product_id where o.id=k.id) end,
               'total',k.total,'pay',k.pay,'by',st.name,'undone',false,
               'd',to_char(k.created_at at time zone 'Europe/Belgrade','DD.MM HH24:MI')) r
@@ -954,4 +971,17 @@ begin
   insert into churros.meta(k, v) values ('stock_v12', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','12') on conflict (k) do update set v = excluded.v;
+-- v13: one stock item per sauce flavour ('Soser <flavour>'); each dip takes one piece of its sauce. Once per database.
+do $$
+declare r record; n bigint;
+begin
+  if exists (select 1 from churros.meta where k = 'stock_v13') then return; end if;
+  for r in select * from (values ('Caramel',37),('Blueberry',33),('Nutella',36),('Lotus',42),('Raspberry',32),('Pistachio',38),('Hazelnut',34),('White Choco',43)) v(f,dip) loop
+    select id into n from churros.stock_items where active and lower(name) = lower('Soser ' || r.f);
+    if n is null then insert into churros.stock_items(name, unit, min_qty) values ('Soser ' || r.f, 'copë', 20) returning id into n; end if;
+    insert into churros.recipes(product_id, item_id, qty) select r.dip, n, 1 where exists (select 1 from churros.products where id = r.dip) on conflict do nothing;
+  end loop;
+  insert into churros.meta(k, v) values ('stock_v13', '1');
+end $$;
+
+insert into churros.meta(k,v) values ('version','13') on conflict (k) do update set v = excluded.v;

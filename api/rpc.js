@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '12';
+const SCHEMA_VERSION = '13';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {

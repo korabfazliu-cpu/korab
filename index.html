@@ -645,12 +645,15 @@ async function staffPoll(){if(!STAFF_APP||!ST.tok||document.hidden||scanS)return
 const typingIn=()=>{const ae=document.activeElement;return ae&&(ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA')&&$('main').contains(ae)};
 async function refreshFound(){if(!st.found||!ST.tok)return;try{st.found=await api('card',{token:ST.tok,customer:st.found.id});render()}catch(e){}}
 
-function stAuth(){const f=st.hasAdmin===false;
+function stAuth(){const f=st.hasAdmin===false,rs=!f&&st.reset;
+ if(rs&&st.hasAdmin)return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">PIN i ri për pronarin</h2><p class="sm">Shkruaj kodin e konfigurimit (i njëjti me të cilin u krijua admini) dhe zgjidh një PIN të ri.</p>`
+  +'<input type="text" id="scode" placeholder="Kodi i konfigurimit" autocapitalize="characters" autocomplete="off"><input type="password" inputmode="numeric" id="sp" maxlength="6" placeholder="PIN-i i ri (4–6 shifra)" autocomplete="new-password"><input type="password" inputmode="numeric" id="sp2" maxlength="6" placeholder="Përsërit PIN-in">'
+  +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">Ruaj PIN-in dhe hyr</button><button class="lnk" style="margin-top:14px" data-a="st_reset" data-v="0">← Kthehu te hyrja</button>`;
  if(st.hasAdmin===null)return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">Hyrje për staf</h2><p class="sm" id="ae">Duke u lidhur…</p>`;
  return `<img class="biglogo" src="${LOGO2}" alt="Wonder Churros"><h2 class="fancy" style="margin:0">${f?'Konfigurimi i parë':'Hyrje për staf'}</h2><p class="sm">${f?'Krijo llogarinë e adminit. Kodi i konfigurimit të është dhënë nga zhvilluesi.':'Shkruaj përdoruesin dhe PIN-in.'}</p>`
  +(f?'<input type="text" id="scode" placeholder="Kodi i konfigurimit" autocapitalize="characters" autocomplete="off">':'<input type="text" id="su" placeholder="Përdoruesi (admin ose emri yt)" autocapitalize="none" autocomplete="username">')
  +`<input type="password" inputmode="numeric" id="sp" maxlength="6" placeholder="PIN (4–6 shifra)" autocomplete="current-password">`+(f?'<input type="password" inputmode="numeric" id="sp2" maxlength="6" placeholder="Përsërit PIN-in">':'')
- +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">${f?'Krijo adminin':'Hyr'}</button>`}
+ +`<p id="ae" class="err"></p><button class="btn" data-a="st_login">${f?'Krijo adminin':'Hyr'}</button>`+(f?'':`<button class="lnk" style="margin-top:14px" data-a="st_reset" data-v="1">Ke harruar PIN-in? (pronari)</button><p class="sm" style="margin-top:6px">Stafi dhe menaxherët: PIN-in e ri jua vendos pronari te Stafi.</p>`)}
 
 function ppList(u){const pp=u.pp||{},ks=MENU.filter(m=>pp[m.id]>0);return ks.length?`<div style="margin-top:10px">${ks.map(m=>`<div class="row"><span>${esc(m.n)}</span><b>${fmtP(pp[m.id])} / ${fmtP(RC(m))}${pp[m.id]>=RC(m)?' ✓':''}</b></div>`).join('')}</div>`:'<div class="mut" style="margin-top:6px">Ende pa pikë.</div>'}
 function stArka(){const u=st.found;
@@ -752,7 +755,7 @@ function stStaf(){const l=st.staff,own=isOwner();
  +(own?`<div class="paym" style="margin:6px 0"><button class="${st.nrole!=='manager'?'on':''}" data-a="st_nrole" data-v="staff">Staf</button><button class="${st.nrole==='manager'?'on':''}" data-a="st_nrole" data-v="manager">Menaxher</button></div>`:'')
  +`<input type="text" id="sn1" placeholder="Emri (përdoret për hyrje)" maxlength="40"><input type="text" inputmode="numeric" id="sp1" maxlength="6" placeholder="PIN (4–6 shifra)"><button class="btn" style="width:100%" data-a="st_addstaff">Shto ${own&&st.nrole==='manager'?'menaxherin':'stafin'}</button></div>`
  +'<h3>Përdoruesit</h3>'+(l==null?'<div class="card mut">Duke ngarkuar…</div>':l.map(s=>{const can=!s.me&&s.role!=='admin'&&(own||s.role==='staff');
-   return `<div class="card row"><span>👤 ${esc(s.role==='admin'?'Pronari (admin)':s.name)} <span class="rtag r-${s.role}">${ROLE[s.role]||s.role}</span>${s.me?' <span class="mut">(ti)</span>':''}</span>${can?`<button class="btn ghost sm" data-a="st_del" data-v="${s.id}">Fshi</button>`:''}</div>`}).join(''))
+   return `<div class="card row"><span>👤 ${esc(s.role==='admin'?'Pronari (admin)':s.name)} <span class="rtag r-${s.role}">${ROLE[s.role]||s.role}</span>${s.me?' <span class="mut">(ti)</span>':''}</span>${can?`<span style="display:flex;gap:6px"><button class="btn ghost sm" data-a="st_setpin" data-v="${s.id}" data-n="${esc(s.name)}">PIN i ri</button><button class="btn ghost sm" data-a="st_del" data-v="${s.id}">Fshi</button></span>`:''}</div>`}).join(''))
  +`<div class="card"><b>Ndrysho PIN-in tënd</b><input type="password" inputmode="numeric" id="op" maxlength="6" placeholder="PIN-i aktual"><input type="password" inputmode="numeric" id="np" maxlength="6" placeholder="PIN-i i ri (4–6 shifra)"><button class="btn ghost" style="width:100%" data-a="st_cpin">Ndrysho</button></div>`}
 
 // ---- stock (manager / owner) ----
@@ -813,10 +816,13 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
  try{
  if(a==='st_scan'){startScan()}
  else if(a==='st_scanstop'){stopScan();closeS();if(st.tab==='pos')render()}
+ else if(a==='st_reset'){st.reset=v==='1';render()}
+ else if(a==='st_setpin'){const p=prompt('PIN-i i ri për '+(b.dataset.n||'përdoruesin')+' (4–6 shifra):');if(p==null)return;if(!/^\d{4,6}$/.test(p.trim())){say('PIN-i duhet të ketë 4 deri në 6 shifra.',true);return}st.staff=await run('staffSetPin',{token:ST.tok,id:v,pin:p.trim()});say('PIN-i u ndryshua. Përdoruesi hyn me PIN-in e ri.')}
  else if(a==='st_login'){const pin=val('sp');
   if(!/^\d{4,6}$/.test(pin)){er('PIN-i duhet të ketë 4 deri në 6 shifra.');return}
   let r;
   if(st.hasAdmin===false){if(pin!==val('sp2')){er('PIN-et nuk përputhen.');return}r=await run('setupAdmin',{code:val('scode'),pin})}
+  else if(st.reset){if(pin!==val('sp2')){er('PIN-et nuk përputhen.');return}if(!val('scode')){er('Shkruaj kodin e konfigurimit.');return}r=await run('resetOwner',{code:val('scode'),pin});st.reset=false;toast('PIN-i i pronarit u ndryshua.')}
   else{const un=val('su');if(!un){er('Shkruaj përdoruesin.');return}r=await run('staffLogin',{name:un,pin})}
   ST={tok:r.token,role:r.role,name:r.name};LS.set('wc_stok',r.token);db.role={t:r.role};
   st={...st,tab:r.role==='staff'?'pos':'dash',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}

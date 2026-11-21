@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '16';
+const SCHEMA_VERSION = '17';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -56,6 +56,10 @@ const FN = {
   staffList:     ['wc_staff_list',    ['token'], ['text']],
   addStaff:      ['wc_add_staff',     ['token', 'name', 'pin', 'role'], ['text', 'text', 'text', 'text']],
   staffSetPin:   ['wc_staff_set_pin', ['token', 'id', 'pin'], ['text', 'uuid', 'text']],
+  shiftCurrent:  ['wc_shift_current', ['token'], ['text']],
+  shiftOpen:     ['wc_shift_open',    ['token', 'cash'], ['text', 'numeric']],
+  shiftClose:    ['wc_shift_close',   ['token', 'counted', 'note', 'end'], ['text', 'numeric', 'text', 'boolean']],
+  shifts:        ['wc_shifts',        ['token', 'day'], ['text', 'date']],
   stock:         ['wc_stock',         ['token'], ['text']],
   stockSave:     ['wc_stock_save',    ['token', 'id', 'name', 'unit', 'min'], ['text', 'bigint', 'text', 'text', 'numeric']],
   stockMove:     ['wc_stock_move',    ['token', 'item', 'kind', 'qty', 'note'], ['text', 'bigint', 'text', 'numeric', 'text']],

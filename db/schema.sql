@@ -425,6 +425,30 @@ begin
   return json_build_object('token', churros.new_token(null,sid,interval '14 hours'), 'role','admin', 'name','admin');
 end $$;
 
+-- Forgotten owner PIN: called only by the API after it checks SETUP_CODE. Sets a new PIN, clears the lock and old sessions, signs in.
+create or replace function public.wc_reset_owner(p_pin text) returns json language plpgsql as $$
+declare s churros.staff;
+begin
+  perform churros.check_pin(p_pin);
+  select * into s from churros.staff where role = 'admin' order by created_at limit 1;
+  if s.id is null then raise exception 'NOTFOUND' using errcode='P0001'; end if;
+  update churros.staff set pin_hash = crypt(p_pin, gen_salt('bf')), fails = 0, locked_until = null where id = s.id;
+  delete from churros.sessions where staff_id = s.id;
+  return json_build_object('token', churros.new_token(null, s.id, interval '14 hours'), 'role', 'admin', 'name', s.name);
+end $$;
+
+-- Owner sets a new PIN for a manager or staff member; a manager does it for staff. Their sessions end.
+create or replace function public.wc_staff_set_pin(p_token text, p_id uuid, p_pin text) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token, true); v churros.staff;
+begin
+  perform churros.check_pin(p_pin);
+  select * into v from churros.staff where id = p_id;
+  if v.id is null or v.role = 'admin' or v.id = s.id or (v.role = 'manager' and s.role <> 'admin') then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  update churros.staff set pin_hash = crypt(p_pin, gen_salt('bf')), fails = 0, locked_until = null where id = v.id;
+  delete from churros.sessions where staff_id = v.id;
+  return public.wc_staff_list(p_token);
+end $$;
+
 create or replace function public.wc_staff_login(p_name text, p_pin text) returns json language plpgsql as $$
 declare s churros.staff;
 begin
@@ -1005,4 +1029,4 @@ begin
   insert into churros.meta(k, v) values ('stock_v15', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','15') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','16') on conflict (k) do update set v = excluded.v;

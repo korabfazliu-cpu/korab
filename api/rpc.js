@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SCHEMA_VERSION = '15';
+const SCHEMA_VERSION = '16';
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let pool = null;
 function db() {
@@ -55,6 +55,7 @@ const FN = {
   promoDel:      ['wc_promo_del',     ['token', 'id'], ['text', 'bigint']],
   staffList:     ['wc_staff_list',    ['token'], ['text']],
   addStaff:      ['wc_add_staff',     ['token', 'name', 'pin', 'role'], ['text', 'text', 'text', 'text']],
+  staffSetPin:   ['wc_staff_set_pin', ['token', 'id', 'pin'], ['text', 'uuid', 'text']],
   stock:         ['wc_stock',         ['token'], ['text']],
   stockSave:     ['wc_stock_save',    ['token', 'id', 'name', 'unit', 'min'], ['text', 'bigint', 'text', 'text', 'numeric']],
   stockMove:     ['wc_stock_move',    ['token', 'item', 'kind', 'qty', 'note'], ['text', 'bigint', 'text', 'numeric', 'text']],
@@ -117,6 +118,12 @@ module.exports = async function handler(req, res) {
       // First admin only, protected by the SETUP_CODE environment variable.
       if (!process.env.SETUP_CODE || !safeEq(args.code, process.env.SETUP_CODE)) return send(res, 403, { error: 'SETUPCODE' });
       const r = await db().query('select public.wc_setup_admin($1::text) as r', [args.pin]);
+      return send(res, 200, { data: r.rows[0].r });
+    }
+    if (fn === 'resetOwner') {
+      // Forgotten owner PIN: the same SETUP_CODE that created the owner sets a new PIN.
+      if (!process.env.SETUP_CODE || !safeEq(args.code, process.env.SETUP_CODE)) return send(res, 403, { error: 'SETUPCODE' });
+      const r = await db().query('select public.wc_reset_owner($1::text) as r', [args.pin]);
       return send(res, 200, { data: r.rows[0].r });
     }
     const def = FN[fn];

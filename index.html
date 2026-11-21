@@ -217,6 +217,16 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .feed .ft{font-weight:700;font-variant-numeric:tabular-nums}.feed .chd{margin-top:5px}.feed .fx{display:flex;flex-direction:column;min-width:0}.feed .fx b{font-size:14px;overflow-wrap:anywhere}.feed .fx i,.feed .fr i{font-style:normal;font-size:12px;opacity:.75}.feed .fr{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .live2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
 @media (max-width:899px){.live2{grid-template-columns:minmax(0,1fr)}}
+/* ---- shifts & order ticket ---- */
+.shbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px;padding:10px 14px;border-radius:16px;background:#e3f5e8;border:2px solid #b9e2c4}
+.shbar .shb{display:flex;gap:6px;flex-wrap:wrap}
+.shgate{max-width:520px;margin:20px auto;text-align:center}.shgate input{text-align:center;font-size:22px}.shic{font-size:44px}
+.apr{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13.5px}.apr input{width:auto!important;margin:0!important}
+#printarea{display:none}
+.oticket{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#000;background:#fff;width:72mm;padding:2mm 0;display:flex;flex-direction:column;gap:2px}
+.oticket .ono{font-size:44px;text-align:center;line-height:1.1}.oticket .otime{text-align:center;font-size:12px}.oticket hr{border:0;border-top:1px dashed #000;width:100%;margin:4px 0}
+.oticket .oitem{display:grid;grid-template-columns:auto 1fr;gap:8px;font-size:17px;padding:3px 0}.oticket .oitem small{display:block;font-size:13px}.oticket .ofoot{text-align:center;font-size:11px}
+@media print{body.pro *{visibility:hidden!important}body.pro #printarea{display:block!important;position:fixed;left:0;top:0}body.pro #printarea,body.pro #printarea *{visibility:visible!important}}
 /* ---- Wolt ---- */
 .authwolt{width:100%;max-width:420px;margin:6px auto 0;text-align:left}
 a.wolt{display:flex;align-items:center;gap:12px;margin:12px 0;padding:14px 16px;border-radius:20px;background:#009DE0;color:#fff;text-decoration:none;box-shadow:0 4px 0 #0077a8;font:inherit}
@@ -447,7 +457,7 @@ const NAV=[['home','Start','🏠'],['wal','Kuleta','👛'],['menu','Menu','🍩'
 const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',wal:'<svg viewBox="0 0 24 24"><path d="M6 6h11a2 2 0 0 1 2 2"/><rect x="3" y="6" width="18" height="14" rx="3"/><rect x="14" y="11" width="7" height="4" rx="2"/><circle cx="16.6" cy="13" r=".6"/></svg>',menu:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'};NAV.forEach(n=>n[2]=IC[n[0]]);
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
 // ---- connection with the server (/api/rpc) ----
-const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',SAUCES:'Zgjidh dip-et për çdo produkt.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
+const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',NOSHIFT:'Arka është e mbyllur. Hape arkën për të shitur.',SHIFTOTHER:'Arka është e hapur nga një staf tjetër.',SHIFTOPEN:'Arka është hapur tashmë nga dikush tjetër. Rifresko.',SAUCES:'Zgjidh dip-et për çdo produkt.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
 const errText=e=>ERR[e&&e.message]||ERR.SERVER;
 async function api(fn,args){let r;
  try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
@@ -804,7 +814,8 @@ async function loadTab(){try{
  if(st.tab==='dash'){st.dash=await api('dashboard',{token:ST.tok});st.dashAt=new Date()}
  else if(st.tab==='kl')st.kl=await api('customers',{token:ST.tok,q:st.klq});
  else if(st.tab==='stock')st.stock=await api('stock',{token:ST.tok});
- else if(st.tab==='sales')st.sales=await api('sales',{token:ST.tok,day:st.sday||null});
+ else if(st.tab==='pos')st.shift=await api('shiftCurrent',{token:ST.tok});
+ else if(st.tab==='sales'){st.sales=await api('sales',{token:ST.tok,day:st.sday||null});st.shifts=await api('shifts',{token:ST.tok,day:st.sday||null})}
  else if(st.tab==='promo')st.promos=await api('promos',{token:ST.tok});
  else if(st.tab==='staf')st.staff=await api('staffList',{token:ST.tok});
  render()}catch(x){st.msg=errText(x);st.bad=true;render()}}
@@ -826,7 +837,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   else{const un=val('su');if(!un){er('Shkruaj përdoruesin.');return}r=await run('staffLogin',{name:un,pin})}
   ST={tok:r.token,role:r.role,name:r.name};LS.set('wc_stok',r.token);db.role={t:r.role};
   st={...st,tab:r.role==='staff'?'pos':'dash',q:'',found:null,msg:'',bad:false,last:null,hasAdmin:true};render();loadTab();startPoll()}
- else if(a==='st_out'){stopScan();const t=ST.tok;ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null;st={...st,found:null,msg:'',last:null,dash:null,kl:null};clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
+ else if(a==='st_out'){stopScan();try{closeS()}catch(_){}const t=ST.tok;ST={tok:null,role:null,name:null};LS.set('wc_stok',null);db.role=null;st={...st,found:null,msg:'',last:null,dash:null,kl:null};clearInterval(pollT);render();api('logout',{token:t}).catch(()=>{})}
  else if(a==='st_tab'){st.tab=v;st.msg='';st.last=null;render();loadTab();scrollTo(0,0)}
  else if(a==='st_find'){const q=val('sq');if(!q)return;if(/^WONDER(-P|-G)?:/i.test(q)){onScan(q);return}st.q=q;
   const c=await run('find',{token:ST.tok,q});st.found=c;st.last=null;say(c?'':'Nuk u gjet klient me këtë ID, email ose telefon.',!c)}
@@ -882,10 +893,20 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   const bad=T.ds.find(d=>d.type==='gift'&&!(+d.value>0)&&!(d.a>0));if(bad){pe('Shkruaj vlerën në € të dhuratës "'+bad.title+'".');return}
   if(isCashPay(POS.pay)&&POS.cash&&!(T.cash>=T.tot)){pe('Paratë e marra janë më pak se totali.');return}
   const r=await run('saleCreate',{token:ST.tok,customer:POS.cust?POS.cust.id:null,items:POS.cart.map(l=>({id:l.id,qty:l.q,sauces:l.s||null})),codes:T.ds.map(d=>({code:d.code,amount:d.type==='gift'&&!(+d.value>0)?d.a:null})),pay:POS.pay,cash:isCashPay(POS.pay)&&POS.cash?T.cash:null});
-  POS={...POS,cart:[],cust:null,codes:[],cash:'',q:'',cat:'all'};st.msg='';st.lastSale=r.sale;render();saleSheet(r.sale,true)}
+  POS={...POS,cart:[],cust:null,codes:[],cash:'',q:'',cat:'all'};st.msg='';st.lastSale=r.sale;st.shift=await api('shiftCurrent',{token:ST.tok}).catch(()=>st.shift);render();saleSheet(r.sale,true);if(AUTOPRINT)printOrder(r.sale)}
+ else if(a==='st_print_o'){if(st.sheetSale)printOrder(st.sheetSale)}
+ else if(a==='st_shrefresh'){st.shift=await api('shiftCurrent',{token:ST.tok});render()}
+ else if(a==='st_shopen'){const c=num(val('shc'));if(c==null||!(c>=0)){$('she').textContent='Shkruaj sa para ka në arkë (0 nëse s\'ka).';return}st.shift=await run('shiftOpen',{token:ST.tok,cash:c});render();toast('Arka u hap. Shitje të mbara!')}
+ else if(a==='st_shclose'){st.shift=await api('shiftCurrent',{token:ST.tok});if(!st.shift.shift){render();return}shiftCloseSheet(v)}
+ else if(a==='st_shdo'){const c=num(val('shn'));if(c==null||!(c>=0)){$('she').textContent='Shkruaj paratë e numëruara.';return}
+  if(POS.cart.length&&!confirm('Fatura ka produkte të pa shitura. Të vazhdojmë?'))return;
+  const h=await run('shiftClose',{token:ST.tok,counted:c,note:val('shnote'),end:v==='end'});POS={...POS,cart:[],cust:null,codes:[],cash:''};
+  sheet(`<h2 class="fancy" style="margin:0 0 8px">${v==='end'?'Arka u mbyll':'Ndërrimi u mbyll'}</h2>`+shiftReport(h)+`<div class="two" style="margin-top:10px"><button class="btn ghost" data-a="st_print_r">🖨️ Printo raportin</button><button class="btn" data-a="${v==='end'?'close':'st_out'}">${v==='end'?'Mbaro':'Dil (hyn stafi tjetër)'}</button></div>`);
+  st.shift=await api('shiftCurrent',{token:ST.tok});render()}
  else if(a==='st_print_r'){document.body.classList.add('prr');window.print();setTimeout(()=>document.body.classList.remove('prr'),500)}
  else if(a==='st_fiscal'){const s=await run('saleFiscal',{token:ST.tok,id:+v,no:val('fno')});toast('U shënua: e regjistruar në arkën fiskale.');saleSheet(s,false);if(st.tab==='sales'){st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}}
  else if(a==='st_svoid'){if(!confirm('Ta anulojmë këtë shitje? Pikët e klientit hiqen dhe dhuratat/zbritjet e përdorura rikthehen.'))return;const s=await run('saleVoid',{token:ST.tok,id:+v});toast('Shitja u anulua.');saleSheet(s,false);st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}
+ else if(a==='st_shview'){const h=(st.shifts||[]).find(x=>x.id==v);if(!h)return;sheet(`<h2 class="fancy" style="margin:0 0 8px">Ndërrimi i ${esc(h.staff||'')}</h2>`+shiftReport(h)+`<div class="two" style="margin-top:10px"><button class="btn ghost" data-a="st_print_r">🖨️ Printo</button>${h.closed?'<button class="btn" data-a="close">Mbyll</button>':'<button class="btn" data-a="st_shclose" data-v="end">🔒 Mbyll këtë ndërrim</button>'}</div>`)}
  else if(a==='st_sale'){const s=((st.sales&&st.sales.list)||[]).find(x=>x.id==v)||(st.lastSale&&st.lastSale.id==v?st.lastSale:null);if(s)saleSheet(s,false)}
  else if(a==='st_nrole'){st.nrole=v;render()}
  else if(a==='st_sitem'){st.skind='in';stockSheet(v)}
@@ -905,7 +926,7 @@ async function staffAct(a,b){const v=b.dataset.v,er=m=>{const e=$('ae');if(e)e.t
   if(bad){$('sse').textContent='Sasitë duhet të jenë numra.';return}
   st.stock=await run('recipeSet',{token:ST.tok,product:+v,items});closeS();render();toast('Receta u ruajt.')}
  else if(a==='st_cpin'){const o=val('op'),n=val('np');if(!/^\d{4,6}$/.test(n)){say('PIN-i i ri duhet të ketë 4 deri në 6 shifra.',true);return}await run('changePin',{token:ST.tok,old:o,pin:n});say('PIN-i yt u ndryshua.')}
- }catch(x){if(x&&x.message==='EXISTS')x=new Error('NAMEEXISTS');if(a==='st_psell'){const e=$('pse');if(e)e.textContent=errText(x)}else if(['st_fiscal','st_svoid','st_smove','st_sedit','st_rsave','st_isave'].includes(a)){const e=$('sse');if(e)e.textContent=errText(x)}else if(a==='st_login')er(errText(x));else if(a==='st_sadd'){const e=$('sie');if(e)e.textContent=errText(x)}else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
+ }catch(x){if(x&&x.message==='EXISTS')x=new Error('NAMEEXISTS');if(a==='st_psell'){const e=$('pse');if(e)e.textContent=errText(x)}else if(['st_fiscal','st_svoid','st_smove','st_sedit','st_rsave','st_isave'].includes(a)){const e=$('sse');if(e)e.textContent=errText(x)}else if(a==='st_login')er(errText(x));else if(a==='st_shopen'||a==='st_shdo'){const e=$('she');if(e)e.textContent=errText(x)}else if(a==='st_sadd'){const e=$('sie');if(e)e.textContent=errText(x)}else if(a==='st_rpin'||a==='st_gift'){const c=$('cse');if(c)c.textContent=errText(x)}else if(a==='st_padd'){const p=$('pe');if(p)p.textContent=errText(x)}else say(errText(x),true)}}
 
 // Payment channels, in a fixed order (the dashboard colours follow the channel, never its rank).
 const CH=[['card','POS (kartë)','💳'],['wolt','Wolt','🛵'],['cash','Cash fiskal','💶'],['kitchen','Cash kuzhina','🍳']];
@@ -949,8 +970,14 @@ function posBill(){const T=posTotals(),c=POS.cust;
  if(isCashPay(POS.pay))h+=`<div class="cashrow"><label class="lbl" for="pcash">Paratë e marra</label><input type="text" id="pcash" inputmode="decimal" placeholder="Paratë e marra (€)" value="${esc(POS.cash)}" autocomplete="off"><div class="qcash">${['exact',5,10,20,50].map(v=>`<button class="chp" data-a="st_pcashq" data-v="${v}">${v==='exact'?'Saktë':v+' €'}</button>`).join('')}</div><div class="row chg"><span>Kusuri</span><b id="pchg">${T.change==null?(POS.cash?'<span class="err">Mungojnë '+K(T.tot-T.cash)+'</span>':'—'):K(T.change)}</b></div></div>`;
  h+=`<p class="err" id="pse"></p><button class="btn pay" data-a="st_psell"${POS.cart.length?'':' disabled'}>Përfundo shitjen · ${K(T.tot)}</button><p class="mut kb">Shkurtore: F9 = përfundo · skaneri USB punon kudo në këtë faqe</p></div>`;
  return h}
-function stPos(){const T=posTotals();
- return `<div class="pos"><div class="pleft">${posGrid()}</div><div class="pright">${posBill()}</div></div>`
+// ---- shifts: the till is opened at the start, closed at the end, and handed over when staff change ----
+function shiftBar(h){return `<div class="shbar"><span><b>Arka e hapur</b> · ${esc(h.staff||'')} që nga ${h.opened.slice(6)} · ${h.count} shitje · ${K(h.total)}</span><span class="shb"><button class="btn ghost sm" data-a="st_shclose" data-v="hand">👥 Ndërro stafin</button><button class="btn ghost sm" data-a="st_shclose" data-v="end">🔒 Mbyll arkën</button></span></div>`}
+function stShiftGate(){const c=st.shift;if(!c)return '<div class="card mut">Duke kontrolluar arkën…</div>';const h=c.shift;
+ if(!h)return `<div class="card shgate"><div class="shic">🔓</div><h2 class="fancy" style="margin:4px 0">Arka është e mbyllur</h2><p class="mut">Hape arkën në fillim të orarit. Shkruaj sa para ka në arkë (fondi i kusurit).</p><label class="lbl" for="shc">Paratë në arkë në fillim (€)</label><input type="text" id="shc" inputmode="decimal" value="${c.lastCounted!=null?fq(c.lastCounted):''}" placeholder="p.sh. 50"><p class="err" id="she"></p><button class="btn" style="width:100%" data-a="st_shopen">Hap arkën · ${esc(ST.name||'')}</button></div>`;
+ if(!c.mine&&!isAdm())return `<div class="card shgate"><div class="shic">👤</div><h2 class="fancy" style="margin:4px 0">Arka është e hapur nga ${esc(h.staff||'')}</h2><p class="mut">Që nga ${h.opened.slice(6)}. Për ndërrim, ${esc(h.staff||'')} shtyp <b>“Ndërro stafin”</b> te arka dhe numëron paratë. Pastaj ti e hap arkën me emrin tënd.</p><button class="btn ghost" style="width:100%" data-a="st_shrefresh">Rifresko</button></div>`;
+ return '';}
+function stPos(){const T=posTotals(),g=stShiftGate();if(g)return g;const h=st.shift.shift;
+ return shiftBar(h)+(!st.shift.mine?`<div class="card warnc" style="cursor:default">Po shet në ndërrimin e <b>${esc(h.staff||'')}</b> (si ${db.role.t==='admin'?'pronar':'menaxher'}).</div>`:'')+`<div class="pos"><div class="pleft">${posGrid()}</div><div class="pright">${posBill()}</div></div>`
  +(POS.cart.length?`<button class="posbar" data-a="st_pgobill"><span>🧾 Shporta (${T.count})</span><b>${K(T.tot)} →</b></button>`:'')}
 function posRefresh(part){if(st.tab!=='pos'){render();return}const b=$('bill');if(!b||part==='all'){render();return}
  const f=document.activeElement&&document.activeElement.id,pos=document.activeElement&&document.activeElement.selectionStart;
@@ -958,23 +985,43 @@ function posRefresh(part){if(st.tab!=='pos'){render();return}const b=$('bill');i
  const pb=document.querySelector(".posbar"),T=posTotals();if(pb){if(POS.cart.length)pb.innerHTML=`<span>🧾 Shporta (${T.count})</span><b>${K(T.tot)} →</b>`;else pb.remove()}else if(POS.cart.length)render();
  if(f&&$(f)&&f!=='posq'){const i=$(f);i.focus();try{i.setSelectionRange(pos,pos)}catch(_){}}}
 // receipt (non-fiscal preview; the fiscal receipt comes from the fiscal register)
+function shiftReport(h){return `<div class="rcpt"><img src="${LOGO}" alt="Wonder Churros"><b>Wonder Churros</b><span>${h.endOfDay?'Mbyllja e arkës':'Ndërrimi'} · ${esc(h.staff||'')}</span><span>${h.opened} → ${h.closed||'tani'}</span><hr>`
+ +`<div class="rr"><span>Shitje</span><b>${h.count}</b></div><div class="rr big"><span>TOTALI</span><b>${K(h.total)}</b></div>`+CH.map(([k,l])=>`<div class="rr"><span>${l}</span><b>${K(h.pays[k]||0)}</b></div>`).join('')
+ +`<div class="rr"><span>Zbritje</span><b>${K(h.discount)}</b></div>${h.voided?`<div class="rr"><span>Anuluar</span><b>${h.voided}</b></div>`:''}<hr>`
+ +`<div class="rr"><span>Para në fillim</span><b>${K(h.openCash)}</b></div><div class="rr"><span>+ Cash fiskal</span><b>${K(h.pays.cash||0)}</b></div><div class="rr big"><span>Duhet në arkë</span><b>${K(h.expected)}</b></div>`
+ +(h.counted!=null?`<div class="rr"><span>Të numëruara</span><b>${K(h.counted)}</b></div><div class="rr big"><span>Diferenca</span><b>${(+h.counted-+h.expected>=0?'+':'')+K(+h.counted-+h.expected)}</b></div>`:'')
+ +`<div class="rr"><span>Cash kuzhina (veç)</span><b>${K(h.pays.kitchen||0)}</b></div>${+h.fiscalPending?`<hr><b>⚠️ ${h.fiscalPending} shitje pa fiskalizuar</b>`:''}${h.note?`<hr><span>${esc(h.note)}</span>`:''}${h.closedBy&&h.closedBy!==h.staff?`<span>Mbylli: ${esc(h.closedBy)}</span>`:''}</div>`}
+function shiftCloseSheet(kind){const h=st.shift&&st.shift.shift;if(!h)return;
+ sheet(`<h2 class="fancy" style="margin:0">${kind==='end'?'Mbyll arkën':'Ndërro stafin'}</h2><p class="mut" style="margin:4px 0 10px">${kind==='end'?'Në fund të orarit: numëro paratë në arkë dhe mbyll ditën.':'Para ndërrimit: numëro paratë. Pastaj stafi tjetër hyn me PIN-in e vet dhe e hap arkën.'}</p>`
+ +shiftReport(h)+`<label class="lbl" for="shn">Paratë e numëruara në arkë (€)</label><input type="text" id="shn" inputmode="decimal" placeholder="p.sh. ${fq(h.expected)}"><div class="row chg"><span>Diferenca</span><b id="shd">—</b></div><input type="text" id="shnote" maxlength="200" placeholder="Shënim (opsional)"><p class="err" id="she"></p>`
+ +`<div class="two" style="margin-top:8px"><button class="btn ghost" data-a="close">Anulo</button><button class="btn" data-a="st_shdo" data-v="${kind}">${kind==='end'?'🔒 Mbyll arkën':'👥 Mbyll ndërrimin'}</button></div>`);
+ setTimeout(()=>{const i=$('shn');if(i){i.focus();i.addEventListener('input',()=>{const v=num(i.value),d=$('shd');if(d)d.textContent=v==null?'—':((v-h.expected>=0?'+':'')+K(v-h.expected))})}},50)}
+// ---- order ticket for the thermal printer: what was ordered, with the day's order number ----
+function orderTicket(s){return `<div class="oticket"><b class="ono">#${s.order||'—'}</b><span class="otime">${s.d.slice(11)} · ${esc(PAYN[s.pay]||'')}${s.staff?' · '+esc(s.staff):''}</span><hr>`
+ +s.items.map(i=>`<div class="oitem"><b>${i.q} ×</b><span>${esc(i.n)}${i.s&&i.s.length?`<small>Dip: ${esc(sauceTxt(i.s))}</small>`:''}</span></div>`).join('')+`<hr><span class="ofoot">Wonder Churros</span></div>`}
+let AUTOPRINT=false;try{AUTOPRINT=localStorage.getItem('wc_autoprint')==='1'}catch(_){}
+function printOrder(s){const el=$('printarea')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'printarea'}));el.innerHTML=orderTicket(s);document.body.classList.add('pro');setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('pro'),500)},60)}
 function rcpt(s){return `<div class="rcpt"><img src="${LOGO}" alt="Wonder Churros"><b>Wonder Churros</b><span>Kupon jo-fiskal · ${s.no}</span><span>${s.d}${s.staff?' · '+esc(s.staff):''}</span><hr>`
  +s.items.map(i=>`<div class="rr"><span>${i.q} × ${esc(i.n)}${i.s&&i.s.length?`<br><small>Dip: ${esc(sauceTxt(i.s))}</small>`:''}</span><b>${K(i.t)}</b></div>`).join('')
  +(s.discounts.length?'<hr>'+s.discounts.map(d=>`<div class="rr"><span>${esc(d.n)}</span><b>−${K(d.a)}</b></div>`).join(''):'')
  +`<hr><div class="rr big"><span>TOTALI</span><b>${K(s.total)}</b></div><div class="rr"><span>${PAYN[s.pay]||s.pay}</span><b>${isCashPay(s.pay)?K(s.cash):K(s.total)}</b></div>${isCashPay(s.pay)?`<div class="rr"><span>Kusuri</span><b>${K(s.change)}</b></div>`:''}`
  +(s.customer?`<hr><div class="rr"><span>Klienti</span><b>${esc(s.customer.name)}</b></div><div class="rr"><span>Pikë të fituara</span><b>+${fmtP(s.points)}</b></div>`:'')
  +`<hr><span>${s.fiscal==='done'?'Kupon fiskal: '+esc(s.fiscalNo||'✓'):'Kuponi fiskal lëshohet nga arka fiskale.'}</span>${s.voided?'<b class="err">ANULUAR</b>':''}<span>Faleminderit! 🍩</span></div>`}
-function saleSheet(s,fresh){
- sheet(`${fresh?`<div class="gdone" style="margin-bottom:6px"><div class="gok">✓</div><h2 class="fancy" style="margin:4px 0">Shitja u krye</h2>${isCashPay(s.pay)&&+s.change>0?`<p class="chgbig">Kusuri: <b>${K(s.change)}</b></p>`:''}</div>`:''}`
+function saleSheet(s,fresh){st.sheetSale=s;
+ sheet(`${fresh?`<div class="gdone" style="margin-bottom:6px"><div class="gok">✓</div><h2 class="fancy" style="margin:4px 0">Porosia #${s.order||'—'}</h2>${isCashPay(s.pay)&&+s.change>0?`<p class="chgbig">Kusuri: <b>${K(s.change)}</b></p>`:''}</div>`:''}`
  +rcpt(s)
  +(s.voided?'':s.fiscal==='done'?`<p class="good" style="text-align:center;margin:10px 0">✓ E regjistruar në arkën fiskale${s.fiscalNo?' · '+esc(s.fiscalNo):''}</p>`
   :`<div class="card fisc"><b>Arka fiskale</b><div class="mut">Regjistroje këtë shitje në arkën fiskale (${K(s.total)}). Pastaj shëno numrin e kuponit fiskal.</div><input type="text" id="fno" placeholder="Nr. i kuponit fiskal (opsional)" autocomplete="off"><button class="btn" style="width:100%" data-a="st_fiscal" data-v="${s.id}">✓ U regjistrua në arkën fiskale</button></div>`)
- +`<div class="two" style="margin-top:10px"><button class="btn ghost" data-a="st_print_r">🖨️ Printo</button><button class="btn" data-a="close">${fresh?'Shitje e re':'Mbyll'}</button></div>`
+ +`<div class="two" style="margin-top:10px"><button class="btn" data-a="st_print_o">🧾 Printo porosinë #${s.order||'—'}</button><button class="btn ghost" data-a="st_print_r">🖨️ Kuponi</button></div>`
+ +(fresh?`<label class="apr"><input type="checkbox" id="apr"${AUTOPRINT?' checked':''}> Printo porosinë vetë pas çdo shitjeje (në këtë pajisje)</label>`:'')
+ +`<button class="btn ghost wide" style="justify-content:center;margin-top:10px" data-a="close">${fresh?'Shitje e re':'Mbyll'}</button>`
  +(!fresh&&!s.voided&&isAdm()?`<button class="btn ghost wide" style="justify-content:center;margin-top:10px;color:#b3261e" data-a="st_svoid" data-v="${s.id}">Anulo këtë shitje</button>`:'')
  +`<p class="err" id="sse"></p>`)}
 // ---- sales of the day ----
 function stSales(){const d=st.sales;
+ const shs=st.shifts||[];
  return `<div class="row" style="margin-bottom:10px"><h2 class="fancy" style="margin:0;font-size:28px">Shitjet</h2><input type="date" id="sday" value="${esc(st.sday||'')}" style="max-width:170px;margin:0"></div>`
+ +(shs.length?`<h3 style="margin-top:0">Ndërrimet</h3>`+shs.map(h=>{const diff=h.counted!=null?+h.counted-+h.expected:null;return `<button class="card sale" data-a="st_shview" data-v="${h.id}"><span class="t"><b>${h.closed?'🔒':'🟢'} ${esc(h.staff||'')} · ${h.opened.slice(6)}–${h.closed?h.closed.slice(6):'tani'}</b><i>${h.count} shitje · cash ${K(h.pays.cash||0)} · POS ${K(h.pays.card||0)} · Wolt ${K(h.pays.wolt||0)} · kuzhina ${K(h.pays.kitchen||0)}</i></span><span class="r"><b>${K(h.total)}</b>${diff==null?'<i class="fb">e hapur</i>':`<i class="fb ${Math.abs(diff)<0.005?'ok':''}">arka ${(diff>=0?'+':'')+K(diff)}</i>`}</span></button>`}).join(''):'')
  +(d==null?'<div class="card mut">Duke ngarkuar…</div>':`<div class="kpis">${[['Shitje',d.sum.count],['Totali',K(d.sum.total)],...CH.map(([k,l])=>[l,K(d.sum[k]||0),k]),['Zbritje',K(d.sum.discount)],['Pa fiskalizuar',d.sum.fiscalPending]].map(([l,v,k],i)=>`<div class="kpi${i===1?' hl':''}${l==='Pa fiskalizuar'&&+v>0?' warn':''}"><span>${k?`<i class="chd ch-${k}"></i>`:''}${l}</span><b>${v}</b></div>`).join('')}</div>`
   +`<div class="pcats" style="margin:4px 0 10px">${[['all','Të gjitha'],...CH.map(c=>[c[0],c[1]])].map(([k,l])=>`<button class="chp${(st.sf||'all')===k?' on':''}" data-a="st_sf" data-v="${k}">${k==='all'?'':`<i class="chd ch-${k}"></i>`}${l}</button>`).join('')}</div>`
   +((L=>L.length?L.map(s=>`<button class="card sale${s.voided?' undone':''}" data-a="st_sale" data-v="${s.id}"><span class="t"><b>${s.no} · ${s.d.slice(11)}</b><i>${esc(s.items.map(i=>i.q+' × '+i.n).join(', '))}</i><i>${s.customer?'👤 '+esc(s.customer.name)+' · ':''}${esc(s.staff||'')} · <i class="chd ch-${s.pay}"></i>${PAYN[s.pay]||s.pay}</i></span><span class="r"><b>${s.voided?'anuluar':K(s.total)}</b>${s.voided?'':`<i class="fb ${s.fiscal==='done'?'ok':''}">${s.fiscal==='done'?'fiskal ✓':'pa fiskalizuar'}</i>`}</span></button>`).join(''):'<div class="card mut">Asnjë shitje këtu.</div>')(d.list.filter(s=>!st.sf||st.sf==='all'||s.pay===st.sf))))}
@@ -991,7 +1038,7 @@ document.addEventListener('input',e=>{const id=e.target.id;
  if(id==='posq'){if(/^WONDER/i.test(e.target.value))return;POS.q=e.target.value;const g=document.querySelector('.pgrid');if(g){const tmp=document.createElement('div');tmp.innerHTML=posGrid();g.outerHTML=tmp.querySelector('.pgrid').outerHTML}}
  else if(id==='pcash'){POS.cash=e.target.value;const T=posTotals(),c=$('pchg');if(c)c.innerHTML=T.change==null?(POS.cash?'<span class="err">Mungojnë '+K(T.tot-T.cash)+'</span>':'—'):K(T.change)}
  else if(e.target.classList&&e.target.classList.contains('gamt')){const i=+e.target.dataset.i;if(POS.codes[i])POS.codes[i].amount=e.target.value;clearTimeout(e.target._t);e.target._t=setTimeout(()=>posRefresh('bill'),500)}});
-document.addEventListener('change',async e=>{if(e.target.id==='sday'){st.sday=e.target.value;st.sales=null;render();try{st.sales=await api('sales',{token:ST.tok,day:st.sday||null});render()}catch(x){}}});
+document.addEventListener('change',async e=>{if(e.target.id==='apr'){AUTOPRINT=e.target.checked;try{localStorage.setItem('wc_autoprint',AUTOPRINT?'1':'0')}catch(_){}return}if(e.target.id==='sday'){st.sday=e.target.value;st.sales=null;render();try{st.sales=await api('sales',{token:ST.tok,day:st.sday||null});st.shifts=await api('shifts',{token:ST.tok,day:st.sday||null});render()}catch(x){}}});
 
 async function purchase(pid,q,run){const r=await (run?run('addPurchase',{token:ST.tok,customer:st.found.id,product:pid,qty:q}):api('addPurchase',{token:ST.tok,customer:st.found.id,product:pid,qty:q}));
  st.found=r.card;st.last={id:r.order.id,n:r.order.n,q:r.order.q,pts:r.order.pts};const m=MENU.find(x=>x.id==pid),have=Number(r.card.pp[pid]||0);

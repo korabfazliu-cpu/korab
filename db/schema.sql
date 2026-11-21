@@ -265,6 +265,17 @@ create or replace function churros.card(p_id uuid) returns json language sql sta
     'now', (extract(epoch from now())*1000)::bigint)
   from churros.customers c where c.id = p_id $$;
 
+-- v17: shifts (the till is opened and closed; each staff member sells in their own shift) and a daily order number.
+create table if not exists churros.shifts(
+  id bigint generated always as identity primary key,
+  staff_id uuid references churros.staff on delete set null,
+  opened_at timestamptz not null default now(), open_cash numeric(10,2) not null default 0,
+  closed_at timestamptz, closed_by uuid references churros.staff on delete set null,
+  counted_cash numeric(10,2), expected_cash numeric(10,2), note text, end_of_day boolean not null default false);
+create unique index if not exists shifts_one_open on churros.shifts((true)) where closed_at is null;
+alter table churros.sales add column if not exists shift_id bigint references churros.shifts on delete set null;
+alter table churros.sales add column if not exists order_no int;
+
 create or replace function churros.sale_json(p_id bigint) returns json language sql stable as $$
   select json_build_object('id', s.id, 'no', 'S-'||lpad(s.id::text, 6, '0'),
     'd', to_char(s.created_at at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI'),
@@ -273,7 +284,7 @@ create or replace function churros.sale_json(p_id bigint) returns json language 
     'discounts', coalesce((select json_agg(json_build_object('n',x.title,'a',x.amount) order by x.id) from churros.sale_discounts x where x.sale_id = s.id), '[]'::json),
     'subtotal', s.subtotal, 'discount', s.discount, 'total', s.total, 'pay', s.pay, 'cash', s.cash_given, 'change', s.change_due,
     'points', (select coalesce(sum(o.pts),0) from churros.orders o where o.sale_id = s.id),
-    'fiscal', s.fiscal_status, 'fiscalNo', s.fiscal_no, 'voided', s.voided_at is not null)
+    'fiscal', s.fiscal_status, 'fiscalNo', s.fiscal_no, 'voided', s.voided_at is not null, 'order', s.order_no, 'shift', s.shift_id)
   from churros.sales s left join churros.staff st on st.id = s.staff_id left join churros.customers c on c.id = s.customer_id
   where s.id = p_id $$;
 
@@ -565,14 +576,21 @@ end $$;
 -- p_items: [{"id":1,"qty":2}, ...]   p_codes: [{"code":"WONDER-G:V1.ab12cd34","amount":2.5}, ...] (amount only for gifts without a value)
 create or replace function public.wc_sale_create(p_token text, p_customer uuid, p_items json, p_codes json, p_pay text, p_cash numeric) returns json
 language plpgsql as $$
-declare s churros.staff := churros.staff_of(p_token); sid bigint; sub numeric := 0; disc numeric := 0; tot numeric; cust uuid := p_customer;
+declare s churros.staff := churros.staff_of(p_token); sh churros.shifts; ono int; sid bigint; sub numeric := 0; disc numeric := 0; tot numeric; cust uuid := p_customer;
   it record; cd record; m text[]; k text; i bigint; c text; r record; amt numeric; n int := 0;
 begin
   if p_pay not in ('cash','card','wolt','kitchen') then raise exception 'PAY' using errcode='P0001'; end if;
   if p_items is null or json_array_length(p_items) = 0 then raise exception 'EMPTY' using errcode='P0001'; end if;
   if json_array_length(p_items) > 60 or json_array_length(coalesce(p_codes,'[]'::json)) > 10 then raise exception 'INPUT' using errcode='P0001'; end if;
   if cust is not null and not exists (select 1 from churros.customers where id = cust) then raise exception 'NOTFOUND' using errcode='P0001'; end if;
-  insert into churros.sales(staff_id, customer_id, subtotal, discount, total, pay) values (s.id, cust, 0, 0, 0, p_pay) returning id into sid;
+  -- a sale belongs to the open shift; staff sell only in their own shift
+  select * into sh from churros.shifts where closed_at is null;
+  if sh.id is null then raise exception 'NOSHIFT' using errcode='P0001'; end if;
+  if sh.staff_id is distinct from s.id and s.role = 'staff' then raise exception 'SHIFTOTHER' using errcode='P0001'; end if;
+  -- the order number starts again at 1 every day
+  perform pg_advisory_xact_lock(7171);
+  select coalesce(max(order_no), 0) + 1 into ono from churros.sales where (created_at at time zone 'Europe/Belgrade')::date = churros.today();
+  insert into churros.sales(staff_id, customer_id, subtotal, discount, total, pay, shift_id, order_no) values (s.id, cust, 0, 0, 0, p_pay, sh.id, ono) returning id into sid;
   for it in select (x->>'id')::int pid, (x->>'qty')::int q,
       case when json_typeof(x->'sauces') = 'array' then array(select json_array_elements_text(x->'sauces')) end sc from json_array_elements(p_items) x loop
     select * into r from churros.products where id = it.pid and active and price is not null;
@@ -717,7 +735,7 @@ begin
            'today', (select json_object_agg(coalesce(pay,'other'), json_build_object('t', amt, 'n', cnt)) from (select pay, sum(total) amt, count(*) cnt from churros.tickets where (created_at at time zone 'Europe/Belgrade')::date = d group by pay) z),
            'month', (select json_object_agg(coalesce(pay,'other'), json_build_object('t', amt, 'n', cnt)) from (select pay, sum(total) amt, count(*) cnt from churros.tickets where date_trunc('month',(created_at at time zone 'Europe/Belgrade')) = date_trunc('month', d::timestamp) group by pay) z))),
       'products', coalesce((select json_agg(json_build_object('id', product_id, 'q', qq, 's', amt)) from (select product_id, sum(qty) qq, sum(line_total) amt from churros.lines where (created_at at time zone 'Europe/Belgrade')::date = d group by product_id) z), '[]'::json),
-      'feed', coalesce((select json_agg(f) from (select json_build_object('id', k.id, 'src', k.src, 't', to_char(k.created_at at time zone 'Europe/Belgrade','HH24:MI'), 'total', k.total, 'pay', k.pay,
+      'feed', coalesce((select json_agg(f) from (select json_build_object('id', k.id, 'src', k.src, 'order', case when k.src='S' then (select order_no from churros.sales where id=k.id) end, 't', to_char(k.created_at at time zone 'Europe/Belgrade','HH24:MI'), 'total', k.total, 'pay', k.pay,
             'by', st.name, 'c', case when c.id is null then null else c.name||' '||left(c.surname,1)||'.' end, 'cid', k.customer_id,
             'n', case when k.src='S' then (select string_agg(i.qty||' × '||i.name||coalesce(' ('||array_to_string(i.sauces,', ')||')',''), ', ' order by i.id) from churros.sale_items i where i.sale_id=k.id)
                       else (select o.qty||' × '||p.name from churros.orders o join churros.products p on p.id=o.product_id where o.id=k.id) end,
@@ -1029,4 +1047,61 @@ begin
   insert into churros.meta(k, v) values ('stock_v15', '1');
 end $$;
 
-insert into churros.meta(k,v) values ('version','16') on conflict (k) do update set v = excluded.v;
+-- ---------------------------------------------------------------- shifts
+create or replace function churros.shift_json(p_id bigint) returns json language sql stable as $$
+  select json_build_object('id', h.id, 'staff', st.name, 'staffId', h.staff_id,
+    'opened', to_char(h.opened_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'), 'closed', to_char(h.closed_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'),
+    'closedBy', cb.name, 'openCash', h.open_cash, 'counted', h.counted_cash, 'note', h.note, 'endOfDay', h.end_of_day,
+    'count', (select count(*) from churros.sales where shift_id = h.id and voided_at is null),
+    'voided', (select count(*) from churros.sales where shift_id = h.id and voided_at is not null),
+    'total', (select coalesce(sum(total),0) from churros.sales where shift_id = h.id and voided_at is null),
+    'discount', (select coalesce(sum(discount),0) from churros.sales where shift_id = h.id and voided_at is null),
+    'pays', (select json_build_object('card', coalesce(sum(total) filter (where pay='card'),0), 'wolt', coalesce(sum(total) filter (where pay='wolt'),0),
+             'cash', coalesce(sum(total) filter (where pay='cash'),0), 'kitchen', coalesce(sum(total) filter (where pay='kitchen'),0))
+             from churros.sales where shift_id = h.id and voided_at is null),
+    'expected', h.open_cash + (select coalesce(sum(total),0) from churros.sales where shift_id = h.id and voided_at is null and pay = 'cash'),
+    'fiscalPending', (select count(*) from churros.sales where shift_id = h.id and voided_at is null and fiscal_status <> 'done'))
+  from churros.shifts h left join churros.staff st on st.id = h.staff_id left join churros.staff cb on cb.id = h.closed_by where h.id = p_id $$;
+
+-- The open shift (if any) and what this person may do with it.
+create or replace function public.wc_shift_current(p_token text) returns json language plpgsql stable as $$
+declare s churros.staff := churros.staff_of(p_token); h churros.shifts;
+begin
+  select * into h from churros.shifts where closed_at is null;
+  return json_build_object('shift', case when h.id is null then null else churros.shift_json(h.id) end,
+    'mine', h.id is not null and h.staff_id = s.id,
+    'lastCounted', (select counted_cash from churros.shifts where closed_at is not null order by closed_at desc limit 1));
+end $$;
+
+create or replace function public.wc_shift_open(p_token text, p_cash numeric) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token);
+begin
+  if p_cash is null or p_cash < 0 or p_cash > 100000 then raise exception 'INPUT' using errcode='P0001'; end if;
+  perform pg_advisory_xact_lock(7172);
+  if exists (select 1 from churros.shifts where closed_at is null) then raise exception 'SHIFTOPEN' using errcode='P0001'; end if;
+  insert into churros.shifts(staff_id, open_cash) values (s.id, p_cash);
+  return public.wc_shift_current(p_token);
+end $$;
+
+-- Close the open shift: one's own, or anyone's for a manager / the owner. p_end: closing the till for the day.
+create or replace function public.wc_shift_close(p_token text, p_counted numeric, p_note text, p_end boolean) returns json language plpgsql as $$
+declare s churros.staff := churros.staff_of(p_token); h churros.shifts;
+begin
+  select * into h from churros.shifts where closed_at is null for update;
+  if h.id is null then raise exception 'NOSHIFT' using errcode='P0001'; end if;
+  if h.staff_id is distinct from s.id and s.role not in ('admin','manager') then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  if p_counted is null or p_counted < 0 or p_counted > 100000 or length(coalesce(p_note,'')) > 200 then raise exception 'INPUT' using errcode='P0001'; end if;
+  update churros.shifts set closed_at = now(), closed_by = s.id, counted_cash = p_counted, note = nullif(trim(coalesce(p_note,'')),''),
+    end_of_day = coalesce(p_end,false),
+    expected_cash = h.open_cash + (select coalesce(sum(total),0) from churros.sales where shift_id = h.id and voided_at is null and pay = 'cash') where id = h.id;
+  return churros.shift_json(h.id);
+end $$;
+
+create or replace function public.wc_shifts(p_token text, p_day date) returns json language plpgsql stable as $$
+declare s churros.staff := churros.staff_of(p_token, true); d date := coalesce(p_day, churros.today());
+begin
+  return coalesce((select json_agg(churros.shift_json(id) order by opened_at desc) from churros.shifts
+    where (opened_at at time zone 'Europe/Belgrade')::date = d or (closed_at is null)), '[]'::json);
+end $$;
+
+insert into churros.meta(k,v) values ('version','17') on conflict (k) do update set v = excluded.v;

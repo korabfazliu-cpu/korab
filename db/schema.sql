@@ -275,6 +275,10 @@ create table if not exists churros.shifts(
 create unique index if not exists shifts_one_open on churros.shifts((true)) where closed_at is null;
 alter table churros.sales add column if not exists shift_id bigint references churros.shifts on delete set null;
 alter table churros.sales add column if not exists order_no int;
+-- v18: closing the day needs the fiscal Z report (from the fiscal register) and the day report (thermal printer)
+alter table churros.shifts add column if not exists z_no text;
+alter table churros.shifts add column if not exists z_done_at timestamptz;
+alter table churros.shifts add column if not exists day_report_at timestamptz;
 
 create or replace function churros.sale_json(p_id bigint) returns json language sql stable as $$
   select json_build_object('id', s.id, 'no', 'S-'||lpad(s.id::text, 6, '0'),
@@ -1051,7 +1055,7 @@ end $$;
 create or replace function churros.shift_json(p_id bigint) returns json language sql stable as $$
   select json_build_object('id', h.id, 'staff', st.name, 'staffId', h.staff_id,
     'opened', to_char(h.opened_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'), 'closed', to_char(h.closed_at at time zone 'Europe/Belgrade','DD.MM HH24:MI'),
-    'closedBy', cb.name, 'openCash', h.open_cash, 'counted', h.counted_cash, 'note', h.note, 'endOfDay', h.end_of_day,
+    'closedBy', cb.name, 'zNo', h.z_no, 'zDone', h.z_done_at is not null, 'openCash', h.open_cash, 'counted', h.counted_cash, 'note', h.note, 'endOfDay', h.end_of_day,
     'count', (select count(*) from churros.sales where shift_id = h.id and voided_at is null),
     'voided', (select count(*) from churros.sales where shift_id = h.id and voided_at is not null),
     'total', (select coalesce(sum(total),0) from churros.sales where shift_id = h.id and voided_at is null),
@@ -1083,16 +1087,44 @@ begin
   return public.wc_shift_current(p_token);
 end $$;
 
--- Close the open shift: one's own, or anyone's for a manager / the owner. p_end: closing the till for the day.
-create or replace function public.wc_shift_close(p_token text, p_counted numeric, p_note text, p_end boolean) returns json language plpgsql as $$
+-- The day in one report: the fiscal part (receipts, Wolt, POS: what the Z report of the fiscal register holds) and every sale.
+create or replace function public.wc_day_report(p_token text, p_day date) returns json language plpgsql stable as $$
+declare s churros.staff := churros.staff_of(p_token); d date := coalesce(p_day, churros.today());
+begin
+  if d <> churros.today() and s.role = 'staff' then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
+  return (with x as (select * from churros.sales where (created_at at time zone 'Europe/Belgrade')::date = d)
+    select json_build_object('day', to_char(d,'DD.MM.YYYY'), 'now', to_char(now() at time zone 'Europe/Belgrade','DD.MM.YYYY HH24:MI'),
+      'pays', (select json_build_object(
+          'card', json_build_object('t', coalesce(sum(total) filter (where pay='card'),0), 'n', count(*) filter (where pay='card')),
+          'wolt', json_build_object('t', coalesce(sum(total) filter (where pay='wolt'),0), 'n', count(*) filter (where pay='wolt')),
+          'cash', json_build_object('t', coalesce(sum(total) filter (where pay='cash'),0), 'n', count(*) filter (where pay='cash')),
+          'kitchen', json_build_object('t', coalesce(sum(total) filter (where pay='kitchen'),0), 'n', count(*) filter (where pay='kitchen')))
+        from x where voided_at is null),
+      'count', (select count(*) from x where voided_at is null),
+      'total', (select coalesce(sum(total),0) from x where voided_at is null),
+      'discount', (select coalesce(sum(discount),0) from x where voided_at is null),
+      'voided', (select count(*) from x where voided_at is not null),
+      'orders', (select coalesce(max(order_no),0) from x),
+      'items', coalesce((select json_agg(json_build_object('n', n, 'q', q) order by q desc, n) from
+          (select i.name n, sum(i.qty)::int q from churros.sale_items i join x on x.id = i.sale_id where x.voided_at is null group by i.name) z), '[]'::json),
+      'shifts', coalesce((select json_agg(churros.shift_json(id) order by opened_at) from churros.shifts where (opened_at at time zone 'Europe/Belgrade')::date = d or closed_at is null), '[]'::json)));
+end $$;
+
+-- Close the open shift: one's own, or anyone's for a manager / the owner. p_end closes the day, and needs the Z report
+-- printed from the fiscal register and the day report printed on the thermal printer.
+drop function if exists public.wc_shift_close(text, numeric, text, boolean);
+create or replace function public.wc_shift_close(p_token text, p_counted numeric, p_note text, p_end boolean, p_zdone boolean, p_zno text, p_report boolean) returns json language plpgsql as $$
 declare s churros.staff := churros.staff_of(p_token); h churros.shifts;
 begin
+  if coalesce(p_end,false) and not (coalesce(p_zdone,false) and coalesce(p_report,false)) then raise exception 'ZREPORT' using errcode='P0001'; end if;
+  if length(coalesce(p_zno,'')) > 40 then raise exception 'INPUT' using errcode='P0001'; end if;
   select * into h from churros.shifts where closed_at is null for update;
   if h.id is null then raise exception 'NOSHIFT' using errcode='P0001'; end if;
   if h.staff_id is distinct from s.id and s.role not in ('admin','manager') then raise exception 'FORBIDDEN' using errcode='P0001'; end if;
   if p_counted is null or p_counted < 0 or p_counted > 100000 or length(coalesce(p_note,'')) > 200 then raise exception 'INPUT' using errcode='P0001'; end if;
   update churros.shifts set closed_at = now(), closed_by = s.id, counted_cash = p_counted, note = nullif(trim(coalesce(p_note,'')),''),
     end_of_day = coalesce(p_end,false),
+    z_no = case when p_end then nullif(trim(coalesce(p_zno,'')),'') end, z_done_at = case when p_end then now() end, day_report_at = case when p_end then now() end,
     expected_cash = h.open_cash + (select coalesce(sum(total),0) from churros.sales where shift_id = h.id and voided_at is null and pay = 'cash') where id = h.id;
   return churros.shift_json(h.id);
 end $$;
@@ -1104,4 +1136,4 @@ begin
     where (opened_at at time zone 'Europe/Belgrade')::date = d or (closed_at is null)), '[]'::json);
 end $$;
 
-insert into churros.meta(k,v) values ('version','17') on conflict (k) do update set v = excluded.v;
+insert into churros.meta(k,v) values ('version','18') on conflict (k) do update set v = excluded.v;

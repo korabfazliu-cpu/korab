@@ -218,6 +218,7 @@ select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);b
 .live2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
 @media (max-width:899px){.live2{grid-template-columns:minmax(0,1fr)}}
 /* ---- shifts & order ticket ---- */
+.newv{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9999;border:0;border-radius:999px;padding:14px 22px;background:#1d7a3a;color:#fff;font:inherit;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:pointer;max-width:92vw}
 .dstep{border-left-width:6px}.dstep.done{border-color:#1d7a3a;background:#f2fbf4}.dstep input[type=text]{margin:8px 0 4px!important}
 .oticket .rr{display:flex;justify-content:space-between;gap:8px;font-size:13px}.oticket .rr.big{font-size:16px;font-weight:800}
 .shbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px;padding:10px 14px;border-radius:16px;background:#e3f5e8;border:2px solid #b9e2c4}
@@ -460,9 +461,13 @@ const IC={home:'<svg viewBox="0 0 24 24"><path class="ih" d="M3.5 11 12 3.5 20.5
 const STAFF_APP=/^\/admin(\/|$)/.test(location.pathname)||location.hash==='#admin';
 // ---- connection with the server (/api/rpc) ----
 const ERR={PIN:'PIN-i nuk është i saktë.',LOCKED:'Shumë përpjekje të gabuara. Provo përsëri pas 15 minutash.',NOTFOUND:'Nuk u gjet.',EMAIL:'Shkruaj një email të vlefshëm.',NAME:'Shkruaj emrin dhe mbiemrin.',EXISTS:'Ky email është i regjistruar tashmë.',NAMEEXISTS:'Ky emër ekziston tashmë.',NOSHIFT:'Arka është e mbyllur. Hape arkën për të shitur.',SHIFTOTHER:'Arka është e hapur nga një staf tjetër.',SHIFTOPEN:'Arka është hapur tashmë nga dikush tjetër. Rifresko.',ZREPORT:'Printo Z-raportin nga arka fiskale dhe raportin ditor para mbylljes së ditës.',SAUCES:'Zgjidh dip-et për çdo produkt.',SESSION:'Seanca skadoi. Hyr përsëri.',FORBIDDEN:'Nuk ke qasje.',INPUT:'Të dhëna të pavlefshme.',UNDO:'Kjo blerje nuk mund të anulohet më.',USED:'Ky kod është shfrytëzuar tashmë.',EXPIRED:'Oferta ka skaduar.',PHONE:'Shkruaj një numër të vlefshëm, p.sh. +383 44 123 456.',DATE:'Data nuk është e vlefshme.',OLDPIN:'PIN-i aktual nuk është i saktë.',PCT:'Shkruaj përqindjen (1–100).',AMOUNT:'Shkruaj shumën në € (deri 500).',TARGETS:'Zgjidh të paktën një klient.',DONE:'Admini është krijuar tashmë.',CODE:'Ky kod nuk është i vlefshëm.',EMPTY:'Shporta është bosh.',PAY:'Zgjidh mënyrën e pagesës.',CASH:'Paratë e marra janë më pak se totali.',OTHERCUST:'Kodet duhet të jenë të të njëjtit klient.',NOTFOUND:'Klienti nuk u gjet.',SETUPCODE:'Kodi i konfigurimit nuk është i saktë.',NET:'S\'ka lidhje me serverin. Kontrollo internetin.',NODB:'Baza e të dhënave nuk është lidhur ende.',SERVER:'Gabim në server. Provo përsëri.'};
-const errText=e=>ERR[e&&e.message]||ERR.SERVER;
+const errText=e=>ERR[e&&e.message]||(e&&e.message&&e.message!=='SERVER'&&/^[A-Z]+$/.test(e.message)?'Ndodhi një gabim ('+e.message+'). Rifresko faqen dhe provo sërish.':ERR.SERVER);
+// A page left open keeps old code after a new version is published: offer a refresh as soon as the server says so.
+let APPV=null,NEWV=false;
+function checkVersion(v){if(!v)return;if(APPV==null){APPV=v;return}if(v!==APPV&&!NEWV){NEWV=true;const b=document.createElement('button');b.className='newv';b.textContent='🔄 Ka version të ri të app-it · Prek për ta rifreskuar';b.onclick=()=>location.reload();document.body.appendChild(b)}}
 async function api(fn,args){let r;
  try{r=await fetch('/api/rpc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args:args||{}})})}catch(e){throw new Error('NET')}
+ checkVersion(r.headers.get('X-App-Version'));
  let j={};try{j=await r.json()}catch(e){}
  if(!r.ok||j.error){const er=new Error(j.error||'SERVER');if(er.message==='SESSION')onSession();throw er}
  return j.data}

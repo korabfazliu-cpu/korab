@@ -93,6 +93,8 @@ function send(res, code, body) {
   res.statusCode = code;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
+  // lets an open page notice that a newer version was published
+  res.setHeader('X-App-Version', process.env.VERCEL_GIT_COMMIT_SHA || SCHEMA_VERSION);
   res.end(JSON.stringify(body));
 }
 
